@@ -96,8 +96,8 @@
     {{-- Topbalk: alleen mobiel --}}
     <header x-data="{ more: false }" x-on:keydown.escape.window="more = false"
             class="sticky top-0 z-20 flex items-center gap-2 bg-brand-700 pb-2 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(.5rem,env(safe-area-inset-right))] pt-[calc(env(safe-area-inset-top)+.5rem)] text-white shadow-md md:hidden dark:bg-brand-950">
-        <a href="{{ $link('dashboard') }}" wire:navigate><img src="{{ asset('images/logo.png') }}"
-                                                              alt="{{ config('app.name') }}" class="size-10"></a>
+        <a href="{{ $link('dashboard') }}" wire:navigate>
+            <img src="{{ asset('storage/assets/logo.png') }}" alt="{{ config('app.name') }}" class="size-10"></a>
         <span
             class="min-w-0 flex-1 truncate font-display text-xl font-extrabold uppercase tracking-wide">{{ $current }}</span>
         <x-theme-toggle/>

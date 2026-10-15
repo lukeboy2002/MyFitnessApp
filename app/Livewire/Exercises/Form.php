@@ -82,7 +82,7 @@ class Form extends Component
         return $this->redirectRoute('exercises.show', $exercise, navigate: true);
     }
 
-    #[Layout('components.layouts.app')]
+    #[Layout('layouts.app')]
     #[Title('Oefening')]
     public function render()
     {

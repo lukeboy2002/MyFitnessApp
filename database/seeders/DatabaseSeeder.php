@@ -29,5 +29,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'antoine@myfitness.test',
             'password' => bcrypt('password'),
         ]);
+
+        $this->call(BodyPartSeeder::class); // lichaamsdelen, spiergroepen, spieren
     }
 }
