@@ -50,6 +50,10 @@ class FortifyServiceProvider extends ServiceProvider
             return null;
         });
 
+        Fortify::confirmPasswordsUsing(function (User $user, ?string $password): bool {
+            return Hash::check((string) $password, $user->password);
+        });
+
         // Views met de guest-layout
         Fortify::loginView(fn () => view('auth.login'));
         Fortify::registerView(fn () => view('auth.register'));
