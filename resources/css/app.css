@@ -2,8 +2,56 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../views';
+@source '../../app/Livewire';
+@source '../../config/ui.php';
+
+/* Dark mode via .dark class on <html> (light / dark / system wordt door Alpine geregeld) */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Barlow', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Barlow Condensed', 'Arial Narrow', ui-sans-serif, sans-serif;
+
+    /* Blauw uit het logo */
+    --color-brand-50: #eef5ff;
+    --color-brand-100: #d9e8fc;
+    --color-brand-200: #b9d3f7;
+    --color-brand-300: #8bb6f0;
+    --color-brand-400: #5b9bec;
+    --color-brand-500: #3f82dd;
+    --color-brand-600: #1d63c5;
+    --color-brand-700: #00468c;
+    --color-brand-800: #04386f;
+    --color-brand-900: #071f3f;
+    --color-brand-950: #071730;
+
+    /* Geel/oranje uit het logo */
+    --color-accent-300: #ffd866;
+    --color-accent-400: #ffbc04;
+    --color-accent-500: #f5a400;
+    --color-fire-400: #fb8a3c;
+    --color-fire-500: #f97316;
+    --color-fire-600: #e5650f;
+
+    /* Type-kleuren */
+    --color-cardio: #0e8ad6;
+    --color-strength: #e5650f;
+
+    /* Vlakken */
+    --color-ink: #0b1f3f;
+    --color-canvas: #eef3fa;
+    --color-canvas-dark: #0a1222;
+    --color-panel-dark: #111c31;
+    --color-line-dark: #24344f;
+}
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
 }
