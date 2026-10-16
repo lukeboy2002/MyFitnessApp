@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Muscles;
 
+use App\Livewire\Concerns\ConfirmsDeletion;
 use App\Livewire\Concerns\ManagesMasterData;
 use App\Models\Muscle;
 use App\Models\MuscleGroup;
@@ -17,7 +18,7 @@ use Livewire\Component;
 #[Title('Muscles')]
 class Index extends Component
 {
-    use ManagesMasterData;
+    use ConfirmsDeletion, ManagesMasterData;
 
     #[Url(as: 'groep')]
     public ?int $groupFilter = null;
@@ -74,6 +75,11 @@ class Index extends Component
 
         $this->done("{$muscle->name} is opgeslagen.");
         unset($this->muscles);
+    }
+
+    protected function deletableModel(): string
+    {
+        return Muscle::class;
     }
 
     public function delete(int $id): void

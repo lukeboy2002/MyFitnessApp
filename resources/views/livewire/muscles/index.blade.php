@@ -34,8 +34,7 @@
                             @can('update', $muscle)
                                 <div class="flex shrink-0 gap-1">
                                     <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $muscle->id }})">Bewerken</x-button>
-                                    <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="delete({{ $muscle->id }})"
-                                              wire:confirm="{{ $muscle->name }} verwijderen?" aria-label="Verwijderen" />
+                                    <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="confirmDelete({{ $muscle->id }})" aria-label="Verwijderen" />
                                 </div>
                             @endcan
                         </li>
@@ -67,4 +66,6 @@
             <x-button form="muscle-form" icon="check" loading="save">Opslaan</x-button>
         </x-slot:footer>
     </x-modal>
+
+    <x-confirm-delete :name="$deletingName" />
 </div>

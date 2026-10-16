@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
@@ -39,7 +40,11 @@ class MuscleGroup extends Model
         return $this->hasMany(Muscle::class)->orderBy('sort_order')->orderBy('name');
     }
 
-    // Later (stap 4/5):
-    // public function exercises(): BelongsToMany { return $this->belongsToMany(Exercise::class)->withPivot('is_primary'); }
+    public function exercises(): BelongsToMany
+    {
+        return $this->belongsToMany(Exercise::class)->withPivot('is_primary');
+    }
+
+    // Later (stap 5):
     // public function workouts(): BelongsToMany { return $this->belongsToMany(Workout::class); }
 }

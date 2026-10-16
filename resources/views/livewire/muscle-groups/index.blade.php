@@ -48,8 +48,7 @@
                         @can('update', $group)
                             <div class="flex gap-1">
                                 <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $group->id }})">Bewerken</x-button>
-                                <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="delete({{ $group->id }})"
-                                          wire:confirm="{{ $group->name }} verwijderen?" aria-label="Verwijderen" />
+                                <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="confirmDelete({{ $group->id }})" aria-label="Verwijderen" />
                             </div>
                         @endcan
                     </div>
@@ -97,4 +96,6 @@
             <x-button form="muscle-group-form" icon="check" loading="save">Opslaan</x-button>
         </x-slot:footer>
     </x-modal>
+
+    <x-confirm-delete :name="$deletingName" />
 </div>

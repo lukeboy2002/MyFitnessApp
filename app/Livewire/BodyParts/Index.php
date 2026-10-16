@@ -2,6 +2,7 @@
 
 namespace App\Livewire\BodyParts;
 
+use App\Livewire\Concerns\ConfirmsDeletion;
 use App\Livewire\Concerns\ManagesMasterData;
 use App\Models\BodyPart;
 use Illuminate\Support\Arr;
@@ -16,7 +17,7 @@ use Livewire\Component;
 #[Title('BodyParts')]
 class Index extends Component
 {
-    use ManagesMasterData;
+    use ConfirmsDeletion, ManagesMasterData;
 
     public string $name = '';
 
@@ -66,6 +67,11 @@ class Index extends Component
 
         $this->done("{$bodyPart->name} is opgeslagen.");
         unset($this->bodyParts);
+    }
+
+    protected function deletableModel(): string
+    {
+        return BodyPart::class;
     }
 
     public function delete(int $id): void

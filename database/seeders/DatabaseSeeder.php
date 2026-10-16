@@ -31,5 +31,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(BodyPartSeeder::class); // lichaamsdelen, spiergroepen, spieren
+        $this->call(ExerciseSeeder::class); // standaardoefeningen (na de spiergroepen)
     }
 }

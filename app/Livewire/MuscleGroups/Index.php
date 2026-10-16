@@ -2,6 +2,7 @@
 
 namespace App\Livewire\MuscleGroups;
 
+use App\Livewire\Concerns\ConfirmsDeletion;
 use App\Livewire\Concerns\ManagesMasterData;
 use App\Models\BodyPart;
 use App\Models\MuscleGroup;
@@ -18,7 +19,7 @@ use Livewire\Component;
 #[Title('MuscleGroups')]
 class Index extends Component
 {
-    use ManagesMasterData;
+    use ConfirmsDeletion, ManagesMasterData;
 
     /** Kleuren uit het logo + aanvullende, goed leesbare tinten */
     public const COLORS = ['#1d63c5', '#00468c', '#0e8ad6', '#0e9f8a', '#65a30d', '#d4a106', '#f97316', '#e5650f', '#db3f6b', '#8b5cf6', '#64748b'];
@@ -84,13 +85,24 @@ class Index extends Component
         unset($this->muscleGroups);
     }
 
+    protected function deletableModel(): string
+    {
+        return MuscleGroup::class;
+    }
+
     public function delete(int $id): void
     {
-        $group = MuscleGroup::visibleTo(Auth::user())->withCount('muscles')->findOrFail($id);
+        $group = MuscleGroup::visibleTo(Auth::user())->withCount('muscles', 'exercises')->findOrFail($id);
         $this->authorize('delete', $group);
 
         if ($group->muscles_count > 0) {
             $this->fail("{$group->name} heeft nog {$group->muscles_count} spier(en). Verplaats of verwijder die eerst.");
+
+            return;
+        }
+
+        if ($group->exercises_count > 0) {
+            $this->fail("{$group->name} hoort nog bij {$group->exercises_count} oefening(en). Haal hem daar eerst weg.");
 
             return;
         }
