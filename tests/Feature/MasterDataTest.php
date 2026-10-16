@@ -9,6 +9,8 @@ use App\Models\MuscleGroup;
 use App\Models\User;
 use Database\Seeders\BodyPartSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -119,4 +121,107 @@ test('muscle group colors must be hex codes', function () {
         ->set('color', 'rood')
         ->call('save')
         ->assertHasErrors(['color']);
+});
+
+test('standard body parts show their picture', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('bodyparts/chest.png', 'png');
+    Storage::disk('public')->put('bodyparts/full-body.png', 'png');
+    $this->seed(BodyPartSeeder::class);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('body-parts.index'))
+        ->assertOk()
+        ->assertSee('/storage/bodyparts/chest.png')
+        ->assertSee('/storage/bodyparts/full-body.png');
+});
+
+test('own body parts have no picture', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('bodyparts/chest.png', 'png');
+    $part = BodyPart::factory()->for(User::factory())->create(['slug' => 'chest']);
+
+    expect($part->imageUrl())->toBeNull();
+});
+
+test('standard muscle groups show their picture', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('musclegroups/chest.png', 'png');
+    $this->seed(BodyPartSeeder::class);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('muscle-groups.index'))
+        ->assertOk()
+        ->assertSee('/storage/musclegroups/chest.png');
+
+    expect(MuscleGroup::factory()->for(User::factory())->create(['slug' => 'chest'])->imageUrl())->toBeNull();
+});
+
+test('users can upload a picture for their own body part', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(BodyPartsIndex::class)
+        ->call('create')
+        ->set('name', 'Nek')
+        ->set('icon', 'fiber')
+        ->set('image', UploadedFile::fake()->image('nek.png', 300, 300))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $part = BodyPart::sole();
+
+    expect($part->icon)->toBe('fiber')
+        ->and($part->image_path)->toStartWith('bodyparts/')
+        ->and($part->imageUrl())->toContain($part->image_path);
+    Storage::disk('public')->assertExists($part->image_path);
+});
+
+test('replacing or removing a picture deletes the old file', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+    $group = MuscleGroup::factory()->for($user)->for(BodyPart::factory()->for($user))->create();
+
+    $component = Livewire::actingAs($user)->test(MuscleGroupsIndex::class)
+        ->call('edit', $group->id)
+        ->set('image', UploadedFile::fake()->image('eerste.png'))
+        ->call('save')
+        ->assertHasNoErrors();
+    $first = $group->fresh()->image_path;
+
+    $component->call('edit', $group->id)
+        ->assertSet('currentImage', Storage::disk('public')->url($first))
+        ->set('image', UploadedFile::fake()->image('tweede.png'))
+        ->call('save');
+    $second = $group->fresh()->image_path;
+
+    Storage::disk('public')->assertMissing($first);
+    Storage::disk('public')->assertExists($second);
+
+    $component->call('edit', $group->id)->call('deleteImage')->call('save');
+
+    expect($group->fresh()->image_path)->toBeNull();
+    Storage::disk('public')->assertMissing($second);
+});
+
+test('deleting a body part also deletes its picture', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+    Storage::disk('public')->put('bodyparts/eigen.png', 'png');
+    $part = BodyPart::factory()->for($user)->create(['image_path' => 'bodyparts/eigen.png']);
+
+    Livewire::actingAs($user)->test(BodyPartsIndex::class)->call('delete', $part->id);
+
+    Storage::disk('public')->assertMissing('bodyparts/eigen.png');
+});
+
+test('only images are accepted as picture', function () {
+    Storage::fake('public');
+
+    Livewire::actingAs(User::factory()->create())->test(BodyPartsIndex::class)
+        ->call('create')
+        ->set('name', 'Nek')
+        ->set('image', UploadedFile::fake()->create('nek.pdf', 100, 'application/pdf'))
+        ->assertHasErrors(['image'])
+        ->assertSet('image', null);
 });

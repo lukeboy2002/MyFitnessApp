@@ -17,10 +17,10 @@ class BodyPartSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach ($this->data() as $bpOrder => [$bodyPartName, $groups]) {
+        foreach ($this->data() as $bpOrder => [$bodyPartName, $groups, $bodyPartIcon]) {
             $bodyPart = BodyPart::updateOrCreate(
                 ['user_id' => null, 'slug' => str($bodyPartName)->slug()],
-                ['name' => $bodyPartName, 'sort_order' => $bpOrder],
+                ['name' => $bodyPartName, 'icon' => $bodyPartIcon, 'sort_order' => $bpOrder],
             );
 
             foreach ($groups as $mgOrder => [$groupName, $color, $icon, $muscles]) {
@@ -40,7 +40,7 @@ class BodyPartSeeder extends Seeder
     }
 
     /**
-     * [lichaamsdeel, [[spiergroep, kleur, icoon, [[spier, latijnse naam], ...]], ...]]
+     * [lichaamsdeel, [[spiergroep, kleur, icoon, [[spier, latijnse naam], ...]], ...], icoon]
      * De spieren hebben al een Latijnse naam, daarom is latin_name leeg.
      */
     private function data(): array
@@ -51,7 +51,7 @@ class BodyPartSeeder extends Seeder
                     ['Sternocleidomastoideus', null],
                     ['Levator scapulae', null],
                 ]],
-            ]],
+            ], 'fiber'],
             ['Shoulders', [
                 ['Front Delts', '#8b5cf6', 'arm', [
                     ['Deltoideus (anterior)', null],
@@ -68,13 +68,13 @@ class BodyPartSeeder extends Seeder
                     ['Teres minor', null],
                     ['Subscapularis', null],
                 ]],
-            ]],
+            ], 'arm'],
             ['Chest', [
                 ['Chest', '#e5650f', 'dumbbell', [
                     ['Pectoralis major', null],
                     ['Pectoralis minor', null],
                 ]],
-            ]],
+            ], 'dumbbell'],
             ['Back', [
                 ['Upper Back', '#1d63c5', 'body', [
                     ['Teres major', null],
@@ -92,7 +92,7 @@ class BodyPartSeeder extends Seeder
                     ['Erector spinae', null],
                     ['Multifidus', null],
                 ]],
-            ]],
+            ], 'body'],
             ['Arms', [
                 ['Biceps', '#0e9f8a', 'arm', [
                     ['Biceps brachii', null],
@@ -106,7 +106,7 @@ class BodyPartSeeder extends Seeder
                 ]],
                 ['Forearm Extensors', '#0e9f8a', 'arm', [
                 ]],
-            ]],
+            ], 'arm'],
             ['Core', [
                 ['Abs', '#db3f6b', 'fiber', [
                     ['Rectus abdominis', null],
@@ -119,7 +119,7 @@ class BodyPartSeeder extends Seeder
                 ['Serratus Anterior', '#db3f6b', 'fiber', [
                     ['Serratus anterior', null],
                 ]],
-            ]],
+            ], 'fiber'],
             ['Glutes', [
                 ['Glutes', '#65a30d', 'body', [
                     ['Gluteus maximus', null],
@@ -129,7 +129,7 @@ class BodyPartSeeder extends Seeder
                     ['Gluteus minimus', null],
                     ['Tensor fasciae latae', null],
                 ]],
-            ]],
+            ], 'body'],
             ['Legs', [
                 ['Hip Flexors', '#d4a106', 'run', [
                     ['Iliopsoas', null],
@@ -159,7 +159,11 @@ class BodyPartSeeder extends Seeder
                 ['Tibialis Anterior', '#d4a106', 'run', [
                     ['Tibialis anterior', null],
                 ]],
-            ]],
+            ], 'run'],
+            ['Full Body', [
+                ['Full Body', '#0e8ad6', 'bolt', []],
+                ['Cardio', '#f97316', 'heart', []],
+            ], 'bolt'],
         ];
     }
 }

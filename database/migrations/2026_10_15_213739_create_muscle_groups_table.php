@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('slug');
             $table->string('color', 7)->default('#1d63c5'); // hex, voor badges en chips
             $table->string('icon')->nullable();             // naam uit <x-icon>
+            $table->string('image_path')->nullable();       // eigen plaatje op de public disk
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
 

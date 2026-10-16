@@ -5,6 +5,7 @@ namespace App\Livewire\MuscleGroups;
 use App\Livewire\Concerns\ManagesMasterData;
 use App\Models\BodyPart;
 use App\Models\MuscleGroup;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -21,8 +22,6 @@ class Index extends Component
 
     /** Kleuren uit het logo + aanvullende, goed leesbare tinten */
     public const COLORS = ['#1d63c5', '#00468c', '#0e8ad6', '#0e9f8a', '#65a30d', '#d4a106', '#f97316', '#e5650f', '#db3f6b', '#8b5cf6', '#64748b'];
-
-    public const ICONS = ['arm' => 'Arm', 'body' => 'Lichaam', 'dumbbell' => 'Dumbbell', 'fiber' => 'Spier', 'run' => 'Hardlopen', 'heart' => 'Hart', 'bolt' => 'Kracht'];
 
     #[Url(as: 'deel')]
     public ?int $bodyPartFilter = null;
@@ -53,7 +52,7 @@ class Index extends Component
         $this->authorize('update', $group);
 
         $this->fill($group->only('body_part_id', 'name', 'color', 'icon', 'sort_order'));
-        $this->openForm($group->id);
+        $this->openForm($group->id, $group->imageUrl());
     }
 
     public function save(): void
@@ -65,8 +64,9 @@ class Index extends Component
             'name' => ['required', 'string', 'max:60'],
             'color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'icon' => ['nullable', Rule::in(array_keys(self::ICONS))],
+            ...$this->imageRules(),
             'sort_order' => ['required', 'integer', 'between:0,999'],
-        ], attributes: ['body_part_id' => 'lichaamsdeel', 'name' => 'naam', 'color' => 'kleur', 'sort_order' => 'volgorde']);
+        ], attributes: ['body_part_id' => 'lichaamsdeel', 'name' => 'naam', 'color' => 'kleur', 'icon' => 'icoon', 'image' => 'plaatje', 'sort_order' => 'volgorde']);
 
         if ($this->editingId) {
             $group = MuscleGroup::findOrFail($this->editingId);
@@ -76,7 +76,9 @@ class Index extends Component
             $group = new MuscleGroup(['user_id' => $user->id]);
         }
 
-        $group->fill([...$data, 'slug' => MuscleGroup::uniqueSlug($data['name'], $user->id, $group->id)])->save();
+        $group->fill([...Arr::except($data, 'image'), 'slug' => MuscleGroup::uniqueSlug($data['name'], $user->id, $group->id)]);
+        $this->applyImage($group, 'musclegroups');
+        $group->save();
 
         $this->done("{$group->name} is opgeslagen.");
         unset($this->muscleGroups);
@@ -93,6 +95,7 @@ class Index extends Component
             return;
         }
 
+        $this->deleteStoredImage($group);
         $group->delete();
         $this->done("{$group->name} is verwijderd.");
         unset($this->muscleGroups);

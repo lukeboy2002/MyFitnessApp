@@ -20,28 +20,41 @@
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         @forelse ($this->muscleGroups as $group)
-            <x-card wire:key="mg-{{ $group->id }}" :padding="false" class="flex flex-col">
-                <div class="flex items-center gap-3 px-5 pt-5">
-                    <span class="grid size-12 shrink-0 place-items-center rounded-2xl text-white shadow-sm" style="background-color: {{ $group->color }}">
-                        <x-icon :name="$group->icon ?? 'arm'" class="size-6" />
-                    </span>
-                    <div class="min-w-0 flex-1">
-                        <h3 class="truncate font-display text-xl font-bold uppercase">{{ $group->name }}</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ $group->bodyPart->name }} · {{ $group->muscles_count }} {{ $group->muscles_count === 1 ? 'spier' : 'spieren' }}</p>
+            <article wire:key="mg-{{ $group->id }}" style="--c: {{ $group->color }}"
+                     class="flex overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 sm:flex-col dark:bg-panel-dark dark:ring-line-dark">
+                <div class="flex h-32 w-32 shrink-0 items-end justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_30%,white,color-mix(in_oklab,var(--c)_22%,var(--color-canvas))_80%)] sm:h-40 sm:w-auto dark:bg-[radial-gradient(circle_at_50%_30%,#1b2a45,color-mix(in_oklab,var(--c)_30%,var(--color-canvas-dark))_85%)]">
+                    @if ($picture = $group->imageUrl())
+                        <img src="{{ $picture }}" alt="" loading="lazy" class="max-h-[88%] max-w-[85%] object-contain object-bottom drop-shadow-[0_6px_10px_rgba(0,30,70,.18)]">
+                    @else
+                        <span class="my-auto grid size-14 place-items-center rounded-2xl text-white shadow-sm" style="background-color: {{ $group->color }}">
+                            <x-icon :name="$group->icon ?? 'arm'" class="size-7" />
+                        </span>
+                    @endif
+                </div>
+                <div class="flex min-w-0 flex-1 flex-col gap-2 p-4 sm:p-5">
+                    <div class="flex flex-wrap items-start gap-2">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-xl text-white" style="background-color: {{ $group->color }}">
+                            <x-icon :name="$group->icon ?? 'arm'" class="size-5" />
+                        </span>
+                        <h3 class="grow self-center font-display text-lg font-bold uppercase sm:text-xl">{{ $group->name }}</h3>
+                        <x-badge :color="$group->isStandard() ? 'gray' : 'brand'">{{ $group->isStandard() ? 'Standaard' : 'Eigen' }}</x-badge>
                     </div>
-                    <x-badge :color="$group->isStandard() ? 'gray' : 'brand'">{{ $group->isStandard() ? 'Standaard' : 'Eigen' }}</x-badge>
+                    <p class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <span class="size-2.5 shrink-0 rounded-full" style="background-color: {{ $group->color }}"></span>
+                        {{ $group->bodyPart->name }} · {{ $group->muscles_count }} {{ $group->muscles_count === 1 ? 'spier' : 'spieren' }}
+                    </p>
+                    <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
+                        <a href="{{ route('muscles.index', ['groep' => $group->id]) }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Spieren bekijken</a>
+                        @can('update', $group)
+                            <div class="flex gap-1">
+                                <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $group->id }})">Bewerken</x-button>
+                                <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="delete({{ $group->id }})"
+                                          wire:confirm="{{ $group->name }} verwijderen?" aria-label="Verwijderen" />
+                            </div>
+                        @endcan
+                    </div>
                 </div>
-                <div class="mt-auto flex items-center justify-between gap-2 px-5 pb-4 pt-4">
-                    <a href="{{ route('muscles.index', ['groep' => $group->id]) }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Spieren bekijken</a>
-                    @can('update', $group)
-                        <div class="flex gap-1">
-                            <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $group->id }})">Bewerken</x-button>
-                            <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="delete({{ $group->id }})"
-                                      wire:confirm="{{ $group->name }} verwijderen?" aria-label="Verwijderen" />
-                        </div>
-                    @endcan
-                </div>
-            </x-card>
+            </article>
         @empty
             <p class="text-slate-500 sm:col-span-2 xl:col-span-3">Geen spiergroepen gevonden.</p>
         @endforelse
@@ -75,6 +88,9 @@
                 <span class="text-sm text-slate-500 dark:text-slate-400">Voorbeeld</span>
                 <x-badge :hex="$color">{{ $name ?: 'Spiergroep' }}</x-badge>
             </div>
+
+            <x-form.image-upload label="Plaatje" wire:model="image" class="sm:col-span-2" hint="PNG met transparante achtergrond werkt het mooist · max 2 MB"
+                                 :preview="$image?->temporaryUrl() ?? $currentImage" remove="deleteImage" />
         </form>
         <x-slot:footer>
             <x-button variant="ghost" type="button" wire:click="closeForm">Annuleren</x-button>

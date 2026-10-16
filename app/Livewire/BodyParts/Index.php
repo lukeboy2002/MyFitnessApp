@@ -4,7 +4,9 @@ namespace App\Livewire\BodyParts;
 
 use App\Livewire\Concerns\ManagesMasterData;
 use App\Models\BodyPart;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -18,12 +20,14 @@ class Index extends Component
 
     public string $name = '';
 
+    public ?string $icon = 'body';
+
     public int $sort_order = 0;
 
     public function create(): void
     {
         $this->authorize('create', BodyPart::class);
-        $this->reset('name');
+        $this->reset('name', 'icon');
         $this->sort_order = (int) BodyPart::visibleTo(Auth::user())->max('sort_order') + 1;
         $this->openForm();
     }
@@ -33,16 +37,18 @@ class Index extends Component
         $bodyPart = BodyPart::visibleTo(Auth::user())->findOrFail($id);
         $this->authorize('update', $bodyPart);
 
-        $this->fill($bodyPart->only('name', 'sort_order'));
-        $this->openForm($bodyPart->id);
+        $this->fill($bodyPart->only('name', 'icon', 'sort_order'));
+        $this->openForm($bodyPart->id, $bodyPart->imageUrl());
     }
 
     public function save(): void
     {
         $data = $this->validate([
             'name' => ['required', 'string', 'max:60'],
+            'icon' => ['nullable', Rule::in(array_keys(self::ICONS))],
+            ...$this->imageRules(),
             'sort_order' => ['required', 'integer', 'between:0,999'],
-        ], attributes: ['name' => 'naam', 'sort_order' => 'volgorde']);
+        ], attributes: ['name' => 'naam', 'icon' => 'icoon', 'image' => 'plaatje', 'sort_order' => 'volgorde']);
 
         $user = Auth::user();
 
@@ -54,7 +60,9 @@ class Index extends Component
             $bodyPart = new BodyPart(['user_id' => $user->id]);
         }
 
-        $bodyPart->fill([...$data, 'slug' => BodyPart::uniqueSlug($data['name'], $user->id, $bodyPart->id)])->save();
+        $bodyPart->fill([...Arr::except($data, 'image'), 'slug' => BodyPart::uniqueSlug($data['name'], $user->id, $bodyPart->id)]);
+        $this->applyImage($bodyPart, 'bodyparts');
+        $bodyPart->save();
 
         $this->done("{$bodyPart->name} is opgeslagen.");
         unset($this->bodyParts);
@@ -71,6 +79,7 @@ class Index extends Component
             return;
         }
 
+        $this->deleteStoredImage($bodyPart);
         $bodyPart->delete();
         $this->done("{$bodyPart->name} is verwijderd.");
         unset($this->bodyParts);
