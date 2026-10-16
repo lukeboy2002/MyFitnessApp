@@ -29,7 +29,8 @@ return new class extends Migration
             $table->unsignedSmallInteger('default_reps')->nullable();
             $table->decimal('default_weight', 6, 2)->nullable();
             $table->unsignedInteger('default_duration_seconds')->nullable();
-            $table->unsignedTinyInteger('default_intensity')->nullable();
+            $table->string('default_metric', 20)->nullable();          // cardio: App\Enums\CardioMetric
+            $table->decimal('default_metric_value', 5, 1)->nullable();  // bv. weerstand 8 of 10,5 km/h
 
             $table->timestamp('archived_at')->nullable();
             $table->timestamps();

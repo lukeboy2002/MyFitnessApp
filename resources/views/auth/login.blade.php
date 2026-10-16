@@ -27,7 +27,7 @@
     <x-button variant="secondary" block icon="key" type="button" :data-passkey-login="config('fortify.home')">Inloggen
         met passkey
     </x-button>
-    <x-alert type="danger" id="passkey-error" class="mt-3" hidden>Inloggen met passkey is niet gelukt. Probeer het
+    <x-alert type="danger" id="passkey-error" :dismissible="false" class="mt-3" hidden>Inloggen met passkey is niet gelukt. Probeer het
         opnieuw of gebruik je wachtwoord.
     </x-alert>
 

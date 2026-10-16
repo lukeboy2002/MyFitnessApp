@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Exercises;
 
+use App\Enums\CardioMetric;
 use App\Enums\Equipment;
 use App\Enums\ExerciseType;
 use App\Livewire\Concerns\HandlesImageUpload;
@@ -48,7 +49,9 @@ class Form extends Component
 
     public ?int $default_minutes = null;  // cardio
 
-    public ?int $default_intensity = null;
+    public ?string $default_metric = null;  // cardio: weerstand, niveau of snelheid
+
+    public $default_metric_value = null;
 
     public function mount(?Exercise $exercise = null): void
     {
@@ -61,7 +64,9 @@ class Form extends Component
         $this->authorize('update', $exercise);
         $this->exercise = $exercise;
 
-        $this->fill($exercise->only('name', 'default_sets', 'default_reps', 'default_weight', 'default_intensity'));
+        $this->fill($exercise->only('name', 'default_sets', 'default_reps', 'default_weight'));
+        $this->default_metric = $exercise->default_metric?->value;
+        $this->default_metric_value = filled($exercise->default_metric_value) ? rtrim(rtrim((string) $exercise->default_metric_value, '0'), '.') : null;
         $this->description = $exercise->description ?? '';
         $this->type = $exercise->type->value;
         $this->equipment = $exercise->equipment?->value ?? 'none';
@@ -105,6 +110,7 @@ class Form extends Component
     {
         $user = Auth::user();
         $type = $this->type;
+        $this->default_metric_value = is_string($this->default_metric_value) ? str_replace(',', '.', trim($this->default_metric_value)) : $this->default_metric_value;
         $visibleGroup = Rule::exists('muscle_groups', 'id')->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', $user->id));
 
         $data = $this->validate([
@@ -123,12 +129,13 @@ class Form extends Component
             'default_weight' => ['nullable', 'numeric', $type === 'bodyweight' ? 'between:-200,200' : 'between:0,999'],
             'default_seconds' => ['nullable', 'integer', 'between:1,3600'],
             'default_minutes' => ['nullable', 'integer', 'between:1,600'],
-            'default_intensity' => ['nullable', 'integer', 'between:1,30'],
+            'default_metric' => ['nullable', Rule::enum(CardioMetric::class)],
+            'default_metric_value' => ['nullable', 'numeric', 'between:0,99.9'],
         ], attributes: [
             'name' => 'naam', 'equipment' => 'materiaal', 'description' => 'omschrijving', 'instructions' => 'uitvoering',
             'primary_muscle_group_id' => 'primaire spiergroep', 'secondary_muscle_group_ids' => 'secundaire spiergroepen',
             'image' => 'plaatje', 'default_sets' => 'sets', 'default_reps' => 'herhalingen', 'default_weight' => 'gewicht',
-            'default_seconds' => 'tijd', 'default_minutes' => 'tijd', 'default_intensity' => 'intensiteit',
+            'default_seconds' => 'tijd', 'default_minutes' => 'tijd', 'default_metric' => 'instelling', 'default_metric_value' => 'waarde',
         ]);
 
         $type = ExerciseType::from($data['type']);
@@ -151,7 +158,8 @@ class Form extends Component
                 ExerciseType::Duration => $data['default_seconds'],
                 default => null,
             },
-            'default_intensity' => $type->usesIntensity() ? $data['default_intensity'] : null,
+            'default_metric' => $type->usesMetric() ? $data['default_metric'] : null,
+            'default_metric_value' => $type->usesMetric() && filled($data['default_metric_value']) ? $data['default_metric_value'] : null,
         ]);
 
         $this->applyImage($exercise, 'exercises');

@@ -20,6 +20,13 @@ use Illuminate\Support\Facades\Storage;
  */
 class ExerciseSeeder extends Seeder
 {
+    /** Op welke instelling je een cardio-apparaat zet; overige cardio (touwtjespringen e.d.) heeft er geen */
+    private const CARDIO_METRICS = [
+        'treadmill' => 'speed', 'hiit-mill' => 'speed',
+        'hometrainer' => 'resistance', 'hiit-bike' => 'resistance', 'spinning' => 'resistance', 'rowing' => 'resistance', 'ski' => 'resistance',
+        'stair-machine' => 'level', 'cross-trainer' => 'level',
+    ];
+
     public function run(): void
     {
         $groups = MuscleGroup::whereNull('user_id')->pluck('id', 'slug');
@@ -35,6 +42,7 @@ class ExerciseSeeder extends Seeder
                 [
                     ...collect($data)->except('muscle_groups')->all(),
                     ...$type->defaults(),
+                    'default_metric' => $type === ExerciseType::Cardio ? self::CARDIO_METRICS[$slug] ?? null : null,
                     'image_path' => $image,
                 ],
             );

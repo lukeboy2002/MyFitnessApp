@@ -34,6 +34,8 @@ class Index extends Component
 
     public ?string $message = null;
 
+    public ?string $error = null;
+
     public function mount(): void
     {
         $this->message = session('status');
@@ -94,14 +96,22 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        $exercise = Exercise::visibleTo(Auth::user())->findOrFail($id);
+        $exercise = Exercise::visibleTo(Auth::user())->withCount('workoutExercises')->findOrFail($id);
         $this->authorize('delete', $exercise);
+
+        if ($exercise->workout_exercises_count > 0) {
+            $this->message = null;
+            $this->error = "{$exercise->name} zit nog in {$exercise->workout_exercises_count} workout(s). Haal hem daar eerst weg, of archiveer hem.";
+
+            return;
+        }
 
         if ($exercise->image_path) {
             Storage::disk('public')->delete($exercise->image_path);
         }
 
         $exercise->delete();
+        $this->error = null;
         $this->message = "{$exercise->name} is verwijderd.";
         unset($this->exercises);
     }

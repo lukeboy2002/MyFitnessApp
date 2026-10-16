@@ -56,8 +56,12 @@
                 @endif
                 @if ($exerciseType === \App\Enums\ExerciseType::Cardio)
                     <x-form.input label="Tijd" type="number" wire:model="default_minutes" inputmode="numeric" suffix="min" />
-                    <x-form.select label="Intensiteit" wire:model="default_intensity" placeholder="Kies niveau"
-                                   :options="collect(range(1, 20))->mapWithKeys(fn ($i) => [$i => 'Niveau '.$i])" />
+                    <x-form.select label="Instelling" wire:model.live="default_metric" placeholder="Geen"
+                                   :options="\App\Enums\CardioMetric::options()" />
+                    @if ($default_metric)
+                        <x-form.input label="{{ \App\Enums\CardioMetric::from($default_metric)->label() }}" wire:model="default_metric_value"
+                                      inputmode="decimal" :suffix="\App\Enums\CardioMetric::from($default_metric)->unit()" />
+                    @endif
                 @endif
             </x-form.section>
 

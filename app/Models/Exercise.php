@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CardioMetric;
 use App\Enums\Equipment;
 use App\Enums\ExerciseType;
 use App\Models\Concerns\OwnedOrGlobal;
@@ -13,11 +14,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'user_id', 'name', 'slug', 'type', 'equipment', 'description', 'instructions', 'tips', 'image_path',
-    'default_sets', 'default_reps', 'default_weight', 'default_duration_seconds', 'default_intensity', 'archived_at',
+    'default_sets', 'default_reps', 'default_weight', 'default_duration_seconds', 'default_metric', 'default_metric_value', 'archived_at',
 ])]
 class Exercise extends Model
 {
@@ -32,6 +34,8 @@ class Exercise extends Model
             'instructions' => 'array',
             'tips' => 'array',
             'default_weight' => 'decimal:2',
+            'default_metric' => CardioMetric::class,
+            'default_metric_value' => 'decimal:1',
             'archived_at' => 'datetime',
         ];
     }
@@ -43,6 +47,12 @@ class Exercise extends Model
             ->withPivot('is_primary')
             ->orderByPivot('is_primary', 'desc')
             ->orderBy('muscle_groups.sort_order');
+    }
+
+    /** Plekken in workouts waar deze oefening in zit */
+    public function workoutExercises(): HasMany
+    {
+        return $this->hasMany(WorkoutExercise::class);
     }
 
     public function primaryMuscleGroup(): ?MuscleGroup
@@ -112,8 +122,8 @@ class Exercise extends Model
             $parts[] = $seconds % 60 === 0 ? ($seconds / 60).' min' : $seconds.' sec';
         }
 
-        if ($this->type->usesIntensity() && $this->default_intensity) {
-            $parts[] = 'niveau '.$this->default_intensity;
+        if ($this->type->usesMetric() && $this->default_metric && filled($this->default_metric_value)) {
+            $parts[] = $this->default_metric->format($this->default_metric_value);
         }
 
         return $parts ? implode(' · ', $parts) : null;

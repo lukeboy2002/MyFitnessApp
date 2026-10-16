@@ -103,7 +103,8 @@ test('only the target fields of the type are stored', function () {
         ->set('type', 'cardio')
         ->assertSet('primary_muscle_group_id', standardGroup('cardio')->id)
         ->assertSet('default_minutes', 20)
-        ->set('default_intensity', 8)
+        ->set('default_metric', 'resistance')
+        ->set('default_metric_value', '8')
         ->call('save')
         ->assertHasNoErrors();
 
@@ -111,7 +112,7 @@ test('only the target fields of the type are stored', function () {
     expect($exercise->default_sets)->toBeNull()
         ->and($exercise->default_reps)->toBeNull()
         ->and($exercise->default_duration_seconds)->toBe(1200)
-        ->and($exercise->defaultTarget())->toBe('20 min · niveau 8');
+        ->and($exercise->defaultTarget())->toBe('20 min · weerstand 8');
 });
 
 test('a bodyweight exercise can have assisted (negative) extra weight', function () {

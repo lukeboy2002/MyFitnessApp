@@ -23,4 +23,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('exercises/{exercise}', Show::class)->name('exercises.show');
     Route::get('exercises/{exercise}/edit', Form::class)->name('exercises.edit');
 
+    // Workouts
+    Route::get('workouts', App\Livewire\Workouts\Index::class)->name('workouts.index');
+    Route::get('workouts/create', App\Livewire\Workouts\Form::class)->name('workouts.create');
+    Route::get('workouts/{workout}', App\Livewire\Workouts\Show::class)->name('workouts.show');
+    Route::get('workouts/{workout}/edit', App\Livewire\Workouts\Form::class)->name('workouts.edit');
+
 });

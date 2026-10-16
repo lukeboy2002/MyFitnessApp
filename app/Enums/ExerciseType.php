@@ -28,7 +28,7 @@ enum ExerciseType: string
             self::Strength => 'Sets, herhalingen en gewicht',
             self::Bodyweight => 'Herhalingen, eventueel met extra of assisted gewicht',
             self::Duration => 'Sets op tijd, bv. plank',
-            self::Cardio => 'Tijd, afstand en intensiteit',
+            self::Cardio => 'Tijd en weerstand, niveau of snelheid',
         };
     }
 
@@ -79,7 +79,8 @@ enum ExerciseType: string
         return in_array($this, [self::Duration, self::Cardio]);
     }
 
-    public function usesIntensity(): bool
+    /** Cardio: een instelling (weerstand, niveau of snelheid) met een waarde */
+    public function usesMetric(): bool
     {
         return $this === self::Cardio;
     }
