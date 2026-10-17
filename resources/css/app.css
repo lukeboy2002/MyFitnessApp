@@ -38,6 +38,9 @@
     --color-cardio: #0e8ad6;
     --color-strength: #e5650f;
 
+    /* Quickstart (vrije training): altijd deze kleur, zie WorkoutSession::QUICKSTART_COLOR */
+    --color-quickstart: #c026d3;
+
     /* Vlakken */
     --color-ink: #0b1f3f;
     --color-canvas: #eef3fa;

@@ -10,15 +10,17 @@ use App\Models\WorkoutSession;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Start een training vanuit een workout: de oefeningen en doelen worden gekopieerd,
- * voor sets worden de set-regels alvast aangemaakt en voor cardio het logformulier.
+ * Start een training vanuit een workout (de oefeningen en doelen worden gekopieerd),
+ * of een vrije training via Quickstart (leeg, oefeningen voeg je tijdens de training toe).
  * Er loopt maar één training tegelijk; loopt er al een, dan krijg je die terug.
  */
 class StartWorkoutSession
 {
+    public function __construct(private AddSessionExercise $addExercise) {}
+
     public function handle(User $user, Workout $workout): WorkoutSession
     {
-        if ($running = WorkoutSession::where('user_id', $user->id)->running()->first()) {
+        if ($running = $this->running($user)) {
             return $running;
         }
 
@@ -32,38 +34,29 @@ class StartWorkoutSession
                 'started_at' => now(),
             ]);
 
-            $workout->exercises()->with('exercise')->get()->each(function (WorkoutExercise $item, int $position) use ($session) {
-                $sessionExercise = $session->exercises()->create([
-                    ...$item->only('exercise_id', 'target_sets', 'target_reps', 'target_weight', 'rest_seconds',
-                        'target_duration_seconds', 'target_metric', 'target_metric_value', 'notes'),
-                    'workout_exercise_id' => $item->id,
-                    'position' => $position,
-                ]);
-
-                $type = $item->exercise->type;
-
-                if ($type->usesSets()) {
-                    foreach (range(1, max(1, $item->target_sets ?? 1)) as $number) {
-                        $sessionExercise->sets()->create([
-                            'set_number' => $number,
-                            'target_reps' => $type->usesReps() ? $item->target_reps : null,
-                            'target_weight' => $item->target_weight,
-                            'target_duration_seconds' => $type->usesReps() ? null : $item->target_duration_seconds,
-                            'reps' => $type->usesReps() ? $item->target_reps : null,
-                            'weight' => $item->target_weight,
-                            'duration_seconds' => $type->usesReps() ? null : $item->target_duration_seconds,
-                        ]);
-                    }
-                } else {
-                    $sessionExercise->cardio()->create([
-                        'duration_seconds' => $item->target_duration_seconds,
-                        'metric' => $item->target_metric,
-                        'metric_value' => $item->target_metric_value,
-                    ]);
-                }
-            });
+            $workout->exercises()->with('exercise')->get()->each(
+                fn (WorkoutExercise $item) => $this->addExercise->handle($session, $item->exercise, $item->toArray(), $item->id)
+            );
 
             return $session;
         });
+    }
+
+    /** Quickstart: een vrije training, altijd met dezelfde naam en kleur */
+    public function quickstart(User $user): WorkoutSession
+    {
+        return $this->running($user) ?? WorkoutSession::create([
+            'user_id' => $user->id,
+            'name' => WorkoutSession::QUICKSTART_NAME,
+            'color' => WorkoutSession::QUICKSTART_COLOR,
+            'status' => SessionStatus::Active,
+            'started_at' => now(),
+            'source' => WorkoutSession::QUICKSTART,
+        ]);
+    }
+
+    private function running(User $user): ?WorkoutSession
+    {
+        return WorkoutSession::where('user_id', $user->id)->running()->first();
     }
 }

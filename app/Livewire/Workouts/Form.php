@@ -2,16 +2,14 @@
 
 namespace App\Livewire\Workouts;
 
-use App\Enums\CardioMetric;
-use App\Enums\ExerciseType;
+use App\Livewire\Concerns\EditsExerciseTargets;
+use App\Livewire\Concerns\PicksExercises;
 use App\Models\Exercise;
-use App\Models\MuscleGroup;
 use App\Models\Workout;
 use App\Models\WorkoutExercise;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -20,6 +18,8 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Form extends Component
 {
+    use EditsExerciseTargets, PicksExercises;
+
     public ?Workout $workout = null;
 
     public string $name = '';
@@ -38,15 +38,6 @@ class Form extends Component
      */
     public array $items = [];
 
-    // Oefening kiezen
-    public bool $showPicker = false;
-
-    public string $pickerSearch = '';
-
-    public string $pickerType = '';
-
-    public ?int $pickerGroup = null;
-
     public function mount(?Workout $workout = null): void
     {
         if (! $workout?->exists) {
@@ -64,12 +55,6 @@ class Form extends Component
         $this->estimated_minutes = $workout->estimated_minutes;
         $this->muscle_group_ids = $workout->muscleGroups()->pluck('muscle_groups.id')->all();
         $this->items = $workout->exercises()->with('exercise')->get()->map(fn (WorkoutExercise $item) => $this->toItem($item->exercise, $item->toArray(), $item->id))->all();
-    }
-
-    public function openPicker(): void
-    {
-        $this->reset('pickerSearch', 'pickerType', 'pickerGroup');
-        $this->showPicker = true;
     }
 
     /** Oefening onderaan toevoegen met het standaarddoel van de oefening; de kiezer blijft open */
@@ -111,14 +96,7 @@ class Form extends Component
     {
         $user = Auth::user();
 
-        // Komma's als decimaalteken toestaan (22,5 kg)
-        foreach ($this->items as $i => $item) {
-            foreach (['weight', 'metric_value'] as $field) {
-                if (is_string($item[$field] ?? null)) {
-                    $this->items[$i][$field] = str_replace(',', '.', trim($item[$field]));
-                }
-            }
-        }
+        $this->items = array_map(fn (array $item) => $this->normalizeDecimals($item), $this->items);
 
         $visible = fn (string $table) => Rule::exists($table, 'id')->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', $user->id));
 
@@ -131,22 +109,12 @@ class Form extends Component
             'muscle_group_ids.*' => ['integer', $visible('muscle_groups')],
             'items' => ['array', 'min:1', 'max:40'],
             'items.*.exercise_id' => ['required', 'integer', $visible('exercises')],
-            'items.*.sets' => ['nullable', 'integer', 'between:1,20'],
-            'items.*.reps' => ['nullable', 'integer', 'between:1,200'],
-            'items.*.weight' => ['nullable', 'numeric', 'between:-200,999'],
-            'items.*.rest' => ['nullable', 'integer', 'between:0,900'],
-            'items.*.seconds' => ['nullable', 'integer', 'between:1,3600'],
-            'items.*.minutes' => ['nullable', 'integer', 'between:1,600'],
-            'items.*.metric' => ['nullable', Rule::enum(CardioMetric::class)],
-            'items.*.metric_value' => ['nullable', 'numeric', 'between:0,99.9'],
-            'items.*.notes' => ['nullable', 'string', 'max:500'],
+            ...$this->targetRules('items.*'),
         ], [
             'items.min' => 'Voeg minstens één oefening toe.',
         ], [
             'name' => 'naam', 'color' => 'kleur', 'description' => 'omschrijving', 'estimated_minutes' => 'duur',
-            'muscle_group_ids' => 'spiergroepen', 'items' => 'oefeningen', 'items.*.sets' => 'sets', 'items.*.reps' => 'herhalingen',
-            'items.*.weight' => 'gewicht', 'items.*.rest' => 'rust', 'items.*.seconds' => 'tijd', 'items.*.minutes' => 'tijd',
-            'items.*.metric' => 'instelling', 'items.*.metric_value' => 'waarde', 'items.*.notes' => 'notitie',
+            'muscle_group_ids' => 'spiergroepen', 'items' => 'oefeningen', ...$this->targetAttributes('items.*'),
         ]);
 
         $exercises = Exercise::whereIn('id', Arr::pluck($data['items'], 'exercise_id'))->get()->keyBy('id');
@@ -185,12 +153,6 @@ class Form extends Component
         return $this->redirectRoute('workouts.show', $workout, navigate: true);
     }
 
-    #[Computed]
-    public function muscleGroups()
-    {
-        return MuscleGroup::visibleTo(Auth::user())->orderBy('sort_order')->orderBy('name')->get();
-    }
-
     /** De oefeningen die nu in de lijst staan, op id */
     #[Computed]
     public function itemExercises()
@@ -198,69 +160,9 @@ class Form extends Component
         return Exercise::whereIn('id', Arr::pluck($this->items, 'exercise_id'))->with('muscleGroups')->get()->keyBy('id');
     }
 
-    #[Computed]
-    public function pickerExercises()
-    {
-        return Exercise::visibleTo(Auth::user())->active()
-            ->when($this->pickerSearch !== '', fn ($q) => $q->where('name', 'like', '%'.$this->pickerSearch.'%'))
-            ->when($this->pickerType !== '', fn ($q) => $q->where('type', $this->pickerType))
-            ->when($this->pickerGroup, fn ($q) => $q->whereHas('muscleGroups', fn ($q) => $q->whereKey($this->pickerGroup)))
-            ->with('muscleGroups')
-            ->orderByRaw('user_id is null') // eigen oefeningen eerst
-            ->orderBy('name')
-            ->limit(40)
-            ->get();
-    }
-
     public function render()
     {
         return view('livewire.workouts.form')->title($this->workout ? 'Workout bewerken' : 'Nieuwe workout');
-    }
-
-    /** Doelvelden van een regel naar de database-kolommen; alleen wat bij het type hoort */
-    private function targets(ExerciseType $type, array $item): array
-    {
-        $cardio = $type === ExerciseType::Cardio;
-
-        return [
-            'target_sets' => $type->usesSets() ? $item['sets'] : null,
-            'target_reps' => $type->usesReps() ? $item['reps'] : null,
-            'target_weight' => ($type->usesWeight() || $type->usesExtraWeight()) && filled($item['weight']) ? $item['weight'] : null,
-            'rest_seconds' => $type->usesSets() ? $item['rest'] : null,
-            'target_duration_seconds' => match (true) {
-                $cardio => $item['minutes'] ? $item['minutes'] * 60 : null,
-                $type === ExerciseType::Duration => $item['seconds'],
-                default => null,
-            },
-            'target_metric' => $cardio ? ($item['metric'] ?: null) : null,
-            'target_metric_value' => $cardio && filled($item['metric_value']) ? $item['metric_value'] : null,
-            'notes' => filled($item['notes']) ? $item['notes'] : null,
-        ];
-    }
-
-    /** Een regel voor het formulier, uit de kolommen van workout_exercises */
-    private function toItem(Exercise $exercise, array $targets, ?int $id = null): array
-    {
-        $seconds = $targets['target_duration_seconds'] ?? null;
-        $cardio = $exercise->type === ExerciseType::Cardio;
-        $weight = $targets['target_weight'] ?? null;
-        $metric = $targets['target_metric'] ?? null;
-        $metricValue = $targets['target_metric_value'] ?? null;
-
-        return [
-            'key' => (string) Str::uuid(),
-            'id' => $id,
-            'exercise_id' => $exercise->id,
-            'sets' => $targets['target_sets'] ?? null,
-            'reps' => $targets['target_reps'] ?? null,
-            'weight' => filled($weight) ? rtrim(rtrim((string) $weight, '0'), '.') : null,
-            'rest' => $targets['rest_seconds'] ?? null,
-            'seconds' => $cardio ? null : $seconds,
-            'minutes' => $cardio && $seconds ? intdiv($seconds, 60) : null,
-            'metric' => $metric instanceof CardioMetric ? $metric->value : $metric,
-            'metric_value' => filled($metricValue) ? rtrim(rtrim((string) $metricValue, '0'), '.') : null,
-            'notes' => $targets['notes'] ?? null,
-        ];
     }
 
     /** @return list<int> */

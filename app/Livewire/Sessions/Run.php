@@ -2,11 +2,17 @@
 
 namespace App\Livewire\Sessions;
 
+use App\Actions\AddSessionExercise;
 use App\Enums\CardioMetric;
+use App\Livewire\Concerns\EditsExerciseTargets;
+use App\Livewire\Concerns\PicksExercises;
 use App\Models\CardioLog;
+use App\Models\Exercise;
 use App\Models\SessionExercise;
 use App\Models\SetLog;
+use App\Models\WorkoutExercise;
 use App\Models\WorkoutSession;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -18,6 +24,8 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Run extends Component
 {
+    use EditsExerciseTargets, PicksExercises;
+
     public WorkoutSession $session;
 
     /** Invoer per set: [set_id => ['reps' => .., 'weight' => .., 'seconds' => ..]] */
@@ -28,6 +36,9 @@ class Run extends Component
 
     /** Tussentijden per km: [session_exercise_id => [km => 'mm:ss']] */
     public array $splits = [];
+
+    /** Oefening die je tijdens de training toevoegt: eerst kiezen, dan het doel invullen */
+    public ?array $adding = null;
 
     public bool $confirmingFinish = false;
 
@@ -163,6 +174,39 @@ class Run extends Component
             : $log->splits()->where('number', $number)->delete();
     }
 
+    /** Oefening toevoegen: kiezer openen */
+    public function openAdding(): void
+    {
+        $this->adding = null;
+        $this->resetErrorBag('adding');
+        $this->openPicker();
+    }
+
+    /** Oefening gekozen: het doel invullen, voorgevuld met het standaarddoel van de oefening */
+    public function pick(int $id): void
+    {
+        $exercise = Exercise::visibleTo(Auth::user())->active()->findOrFail($id);
+        $this->adding = $this->toItem($exercise, WorkoutExercise::defaultsFor($exercise));
+    }
+
+    public function addExercise(AddSessionExercise $action): void
+    {
+        abort_unless($this->adding, 404);
+
+        $this->adding = $this->normalizeDecimals($this->adding);
+        $this->validate([
+            'adding.exercise_id' => ['required', 'integer'],
+            ...$this->targetRules('adding'),
+        ], attributes: $this->targetAttributes('adding'));
+
+        $exercise = Exercise::visibleTo(Auth::user())->active()->findOrFail($this->adding['exercise_id']);
+        $item = $action->handle($this->session, $exercise, $this->targets($exercise->type, $this->adding));
+
+        $this->reset('adding', 'showPicker');
+        $this->fillInputs();
+        $this->dispatch('exercise-added', id: $item->id);
+    }
+
     /** Knop "Volgende km": een nieuw vakje voor de volgende tussentijd */
     public function addSplit(int $sessionExerciseId): void
     {
@@ -243,7 +287,7 @@ class Run extends Component
 
         return $workout
             ? $this->redirectRoute('workouts.show', $workout, navigate: true)
-            : $this->redirectRoute('workouts.index', navigate: true);
+            : $this->redirectRoute($this->session->isQuickstart() ? 'quickstart' : 'workouts.index', navigate: true);
     }
 
     public function render()

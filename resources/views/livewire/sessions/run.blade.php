@@ -4,8 +4,10 @@
 @endphp
 
 {{-- Ruimte onderaan voor de timerbalk --}}
-<div class="pb-20 md:pb-24" style="--c: {{ $session->color ?? '#1d63c5' }}">
-    <x-page-header :title="$session->name" :description="'Gestart om '.$session->started_at->format('H:i')">
+<div x-on:exercise-added.window="$nextTick(() => document.getElementById(`se-${$event.detail.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))"
+     class="pb-20 md:pb-24" style="--c: {{ $session->color ?? '#1d63c5' }}">
+    <x-page-header :title="$session->name"
+                   :description="($session->isQuickstart() ? \App\Models\WorkoutSession::QUICKSTART_DESCRIPTION.' ' : '').'Gestart om '.$session->started_at->format('H:i').'.'">
         <x-button variant="ghost" size="sm" type="button" wire:click="$set('confirmingCancel', true)">Stoppen zonder opslaan</x-button>
     </x-page-header>
 
@@ -16,7 +18,7 @@
             @php($type = $exercise->type)
             @php($primary = $exercise->primaryMuscleGroup())
             @php($done = $item->isDone())
-            <section wire:key="se-{{ $item->id }}" wire:sort:item="{{ $item->id }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
+            <section id="se-{{ $item->id }}" wire:key="se-{{ $item->id }}" wire:sort:item="{{ $item->id }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
                      @class(['rounded-2xl bg-white shadow-sm ring-1 transition dark:bg-panel-dark',
                              'ring-emerald-300 dark:ring-emerald-500/40' => $done,
                              'ring-slate-200 dark:ring-line-dark' => ! $done])>
@@ -182,6 +184,52 @@
             </section>
         @endforeach
     </div>
+
+    {{-- Oefening toevoegen: bij een vrije training begin je hier, bij een workout kun je er eentje bij doen --}}
+    @if ($session->exercises->isEmpty())
+        <div class="rounded-2xl border-2 border-dashed border-slate-300 px-4 py-8 text-center dark:border-line-dark">
+            <p class="font-semibold">Nog geen oefeningen</p>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Voeg je eerste oefening toe en vul je doel in.</p>
+            <x-button type="button" icon="plus" wire:click="openAdding" class="mt-4">Oefening toevoegen</x-button>
+        </div>
+    @else
+        <button type="button" wire:click="openAdding"
+                class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 py-4 font-semibold text-slate-500 transition hover:border-brand-400 hover:text-brand-700 dark:border-line-dark dark:text-slate-400 dark:hover:border-brand-400 dark:hover:text-brand-300">
+            <x-icon name="plus" class="size-5" /> Oefening toevoegen
+        </button>
+    @endif
+
+    {{-- Kiezen, daarna het doel invullen (zoals bij een workout) --}}
+    <x-modal wire:model="showPicker" :title="$adding ? 'Doel invullen' : 'Oefening toevoegen'" maxWidth="2xl">
+        @if ($adding)
+            @php($chosen = \App\Models\Exercise::find($adding['exercise_id']))
+            <div class="mb-4 flex items-center gap-3">
+                <span class="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-50 dark:bg-white/5">
+                    @if ($picture = $chosen->imageUrl())
+                        <img src="{{ $picture }}" alt="" class="size-full object-contain p-0.5">
+                    @else
+                        <x-icon :name="$chosen->type->icon()" class="size-5" />
+                    @endif
+                </span>
+                <div class="min-w-0">
+                    <p class="truncate font-semibold">{{ $chosen->name }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ $chosen->type->label() }}</p>
+                </div>
+            </div>
+            <x-exercise-targets :type="$chosen->type" :item="$adding" model="adding" />
+        @else
+            <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType"
+                               :added="$session->exercises->countBy('exercise_id')" action="pick" />
+        @endif
+        <x-slot:footer>
+            @if ($adding)
+                <x-button variant="ghost" type="button" wire:click="$set('adding', null)">Andere oefening</x-button>
+                <x-button type="button" icon="plus" wire:click="addExercise" loading="addExercise">Toevoegen</x-button>
+            @else
+                <x-button variant="ghost" type="button" x-on:click="show = false">Annuleren</x-button>
+            @endif
+        </x-slot:footer>
+    </x-modal>
 
     {{-- Timerbalk: op mobiel boven de menubalk, op grotere schermen onderaan het scherm --}}
     <div x-data="{

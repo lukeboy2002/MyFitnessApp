@@ -2,8 +2,7 @@
 <x-app-layout title="Dashboard">
     <x-page-header title="Hoi {{ str(auth()->user()->name)->before(' ') }}"
                    :description="now()->translatedFormat('l j F').' · week '.now()->isoWeek()">
-        <x-button variant="fire" icon="play" href="#">Quickstart</x-button>
-        {{--        <x-button variant="fire" icon="play" :href="route('quickstart')">Quickstart</x-button>--}}
+        <x-button variant="fire" icon="play" :href="route('quickstart')">Quickstart</x-button>
     </x-page-header>
 
     <div class="grid gap-4 lg:grid-cols-4">

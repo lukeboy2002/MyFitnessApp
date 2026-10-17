@@ -17,6 +17,15 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 ])]
 class WorkoutSession extends Model
 {
+    /** Quickstart: een vrije training, altijd met deze naam, kleur en omschrijving */
+    public const QUICKSTART = 'quickstart';
+
+    public const QUICKSTART_NAME = 'Free Training';
+
+    public const QUICKSTART_COLOR = '#c026d3';
+
+    public const QUICKSTART_DESCRIPTION = 'Dit is een vrije training. Deze kan iedere keer anders zijn.';
+
     protected function casts(): array
     {
         return [
@@ -52,6 +61,11 @@ class WorkoutSession extends Model
     protected function running(Builder $query): void
     {
         $query->whereIn('status', [SessionStatus::Active, SessionStatus::Paused]);
+    }
+
+    public function isQuickstart(): bool
+    {
+        return $this->source === self::QUICKSTART;
     }
 
     public function isRunning(): bool

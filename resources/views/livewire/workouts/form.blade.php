@@ -1,5 +1,3 @@
-@php($Type = \App\Enums\ExerciseType::class)
-
 <div>
     <x-page-header :title="$workout ? 'Workout bewerken' : 'Nieuwe workout'"
                    description="Kies je oefeningen, zet ze in volgorde en vul per oefening je doel in." />
@@ -69,36 +67,7 @@
                             </button>
                         </div>
 
-                        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            @if ($type->usesSets())
-                                <x-form.input label="Sets" type="number" wire:model="items.{{ $i }}.sets" inputmode="numeric" min="1" />
-                            @endif
-                            @if ($type->usesReps())
-                                <x-form.input label="Herhalingen" type="number" wire:model="items.{{ $i }}.reps" inputmode="numeric" min="1" />
-                            @endif
-                            @if ($type->usesWeight())
-                                <x-form.input label="Gewicht" wire:model="items.{{ $i }}.weight" inputmode="decimal" suffix="kg" />
-                            @endif
-                            @if ($type->usesExtraWeight())
-                                <x-form.input label="Extra gewicht" wire:model="items.{{ $i }}.weight" inputmode="decimal" suffix="kg" placeholder="0" />
-                            @endif
-                            @if ($type === $Type::Duration)
-                                <x-form.input label="Tijd per set" type="number" wire:model="items.{{ $i }}.seconds" inputmode="numeric" suffix="sec" />
-                            @endif
-                            @if ($type->usesSets())
-                                <x-form.input label="Rust" type="number" wire:model="items.{{ $i }}.rest" inputmode="numeric" suffix="sec" />
-                            @endif
-                            @if ($type === $Type::Cardio)
-                                <x-form.input label="Tijd" type="number" wire:model="items.{{ $i }}.minutes" inputmode="numeric" suffix="min" />
-                                @php($metric = \App\Enums\CardioMetric::tryFrom((string) $item['metric']))
-                                <x-form.select label="Instelling" wire:model.live="items.{{ $i }}.metric" placeholder="Geen"
-                                               :options="\App\Enums\CardioMetric::options()" />
-                                @if ($metric)
-                                    <x-form.input :label="$metric->label()" wire:model="items.{{ $i }}.metric_value" inputmode="decimal" :suffix="$metric->unit()" />
-                                @endif
-                            @endif
-                            <x-form.input label="Notitie" wire:model="items.{{ $i }}.notes" placeholder="Bijv. stoel op stand 4" class="col-span-2 sm:col-span-4" />
-                        </div>
+                        <x-exercise-targets :type="$type" :item="$item" model="items.{{ $i }}" class="mt-3" />
                     </li>
                 @endforeach
             </ol>
@@ -128,50 +97,8 @@
 
     {{-- Oefening kiezen --}}
     <x-modal wire:model="showPicker" title="Oefening toevoegen" maxWidth="2xl">
-        <div class="flex flex-col gap-3">
-            <div class="grid gap-3 sm:grid-cols-[1fr_13rem]">
-                <x-form.input wire:model.live.debounce.250ms="pickerSearch" icon="search" placeholder="Zoek een oefening…" aria-label="Zoeken" />
-                <x-form.select wire:model.live="pickerGroup" :options="$this->muscleGroups->pluck('name', 'id')" placeholder="Alle spiergroepen" aria-label="Spiergroep" />
-            </div>
-            <div class="flex flex-wrap gap-2">
-                @foreach (['' => 'Alles'] + collect($Type::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all() as $value => $label)
-                    <button type="button" wire:click="$set('pickerType', '{{ $value }}')" wire:key="pt-{{ $value ?: 'all' }}"
-                            @class(['rounded-full px-3.5 py-1.5 text-sm font-semibold ring-1 ring-inset transition',
-                                    'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $pickerType === $value,
-                                    'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => $pickerType !== $value])>{{ $label }}</button>
-                @endforeach
-            </div>
-
-            @php($added = collect($items)->countBy('exercise_id'))
-            <ul class="-mx-2 flex max-h-[50dvh] flex-col overflow-y-auto">
-                @forelse ($this->pickerExercises as $option)
-                    @php($primary = $option->primaryMuscleGroup())
-                    <li wire:key="opt-{{ $option->id }}">
-                        <button type="button" wire:click="addExercise({{ $option->id }})" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
-                                class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-slate-50 dark:hover:bg-white/5">
-                            <span class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-50 dark:bg-white/5">
-                                @if ($picture = $option->imageUrl())
-                                    <img src="{{ $picture }}" alt="" loading="lazy" class="size-full object-contain p-0.5">
-                                @else
-                                    <x-icon :name="$option->type->icon()" class="size-5 text-(--g)" />
-                                @endif
-                            </span>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate font-semibold">{{ $option->name }}</span>
-                                <span class="block text-xs text-slate-500 dark:text-slate-400">{{ $option->type->label() }}@if ($primary) · {{ $primary->name }}@endif @unless ($option->isStandard()) · Eigen @endunless</span>
-                            </span>
-                            @if ($count = $added[$option->id] ?? 0)
-                                <x-badge color="success" icon="check">{{ $count > 1 ? $count.'×' : 'Toegevoegd' }}</x-badge>
-                            @else
-                                <x-icon name="plus" class="size-5 text-brand-700 dark:text-brand-300" />
-                            @endif
-                        </button>
-                    </li>
-                @empty
-                    <li class="px-2 py-6 text-center text-slate-500 dark:text-slate-400">Geen oefeningen gevonden.</li>
-                @endforelse
-            </ul>
-        </div>
+        <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType"
+                           :added="collect($items)->countBy('exercise_id')" action="addExercise" />
 
         <x-slot:footer>
             <span class="mr-auto self-center text-sm text-slate-500 dark:text-slate-400">{{ count($items) }} in deze workout</span>
