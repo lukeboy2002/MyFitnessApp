@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\CardioMetric;
 use App\Enums\ExerciseType;
+use App\Models\Concerns\HasTargets;
 use Database\Factories\WorkoutExerciseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,19 +17,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class WorkoutExercise extends Model
 {
     /** @use HasFactory<WorkoutExerciseFactory> */
-    use HasFactory;
+    use HasFactory, HasTargets;
 
     /** Rusttijd tussen sets als je niets invult */
     public const DEFAULT_REST_SECONDS = 90;
-
-    protected function casts(): array
-    {
-        return [
-            'target_weight' => 'decimal:2',
-            'target_metric' => CardioMetric::class,
-            'target_metric_value' => 'decimal:1',
-        ];
-    }
 
     public function workout(): BelongsTo
     {
@@ -57,32 +48,6 @@ class WorkoutExercise extends Model
         ];
     }
 
-    /** Doel als tekst, bv. "3 × 10 · 40 kg" of "20 min · weerstand 8" */
-    public function targetSummary(): ?string
-    {
-        $type = $this->exercise->type;
-        $parts = [];
-
-        if ($type->usesSets() && $this->target_sets) {
-            $parts[] = $this->target_sets.' ×'.($type->usesReps() && $this->target_reps ? ' '.$this->target_reps : '');
-        }
-
-        if (($type->usesWeight() || $type->usesExtraWeight()) && (float) $this->target_weight !== 0.0) {
-            $kg = static::number($this->target_weight).' kg';
-            $parts[] = $type->usesExtraWeight() && $this->target_weight > 0 ? '+'.$kg : $kg;
-        }
-
-        if ($type->usesDuration() && $this->target_duration_seconds) {
-            $parts[] = static::duration($this->target_duration_seconds);
-        }
-
-        if ($type->usesMetric() && $this->target_metric && filled($this->target_metric_value)) {
-            $parts[] = $this->target_metric->format($this->target_metric_value);
-        }
-
-        return $parts ? implode(' · ', $parts) : null;
-    }
-
     /** Ruwe schatting van de tijd die deze oefening kost, inclusief rust en wisselen */
     public function estimatedSeconds(): int
     {
@@ -97,15 +62,5 @@ class WorkoutExercise extends Model
         $rest = $this->rest_seconds ?? self::DEFAULT_REST_SECONDS;
 
         return $sets * $work + ($sets - 1) * $rest + 90;
-    }
-
-    public static function duration(int $seconds): string
-    {
-        return $seconds % 60 === 0 ? ($seconds / 60).' min' : ($seconds >= 60 ? intdiv($seconds, 60).':'.str_pad($seconds % 60, 2, '0', STR_PAD_LEFT).' min' : $seconds.' sec');
-    }
-
-    private static function number(float|string $value): string
-    {
-        return str_replace('.', ',', rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.'));
     }
 }

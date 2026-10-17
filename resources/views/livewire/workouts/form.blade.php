@@ -4,9 +4,6 @@
     <x-page-header :title="$workout ? 'Workout bewerken' : 'Nieuwe workout'"
                    description="Kies je oefeningen, zet ze in volgorde en vul per oefening je doel in." />
 
-    @if (session('status'))
-        <x-alert type="success" class="mb-5">{{ session('status') }}</x-alert>
-    @endif
 
     <form wire:submit="save" class="flex flex-col gap-5">
         <x-card>

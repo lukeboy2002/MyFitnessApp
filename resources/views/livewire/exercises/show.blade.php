@@ -14,9 +14,6 @@
         @endcan
     </x-page-header>
 
-    @if (session('status'))
-        <x-alert type="success" class="mb-5">{{ session('status') }}</x-alert>
-    @endif
     @if ($exercise->isArchived())
         <x-alert type="warning" class="mb-5">Deze oefening is gearchiveerd en staat niet meer in je lijst.</x-alert>
     @endif

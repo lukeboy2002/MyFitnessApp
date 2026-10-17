@@ -36,11 +36,6 @@ class Index extends Component
 
     public ?string $error = null;
 
-    public function mount(): void
-    {
-        $this->message = session('status');
-    }
-
     /** Eigen kopie van een (standaard)oefening, daarna meteen bewerken */
     public function duplicate(int $id)
     {
@@ -96,8 +91,15 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        $exercise = Exercise::visibleTo(Auth::user())->withCount('workoutExercises')->findOrFail($id);
+        $exercise = Exercise::visibleTo(Auth::user())->withCount('workoutExercises', 'sessionExercises')->findOrFail($id);
         $this->authorize('delete', $exercise);
+
+        if ($exercise->session_exercises_count > 0) {
+            $this->message = null;
+            $this->error = "{$exercise->name} heb je al eens getraind; verwijderen zou je historie wissen. Archiveer hem liever.";
+
+            return;
+        }
 
         if ($exercise->workout_exercises_count > 0) {
             $this->message = null;

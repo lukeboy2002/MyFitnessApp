@@ -25,11 +25,6 @@ class Index extends Component
 
     public ?string $message = null;
 
-    public function mount(): void
-    {
-        $this->message = session('status');
-    }
-
     protected function deletableModel(): string
     {
         return Workout::class;

@@ -27,6 +27,17 @@ class ExerciseSeeder extends Seeder
         'stair-machine' => 'level', 'cross-trainer' => 'level',
     ];
 
+    /** Extra velden per apparaat (App\Enums\CardioField) */
+    private const CARDIO_FIELDS = [
+        'stair-machine' => ['rotations', 'floors'],
+        'cross-trainer' => ['rotations'],
+        'rowing' => ['stroke_rate', 'pace'],
+        'ski' => ['stroke_rate', 'pace'],
+        'hometrainer' => ['cadence'],
+        'treadmill' => ['incline', 'pace', 'splits'],
+        'hiit-mill' => ['incline', 'pace', 'splits'],
+    ];
+
     public function run(): void
     {
         $groups = MuscleGroup::whereNull('user_id')->pluck('id', 'slug');
@@ -43,6 +54,7 @@ class ExerciseSeeder extends Seeder
                     ...collect($data)->except('muscle_groups')->all(),
                     ...$type->defaults(),
                     'default_metric' => $type === ExerciseType::Cardio ? self::CARDIO_METRICS[$slug] ?? null : null,
+                    'cardio_fields' => $type === ExerciseType::Cardio ? self::CARDIO_FIELDS[$slug] ?? null : null,
                     'image_path' => $image,
                 ],
             );

@@ -42,6 +42,11 @@ test('the seeder creates the standard exercises with exactly one primary muscle 
         ->and($seatedRow->secondaryMuscleGroups()->pluck('slug')->all())->toContain('lats', 'biceps')
         ->and($seatedRow->instructions)->toBeArray()->not->toBeEmpty();
 
+    expect(Exercise::where('slug', 'treadmill')->first()->cardio_fields)->toBe(['incline', 'pace', 'splits'])
+        ->and(Exercise::where('slug', 'stair-machine')->first()->cardio_fields)->toBe(['rotations', 'floors'])
+        ->and(Exercise::where('slug', 'hometrainer')->first()->cardio_fields)->toBe(['cadence'])
+        ->and(Exercise::where('slug', 'cross-trainer')->first()->cardio_fields)->toBe(['rotations']);
+
     expect(Exercise::where('slug', 'treadmill')->first()->type)->toBe(ExerciseType::Cardio)
         ->and(Exercise::where('slug', 'bench-press-barbell')->first()->primaryMuscleGroup()->slug)->toBe('chest')
         ->and(Exercise::where('slug', 'pull-up-assisted')->first()->type)->toBe(ExerciseType::Bodyweight);
@@ -105,10 +110,12 @@ test('only the target fields of the type are stored', function () {
         ->assertSet('default_minutes', 20)
         ->set('default_metric', 'resistance')
         ->set('default_metric_value', '8')
+        ->set('cardio_fields', ['pace', 'stroke_rate'])
         ->call('save')
         ->assertHasNoErrors();
 
     $exercise = Exercise::first();
+    expect($exercise->cardio_fields)->toBe(['stroke_rate', 'pace']);
     expect($exercise->default_sets)->toBeNull()
         ->and($exercise->default_reps)->toBeNull()
         ->and($exercise->default_duration_seconds)->toBe(1200)

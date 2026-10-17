@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CardioField;
 use App\Enums\CardioMetric;
 use App\Enums\Equipment;
 use App\Enums\ExerciseType;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'user_id', 'name', 'slug', 'type', 'equipment', 'description', 'instructions', 'tips', 'image_path',
-    'default_sets', 'default_reps', 'default_weight', 'default_duration_seconds', 'default_metric', 'default_metric_value', 'archived_at',
+    'default_sets', 'default_reps', 'default_weight', 'default_duration_seconds', 'default_metric', 'default_metric_value', 'cardio_fields', 'archived_at',
 ])]
 class Exercise extends Model
 {
@@ -36,8 +37,20 @@ class Exercise extends Model
             'default_weight' => 'decimal:2',
             'default_metric' => CardioMetric::class,
             'default_metric_value' => 'decimal:1',
+            'cardio_fields' => 'array',
             'archived_at' => 'datetime',
         ];
+    }
+
+    /** Extra velden op het cardio-apparaat, bv. rotaties of tussentijden */
+    public function cardioFields(): array
+    {
+        return array_values(array_filter(array_map(fn ($field) => CardioField::tryFrom((string) $field), $this->cardio_fields ?? [])));
+    }
+
+    public function hasCardioField(CardioField $field): bool
+    {
+        return in_array($field, $this->cardioFields(), true);
     }
 
     /** Spiergroepen, de primaire eerst */
@@ -53,6 +66,12 @@ class Exercise extends Model
     public function workoutExercises(): HasMany
     {
         return $this->hasMany(WorkoutExercise::class);
+    }
+
+    /** Keren dat je deze oefening hebt gedaan */
+    public function sessionExercises(): HasMany
+    {
+        return $this->hasMany(SessionExercise::class);
     }
 
     public function primaryMuscleGroup(): ?MuscleGroup

@@ -8,12 +8,15 @@
             {{ $workout->isArchived() ? 'Terugzetten' : 'Archiveren' }}
         </x-button>
         <x-button variant="secondary" :href="route('workouts.edit', $workout)" wire:navigate>Bewerken</x-button>
-        {{-- Starten komt in stap 6 (training uitvoeren) --}}
-        <x-button variant="fire" icon="play" type="button" disabled title="Komt in de volgende stap">Start workout</x-button>
+        @if ($running)
+            <x-button variant="fire" icon="play" :href="route('sessions.run', $running)" wire:navigate>Verder met training</x-button>
+        @else
+            <x-button variant="fire" icon="play" type="button" wire:click="start" loading="start" :disabled="$workout->isArchived() || $workout->exercises->isEmpty()">Start workout</x-button>
+        @endif
     </x-page-header>
 
-    @if (session('status'))
-        <x-alert type="success" class="mb-5">{{ session('status') }}</x-alert>
+    @if ($running && $running->workout_id !== $workout->id)
+        <x-alert type="info" :timeout="0" class="mb-5">Je hebt nog een training lopen: <a href="{{ route('sessions.run', $running) }}" wire:navigate class="font-semibold underline">{{ $running->name }}</a>. Rond die eerst af.</x-alert>
     @endif
     @if ($workout->isArchived())
         <x-alert type="warning" class="mb-5">Deze workout is gearchiveerd. Zet hem terug om hem weer te kunnen starten.</x-alert>

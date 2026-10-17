@@ -31,6 +31,7 @@ return new class extends Migration
             $table->unsignedInteger('default_duration_seconds')->nullable();
             $table->string('default_metric', 20)->nullable();          // cardio: App\Enums\CardioMetric
             $table->decimal('default_metric_value', 5, 1)->nullable();  // bv. weerstand 8 of 10,5 km/h
+            $table->json('cardio_fields')->nullable();                  // cardio: extra velden, App\Enums\CardioField
 
             $table->timestamp('archived_at')->nullable();
             $table->timestamps();

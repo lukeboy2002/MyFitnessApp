@@ -3,6 +3,8 @@
 use App\Livewire\BodyParts\Index;
 use App\Livewire\Exercises\Form;
 use App\Livewire\Exercises\Show;
+use App\Livewire\Sessions\Run;
+use App\Livewire\Sessions\Summary;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -28,5 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('workouts/create', App\Livewire\Workouts\Form::class)->name('workouts.create');
     Route::get('workouts/{workout}', App\Livewire\Workouts\Show::class)->name('workouts.show');
     Route::get('workouts/{workout}/edit', App\Livewire\Workouts\Form::class)->name('workouts.edit');
+
+    // Training uitvoeren
+    Route::get('sessions/{session}', Run::class)->name('sessions.run');
+    Route::get('sessions/{session}/summary', Summary::class)->name('sessions.summary');
 
 });

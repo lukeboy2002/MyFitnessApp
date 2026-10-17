@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Exercises;
 
+use App\Enums\CardioField;
 use App\Enums\CardioMetric;
 use App\Enums\Equipment;
 use App\Enums\ExerciseType;
@@ -53,6 +54,9 @@ class Form extends Component
 
     public $default_metric_value = null;
 
+    /** Cardio: extra velden op het apparaat */
+    public array $cardio_fields = [];
+
     public function mount(?Exercise $exercise = null): void
     {
         if (! $exercise?->exists) {
@@ -67,6 +71,7 @@ class Form extends Component
         $this->fill($exercise->only('name', 'default_sets', 'default_reps', 'default_weight'));
         $this->default_metric = $exercise->default_metric?->value;
         $this->default_metric_value = filled($exercise->default_metric_value) ? rtrim(rtrim((string) $exercise->default_metric_value, '0'), '.') : null;
+        $this->cardio_fields = $exercise->cardio_fields ?? [];
         $this->description = $exercise->description ?? '';
         $this->type = $exercise->type->value;
         $this->equipment = $exercise->equipment?->value ?? 'none';
@@ -131,6 +136,8 @@ class Form extends Component
             'default_minutes' => ['nullable', 'integer', 'between:1,600'],
             'default_metric' => ['nullable', Rule::enum(CardioMetric::class)],
             'default_metric_value' => ['nullable', 'numeric', 'between:0,99.9'],
+            'cardio_fields' => ['array'],
+            'cardio_fields.*' => [Rule::enum(CardioField::class)],
         ], attributes: [
             'name' => 'naam', 'equipment' => 'materiaal', 'description' => 'omschrijving', 'instructions' => 'uitvoering',
             'primary_muscle_group_id' => 'primaire spiergroep', 'secondary_muscle_group_ids' => 'secundaire spiergroepen',
@@ -160,6 +167,9 @@ class Form extends Component
             },
             'default_metric' => $type->usesMetric() ? $data['default_metric'] : null,
             'default_metric_value' => $type->usesMetric() && filled($data['default_metric_value']) ? $data['default_metric_value'] : null,
+            'cardio_fields' => $type === ExerciseType::Cardio && $data['cardio_fields']
+                ? collect(CardioField::cases())->pluck('value')->intersect($data['cardio_fields'])->values()->all()
+                : null,
         ]);
 
         $this->applyImage($exercise, 'exercises');

@@ -2,9 +2,6 @@
     <x-page-header :title="$exercise ? 'Oefening bewerken' : 'Nieuwe oefening'"
                    description="Type, spiergroepen, plaatje en een standaarddoel" />
 
-    @if (session('status'))
-        <x-alert type="success" class="mb-5">{{ session('status') }}</x-alert>
-    @endif
 
     <form wire:submit="save">
         <x-card>
@@ -62,6 +59,10 @@
                         <x-form.input label="{{ \App\Enums\CardioMetric::from($default_metric)->label() }}" wire:model="default_metric_value"
                                       inputmode="decimal" :suffix="\App\Enums\CardioMetric::from($default_metric)->unit()" />
                     @endif
+                    <div class="sm:col-span-full">
+                        <x-form.chips label="Extra velden op het apparaat" wire:model="cardio_fields" :options="\App\Enums\CardioField::options()"
+                                      hint="Deze vul je in tijdens de training, naast tijd, afstand, kcal en hartslag." />
+                    </div>
                 @endif
             </x-form.section>
 
