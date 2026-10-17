@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Exercises;
 
+use App\Enums\SessionStatus;
 use App\Models\Exercise;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -19,6 +21,10 @@ class Show extends Component
 
     public function render()
     {
-        return view('livewire.exercises.show')->title($this->exercise->name);
+        return view('livewire.exercises.show', [
+            'timesDone' => $this->exercise->sessionExercises()
+                ->whereHas('session', fn ($q) => $q->where('user_id', Auth::id())->where('status', SessionStatus::Completed))
+                ->count(),
+        ])->title($this->exercise->name);
     }
 }

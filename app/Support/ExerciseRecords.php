@@ -5,9 +5,12 @@ namespace App\Support;
 use App\Enums\ExerciseType;
 use App\Enums\SessionStatus;
 use App\Models\CardioLog;
+use App\Models\Exercise;
 use App\Models\SessionExercise;
 use App\Models\SetLog;
+use App\Models\User;
 use App\Models\WorkoutSession;
+use Carbon\CarbonInterface;
 
 /**
  * Persoonlijke records van een oefening, uit de afgeronde trainingen vóór een bepaalde training.
@@ -50,13 +53,24 @@ class ExerciseRecords
     /** Records van één oefening, bv. om bij het afvinken te kijken of je er eentje verbetert */
     public static function build(WorkoutSession $session, int $exerciseId, ExerciseType $type): self
     {
+        return self::from($session->user_id, $exerciseId, $type, $session->started_at);
+    }
+
+    /** Alle records van een oefening tot nu toe, bv. voor de Progress-pagina */
+    public static function forUser(User $user, Exercise $exercise): self
+    {
+        return self::from($user->id, $exercise->id, $exercise->type);
+    }
+
+    private static function from(int $userId, int $exerciseId, ExerciseType $type, ?CarbonInterface $before = null): self
+    {
         $records = new self($type);
 
         $history = SessionExercise::query()
             ->where('exercise_id', $exerciseId)
-            ->whereHas('session', fn ($q) => $q->where('user_id', $session->user_id)
+            ->whereHas('session', fn ($q) => $q->where('user_id', $userId)
                 ->where('status', SessionStatus::Completed)
-                ->where('started_at', '<', $session->started_at))
+                ->when($before, fn ($q) => $q->where('started_at', '<', $before)))
             ->with(['session', 'sets' => fn ($q) => $q->where('is_completed', true), 'cardio.splits'])
             ->get()
             ->sortByDesc(fn (SessionExercise $item) => $item->session->started_at);

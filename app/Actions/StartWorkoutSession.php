@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\SessionStatus;
+use App\Models\ScheduledWorkout;
 use App\Models\User;
 use App\Models\Workout;
 use App\Models\WorkoutExercise;
@@ -37,6 +38,11 @@ class StartWorkoutSession
             $workout->exercises()->with('exercise')->get()->each(
                 fn (WorkoutExercise $item) => $this->addExercise->handle($session, $item->exercise, $item->toArray(), $item->id)
             );
+
+            // Stond deze workout voor vandaag gepland? Dan is die nu gedaan
+            ScheduledWorkout::where('user_id', $user->id)->where('workout_id', $workout->id)
+                ->whereDate('scheduled_on', today())->open()->orderBy('id')->first()
+                ?->update(['workout_session_id' => $session->id]);
 
             return $session;
         });

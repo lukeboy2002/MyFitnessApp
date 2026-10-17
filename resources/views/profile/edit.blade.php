@@ -27,6 +27,8 @@
                 <x-theme-toggle variant="segmented"/>
             </x-card>
 
+            <livewire:profile.update-weekly-goal/>
+
 
         </div>
     </div>

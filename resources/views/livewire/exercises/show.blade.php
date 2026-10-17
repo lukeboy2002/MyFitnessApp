@@ -65,6 +65,15 @@
                     </div>
                 </dl>
             </x-card>
+
+            <x-card title="Voortgang">
+                @if ($timesDone)
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Je deed deze oefening {{ $timesDone }}× in een afgeronde training.</p>
+                    <x-button variant="secondary" icon="chart" size="sm" :href="route('progress.exercise', $exercise)" wire:navigate class="mt-3">Bekijk voortgang</x-button>
+                @else
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Nog niet gedaan. Na je eerste training zie je hier je voortgang.</p>
+                @endif
+            </x-card>
         </div>
 
         <div class="flex min-w-0 flex-col gap-5">
