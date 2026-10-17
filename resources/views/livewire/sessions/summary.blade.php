@@ -20,6 +20,15 @@
         </dl>
     </div>
 
+    @php($newRecords = $session->exercises->sum(fn ($item) => isset($records[$item->exercise_id])
+        ? ($item->exercise->type->usesSets() ? $item->sets->filter(fn ($set) => $records[$item->exercise_id]->isRecordSet($set))->count() : count($records[$item->exercise_id]->cardioRecords($item->cardio)))
+        : 0))
+    @if ($newRecords)
+        <p x-init="setTimeout(() => window.confetti?.(), 300)" class="mb-5 flex items-center gap-2 rounded-2xl bg-accent-300/30 px-4 py-3 font-semibold text-brand-950 dark:bg-accent-400/15 dark:text-accent-300">
+            <x-icon name="trophy" class="size-5 text-accent-500" /> {{ $newRecords }} {{ $newRecords === 1 ? 'nieuw record' : 'nieuwe records' }}!
+        </p>
+    @endif
+
     <x-card :padding="false" class="overflow-hidden">
         <ol class="divide-y divide-slate-100 dark:divide-line-dark">
             @foreach ($session->exercises as $item)
@@ -39,7 +48,11 @@
                             @else
                                 <div class="mt-1 flex flex-wrap gap-1.5">
                                     @foreach ($done as $set)
-                                        <span class="rounded-lg bg-slate-100 px-2 py-0.5 text-sm font-semibold tabular-nums dark:bg-white/10">
+                                        @php($isRecord = isset($records[$item->exercise_id]) && $records[$item->exercise_id]->isRecordSet($set))
+                                        <span @class(['inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm font-semibold tabular-nums',
+                                                      'bg-accent-300/40 text-brand-950 dark:bg-accent-400/20 dark:text-accent-300' => $isRecord,
+                                                      'bg-slate-100 dark:bg-white/10' => ! $isRecord])>
+                                            @if ($isRecord) <x-icon name="trophy" class="size-3.5 text-accent-500" /> @endif
                                             @if ($type->usesReps())
                                                 {{ $set->reps ?? 0 }} ×@if (filled($set->weight) && (float) $set->weight !== 0.0) {{ $type->usesExtraWeight() && $set->weight > 0 ? '+' : '' }}{{ $n($set->weight) }} kg @endif
                                             @else
@@ -62,6 +75,11 @@
                                     ...collect(\App\Models\CardioLog::FIELDS)->map(fn ($f, $key) => filled($log->{$key}) ? $n($log->{$key}).($f[1] ? ' '.$f[1] : '').' '.mb_strtolower(str_replace('Gem. ', 'gem. ', $f[0])) : null)->all(),
                                 ])->filter()->implode(' · ') ?: 'Geen gegevens ingevuld' }}
                             </p>
+                            @if ($new = isset($records[$item->exercise_id]) ? $records[$item->exercise_id]->cardioRecords($log) : [])
+                                <p class="mt-1 flex items-center gap-1.5 text-sm font-semibold text-accent-500">
+                                    <x-icon name="trophy" class="size-4" /> Nieuw record: {{ mb_strtolower(implode(', ', $new)) }}
+                                </p>
+                            @endif
                             @if ($kmTimes = array_filter($log->kmTimes()))
                                 @php($fastest = min($kmTimes))
                                 <div class="mt-1 flex flex-wrap gap-1.5">

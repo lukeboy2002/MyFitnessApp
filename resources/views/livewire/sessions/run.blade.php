@@ -55,6 +55,24 @@
                     @endunless
                 </header>
 
+                {{-- Records uit eerdere trainingen --}}
+                @php($record = $records[$exercise->id] ?? null)
+                @if ($record && ! $record->isEmpty())
+                    <div class="-mt-1 flex flex-wrap items-center gap-1.5 px-3 pb-3 text-xs sm:px-4">
+                        <x-icon name="trophy" class="size-4 shrink-0 text-accent-500" />
+                        @foreach ($record->list() as $label => $value)
+                            <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-white/10">
+                                <span class="text-slate-500 dark:text-slate-400">{{ $label }}</span>
+                                <span class="font-semibold tabular-nums">{{ $value }}</span>
+                            </span>
+                        @endforeach
+                    </div>
+                @elseif ($record)
+                    <p class="-mt-1 flex items-center gap-1.5 px-3 pb-3 text-xs text-slate-500 sm:px-4 dark:text-slate-400">
+                        <x-icon name="trophy" class="size-4 shrink-0" /> Eerste keer: na deze training staan hier je records.
+                    </p>
+                @endif
+
                 @if ($type->usesSets())
                     {{-- Sets --}}
                     <div class="max-w-xl px-3 pb-3 sm:px-4 sm:pb-4">
@@ -77,7 +95,12 @@
                                              'grid-cols-[2.5rem_1fr_1fr_3rem]' => $type->usesReps(),
                                              'grid-cols-[2.5rem_1fr_3rem]' => ! $type->usesReps(),
                                              'bg-emerald-50 dark:bg-emerald-500/10' => $set->is_completed])>
-                                    <span class="text-center font-display text-lg font-bold text-slate-500 dark:text-slate-400">{{ $set->set_number }}</span>
+                                    <span class="relative text-center font-display text-lg font-bold text-slate-500 dark:text-slate-400">
+                                        {{ $set->set_number }}
+                                        @if ($record?->isRecordSet($set))
+                                            <x-icon name="trophy" class="absolute -top-1 right-0 size-4 text-accent-500" title="Nieuw record" />
+                                        @endif
+                                    </span>
                                     @if ($type->usesReps())
                                         <input type="text" inputmode="decimal" wire:model.blur.live="values.{{ $set->id }}.weight" aria-label="Gewicht set {{ $set->set_number }}"
                                                placeholder="{{ $type->usesExtraWeight() ? '0' : '–' }}" @class([$input, 'ring-red-500!' => $errors->has("values.{$set->id}.weight")])>
@@ -130,6 +153,11 @@
                             <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_act_hr'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_act_hr" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_act_hr'][1]" />
                             <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_heart_rate'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_heart_rate" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_heart_rate'][1]" />
                         </div>
+                        @if ($new = $record?->cardioRecords($item->cardio))
+                            <p class="mt-3 flex items-center gap-1.5 text-sm font-semibold text-accent-500">
+                                <x-icon name="trophy" class="size-4" /> Nieuw record: {{ mb_strtolower(implode(', ', $new)) }}
+                            </p>
+                        @endif
                         {{-- Tussentijden: na elke km op "Volgende km" en de tijd van die km invullen --}}
                         @php($times = $splits[$item->id] ?? [])
                         @php($kmTimes = array_filter($item->cardio?->kmTimes() ?? []))
@@ -230,6 +258,22 @@
             @endif
         </x-slot:footer>
     </x-modal>
+
+    {{-- Melding bij een nieuw record (de confetti komt uit resources/js/confetti.js) --}}
+    <div x-data="{ show: false, title: '', text: '', timer: null }"
+         x-on:record.window="title = $event.detail.title; text = $event.detail.text; show = true; clearTimeout(timer); timer = setTimeout(() => show = false, 4500)"
+         x-show="show" x-cloak x-on:click="show = false"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="-translate-y-6 scale-90 opacity-0" x-transition:enter-end="translate-y-0 scale-100 opacity-100"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         class="fixed inset-x-0 top-20 z-40 flex justify-center px-4 md:top-6" role="status">
+        <div class="flex items-center gap-3 rounded-2xl bg-accent-400 py-3 pr-5 pl-4 text-brand-950 shadow-2xl ring-4 ring-white/70 dark:ring-white/20">
+            <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-white/50"><x-icon name="trophy" class="size-7" /></span>
+            <div class="min-w-0">
+                <p class="font-display text-2xl leading-none font-extrabold uppercase" x-text="title"></p>
+                <p class="mt-0.5 truncate text-sm font-semibold" x-text="text"></p>
+            </div>
+        </div>
+    </div>
 
     {{-- Timerbalk: op mobiel boven de menubalk, op grotere schermen onderaan het scherm --}}
     <div x-data="{

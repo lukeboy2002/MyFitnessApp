@@ -3,6 +3,7 @@
 namespace App\Livewire\Sessions;
 
 use App\Models\WorkoutSession;
+use App\Support\ExerciseRecords;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -29,6 +30,7 @@ class Summary extends Component
         return view('livewire.sessions.summary', [
             'setsDone' => $sets->where('is_completed', true)->count(),
             'setsTotal' => $sets->count(),
+            'records' => ExerciseRecords::forSession($this->session),
         ])->title($this->session->name);
     }
 }

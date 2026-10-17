@@ -12,6 +12,7 @@ use App\Models\SessionExercise;
 use App\Models\SetLog;
 use App\Models\WorkoutExercise;
 use App\Models\WorkoutSession;
+use App\Support\ExerciseRecords;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
@@ -84,6 +85,13 @@ class Run extends Component
         $rest = $set->sessionExercise->rest_seconds;
         if ($done && $rest) {
             $this->dispatch('rest-start', seconds: $rest);
+        }
+
+        // Nieuw record: confetti en een melding
+        $exercise = $set->sessionExercise->exercise;
+        $records = $done ? ExerciseRecords::build($this->session, $exercise->id, $exercise->type) : null;
+        if ($records?->isRecordSet($set)) {
+            $this->dispatch('record', title: 'Nieuw record!', text: $exercise->name.' · '.$records->describeSet($set));
         }
     }
 
@@ -239,6 +247,13 @@ class Run extends Component
     {
         $item = $this->findExercise($sessionExerciseId);
         $item->update(['completed_at' => $item->completed_at ? null : now()]);
+
+        $new = $item->completed_at
+            ? ExerciseRecords::build($this->session, $item->exercise_id, $item->exercise->type)->cardioRecords($item->cardio()->with('splits')->first())
+            : [];
+        if ($new) {
+            $this->dispatch('record', title: count($new) > 1 ? 'Nieuwe records!' : 'Nieuw record!', text: $item->exercise->name.' · '.mb_strtolower(implode(', ', $new)));
+        }
     }
 
     /** wire:sort: oefening $id naar plek $position slepen, bijv. als een machine bezet is */
@@ -298,6 +313,7 @@ class Run extends Component
         return view('livewire.sessions.run', [
             'setsDone' => $sets->where('is_completed', true)->count(),
             'setsTotal' => $sets->count(),
+            'records' => ExerciseRecords::forSession($this->session),
         ])->title($this->session->name);
     }
 
