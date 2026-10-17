@@ -100,6 +100,13 @@
             <img src="{{ asset('storage/assets/logo.png') }}" alt="{{ config('app.name') }}" class="size-10"></a>
         <span
             class="min-w-0 flex-1 truncate font-display text-xl font-extrabold uppercase tracking-wide">{{ $current }}</span>
+        <form method="POST" action="{{ $link('logout') }}">
+            @csrf
+            <button type="submit" aria-label="Uitloggen" title="Uitloggen"
+                    class="grid size-11 place-items-center rounded-xl transition hover:bg-white/15">
+                <x-icon name="logout" class="size-6"/>
+            </button>
+        </form>
         {{--        <x-theme-toggle/>--}}
         {{--        <button type="button" x-on:click="more = ! more" :aria-expanded="more" aria-label="Meer"--}}
         {{--                class="grid size-11 place-items-center rounded-xl transition hover:bg-white/15">--}}
