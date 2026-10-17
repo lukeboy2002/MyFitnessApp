@@ -162,7 +162,8 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Na het aanmaken van je eigen account online uitzetten met ALLOW_REGISTRATION=false
+        ...(env('ALLOW_REGISTRATION', true) ? [Features::registration()] : []),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::updateProfileInformation(),

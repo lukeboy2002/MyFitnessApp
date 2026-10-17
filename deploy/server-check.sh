@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Laat zien wat er op de server staat. Draai: bash server-check.sh   (en stuur de uitvoer naar Claude)
+echo "OS:       $(lsb_release -ds 2>/dev/null)"
+echo "nginx:    $(nginx -v 2>&1 || echo nee)"
+echo "apache:   $(apache2 -v 2>/dev/null | head -1 || echo nee)"
+echo "php:      $(php -v 2>/dev/null | head -1 || echo nee)"
+echo "php-fpm:  $(ls /run/php/ 2>/dev/null | tr '\n' ' ')"
+echo "ext:      $(php -m 2>/dev/null | grep -Ei '^(mbstring|xml|curl|zip|bcmath|intl|gd|mysql|pdo_mysql|sqlite3)$' | tr '\n' ' ')"
+echo "composer: $(composer -V 2>/dev/null || echo nee)"
+echo "node:     $(node -v 2>/dev/null || echo nee)  npm: $(npm -v 2>/dev/null || echo nee)"
+echo "mysql:    $(mysql --version 2>/dev/null || echo nee)"
+echo "certbot:  $(certbot --version 2>&1 || echo nee)"
+echo "git:      $(git --version 2>/dev/null || echo nee)"
+echo "sites:    $(ls /etc/nginx/sites-enabled 2>/dev/null | tr '\n' ' ')"
+echo "/var/www: $(ls /var/www 2>/dev/null | tr '\n' ' ')"
+echo "schijf:   $(df -h / | tail -1 | awk '{print $4" vrij"}')"

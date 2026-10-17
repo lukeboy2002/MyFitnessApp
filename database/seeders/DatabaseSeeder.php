@@ -15,6 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(BodyPartSeeder::class); // lichaamsdelen, spiergroepen, spieren
+        $this->call(ExerciseSeeder::class); // standaardoefeningen (na de spiergroepen)
+
+        // Testaccounts en voorbeeldworkouts alleen lokaal: online staat Faker er niet op (composer --no-dev)
+        if (app()->isProduction()) {
+            return;
+        }
 
         User::factory()->create([
             'name' => 'Admin',
@@ -30,8 +37,6 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        $this->call(BodyPartSeeder::class); // lichaamsdelen, spiergroepen, spieren
-        $this->call(ExerciseSeeder::class); // standaardoefeningen (na de spiergroepen)
         $this->call(WorkoutSeeder::class);  // drie voorbeeldworkouts voor Antoine
     }
 }
