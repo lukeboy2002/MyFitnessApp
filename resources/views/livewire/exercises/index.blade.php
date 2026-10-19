@@ -24,9 +24,18 @@
                                 'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => $typeFilter !== $value])>{{ $label }}</button>
             @endforeach
 
+            @if ($this->ownCount)
+                <button type="button" wire:click="$toggle('ownOnly')" aria-pressed="{{ $ownOnly ? 'true' : 'false' }}"
+                        @class(['ml-auto inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition',
+                                'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $ownOnly,
+                                'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => ! $ownOnly])>
+                    <x-icon name="user" class="size-4" /> Eigen oefeningen
+                </button>
+            @endif
             <button type="button" wire:click="$toggle('showArchived')"
-                    @class(['ml-auto inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition',
+                    @class(['inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition',
                             'bg-slate-700 text-white ring-slate-700 dark:bg-white/20 dark:ring-white/20' => $showArchived,
+                            'ml-auto' => ! $this->ownCount,
                             'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => ! $showArchived])>
                 <x-icon name="archive" class="size-4" /> Archief @if ($this->archivedCount) ({{ $this->archivedCount }}) @endif
             </button>
@@ -99,7 +108,7 @@
         @empty
             <div class="rounded-2xl bg-white p-8 text-center ring-1 ring-slate-200 sm:col-span-2 xl:col-span-3 dark:bg-panel-dark dark:ring-line-dark">
                 <p class="text-slate-500 dark:text-slate-400">{{ $showArchived ? 'Er staan geen oefeningen in het archief.' : 'Geen oefeningen gevonden.' }}</p>
-                @if ($search !== '' || $typeFilter !== '' || $groupFilter)
+                @if ($search !== '' || $typeFilter !== '' || $groupFilter || $ownOnly)
                     <x-button variant="secondary" size="sm" type="button" wire:click="resetFilters" class="mt-3">Filters wissen</x-button>
                 @endif
             </div>

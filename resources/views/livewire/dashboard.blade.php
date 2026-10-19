@@ -143,5 +143,38 @@
                 </ul>
             @endif
         </x-card>
+
+        {{-- Eigen oefeningen (alleen als je die hebt) --}}
+        @if ($ownExercises->isNotEmpty())
+            <x-card title="Eigen oefeningen" :padding="false" class="col-span-2">
+                <x-slot:actions>
+                    <a href="{{ route('exercises.index', ['eigen' => 1]) }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
+                        {{ $ownExercisesCount > $ownExercises->count() ? 'Alle '.$ownExercisesCount : 'Bekijken' }}
+                    </a>
+                </x-slot:actions>
+
+                <ul class="mt-3 divide-y divide-slate-100 dark:divide-line-dark">
+                    @foreach ($ownExercises as $exercise)
+                        @php($primary = $exercise->primaryMuscleGroup())
+                        <li style="--g: {{ $primary?->color ?? '#1d63c5' }}">
+                            <a href="{{ route('exercises.show', $exercise) }}" wire:navigate class="flex items-center gap-3 px-5 py-3 transition hover:bg-slate-50 sm:px-6 dark:hover:bg-white/[.03]">
+                                <span class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-50 dark:bg-white/5">
+                                    @if ($picture = $exercise->imageUrl())
+                                        <img src="{{ $picture }}" alt="" loading="lazy" class="size-full object-contain p-0.5">
+                                    @else
+                                        <x-icon :name="$exercise->type->icon()" class="size-5 text-(--g)" />
+                                    @endif
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate font-semibold">{{ $exercise->name }}</span>
+                                    <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $exercise->type->label() }}@if ($primary) · {{ $primary->name }}@endif</span>
+                                </span>
+                                <x-icon name="chevron-right" class="size-5 text-slate-400" />
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-card>
+        @endif
     </div>
 </div>

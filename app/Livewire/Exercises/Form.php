@@ -151,7 +151,7 @@ class Form extends Component
         // Alleen de doelvelden die bij het type horen bewaren
         $exercise->fill([
             'name' => $data['name'],
-            'slug' => Exercise::uniqueSlug($data['name'], $user->id, $exercise->id),
+            'slug' => $exercise->slugFor($data['name']),
             'type' => $type,
             'equipment' => $data['equipment'],
             'description' => $data['description'] ?: null,

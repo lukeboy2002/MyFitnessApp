@@ -53,6 +53,10 @@
                             Later <x-icon name="chevron-down" class="size-3.5" />
                         </button>
                     @endunless
+                    <button type="button" wire:click="confirmDelete({{ $item->id }})" aria-label="{{ $exercise->name }} uit deze training halen" title="Uit deze training halen"
+                            class="grid size-8 shrink-0 place-items-center self-start rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400">
+                        <x-icon name="trash" class="size-4.5" />
+                    </button>
                 </header>
 
                 {{-- Records uit eerdere trainingen --}}
@@ -251,7 +255,7 @@
             </div>
             <x-exercise-targets :type="$chosen->type" :item="$adding" model="adding" />
         @else
-            <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType"
+            <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType" :own="$pickerOwn" :own-count="$this->pickerOwnCount"
                                :added="$session->exercises->countBy('exercise_id')" action="pick" />
         @endif
         <x-slot:footer>
@@ -342,6 +346,8 @@
             </div>
         </div>
     </div>
+
+    <x-confirm-delete :name="$deletingName" title="Oefening verwijderen?">Ook de sets en cardiogegevens van deze training verdwijnen. Je workout zelf blijft zoals hij is.</x-confirm-delete>
 
     <x-modal wire:model="confirmingFinish" title="Training afronden?" maxWidth="md">
         <p>

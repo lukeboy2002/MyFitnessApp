@@ -71,7 +71,7 @@ class Index extends Component
             $muscle = new Muscle(['user_id' => $user->id]);
         }
 
-        $muscle->fill([...$data, 'slug' => Muscle::uniqueSlug($data['name'], $user->id, $muscle->id)])->save();
+        $muscle->fill([...$data, 'slug' => $muscle->slugFor($data['name'])])->save();
 
         $this->done("{$muscle->name} is opgeslagen.");
         unset($this->muscles);

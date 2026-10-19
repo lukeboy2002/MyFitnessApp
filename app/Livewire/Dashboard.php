@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Exercise;
 use App\Models\ScheduledWorkout;
 use App\Models\WorkoutSession;
 use App\Support\TrainingStats;
@@ -30,6 +31,9 @@ class Dashboard extends Component
                 ->whereDate('scheduled_on', '>=', today())
                 ->whereHas('workout', fn ($q) => $q->whereNull('archived_at'))
                 ->with('workout')->orderBy('scheduled_on')->orderBy('id')->first(),
+            // Eigen oefeningen: de 5 nieuwste, met het totaal voor de link naar de lijst
+            'ownExercises' => Exercise::where('user_id', $user->id)->active()->with('muscleGroups')->latest()->limit(5)->get(),
+            'ownExercisesCount' => Exercise::where('user_id', $user->id)->active()->count(),
         ])->title('Dashboard');
     }
 }

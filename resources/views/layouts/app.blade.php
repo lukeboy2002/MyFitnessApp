@@ -24,6 +24,11 @@
         ['route' => 'progress.index',      'active' => 'progress.*',       'icon' => 'chart',    'label' => 'Progress'],
     ];
 
+    // Alleen voor admins
+    if (auth()->user()?->isAdmin()) {
+        $nav[] = ['route' => 'admin.users', 'active' => 'admin.*', 'icon' => 'shield', 'label' => 'Gebruikers'];
+    }
+
     // Mobiele menubalk (altijd onderaan)
     $mobile = [
         ['route' => 'dashboard',      'active' => 'dashboard',               'icon' => 'home',     'label' => 'Dashboard'],
@@ -103,38 +108,38 @@
             <img src="{{ asset('storage/assets/logo.png') }}" alt="{{ config('app.name') }}" class="size-10"></a>
         <span
             class="min-w-0 flex-1 truncate font-display text-xl font-extrabold uppercase tracking-wide">{{ $current }}</span>
-        <form method="POST" action="{{ $link('logout') }}">
-            @csrf
-            <button type="submit" aria-label="Uitloggen" title="Uitloggen"
-                    class="grid size-11 place-items-center rounded-xl transition hover:bg-white/15">
-                <x-icon name="logout" class="size-6"/>
-            </button>
-        </form>
+        {{--        <form method="POST" action="{{ $link('logout') }}">--}}
+        {{--            @csrf--}}
+        {{--            <button type="submit" aria-label="Uitloggen" title="Uitloggen"--}}
+        {{--                    class="grid size-11 place-items-center rounded-xl transition hover:bg-white/15">--}}
+        {{--                <x-icon name="logout" class="size-6"/>--}}
+        {{--            </button>--}}
+        {{--        </form>--}}
         {{--        <x-theme-toggle/>--}}
-        {{--        <button type="button" x-on:click="more = ! more" :aria-expanded="more" aria-label="Meer"--}}
-        {{--                class="grid size-11 place-items-center rounded-xl transition hover:bg-white/15">--}}
-        {{--            <x-icon name="dots" class="size-6"/>--}}
-        {{--        </button>--}}
+        <button type="button" x-on:click="more = ! more" :aria-expanded="more" aria-label="Meer"
+                class="grid size-11 place-items-center rounded-xl transition hover:bg-white/15">
+            <x-icon name="dots" class="size-6"/>
+        </button>
 
-        {{--        <div x-show="more" x-cloak x-transition.origin.top.right x-on:click.outside="more = false"--}}
-        {{--             class="absolute right-3 top-full mt-2 w-60 rounded-2xl bg-white p-1.5 text-ink shadow-xl ring-1 ring-slate-200 dark:bg-panel-dark dark:text-slate-100 dark:ring-line-dark">--}}
-        {{--            @foreach ($more as $item)--}}
-        {{--                <a href="{{ $link($item['route']) }}" wire:navigate--}}
-        {{--                    @class(['flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold hover:bg-slate-100 dark:hover:bg-white/5',--}}
-        {{--                            'text-brand-700 dark:text-brand-300' => $is($item['active'])])>--}}
-        {{--                    <x-icon :name="$item['icon']"/> {{ $item['label'] }}--}}
-        {{--                </a>--}}
-        {{--            @endforeach--}}
-        {{--            <form method="POST" action="{{ $link('logout') }}"--}}
-        {{--                  class="mt-1 border-t border-slate-200 pt-1 dark:border-line-dark">--}}
-        {{--                @csrf--}}
-        {{--                <button--}}
-        {{--                    class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">--}}
-        {{--                    <x-icon name="logout"/>--}}
-        {{--                    Uitloggen--}}
-        {{--                </button>--}}
-        {{--            </form>--}}
-        {{--        </div>--}}
+        <div x-show="more" x-cloak x-transition.origin.top.right x-on:click.outside="more = false"
+             class="absolute right-3 top-full mt-2 w-60 rounded-2xl bg-white p-1.5 text-ink shadow-xl ring-1 ring-slate-200 dark:bg-panel-dark dark:text-slate-100 dark:ring-line-dark">
+            @foreach ($more as $item)
+                <a href="{{ $link($item['route']) }}" wire:navigate
+                    @class(['flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold hover:bg-slate-100 dark:hover:bg-white/5',
+                            'text-brand-700 dark:text-brand-300' => $is($item['active'])])>
+                    <x-icon :name="$item['icon']"/> {{ $item['label'] }}
+                </a>
+            @endforeach
+            <form method="POST" action="{{ $link('logout') }}"
+                  class="mt-1 border-t border-slate-200 pt-1 dark:border-line-dark">
+                @csrf
+                <button
+                    class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
+                    <x-icon name="logout"/>
+                    Uitloggen
+                </button>
+            </form>
+        </div>
     </header>
 
     {{-- Inhoud. pb-28 op mobiel zodat niets achter de menubalk valt --}}

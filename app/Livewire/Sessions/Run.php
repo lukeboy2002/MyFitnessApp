@@ -4,6 +4,7 @@ namespace App\Livewire\Sessions;
 
 use App\Actions\AddSessionExercise;
 use App\Enums\CardioMetric;
+use App\Livewire\Concerns\ConfirmsDeletion;
 use App\Livewire\Concerns\EditsExerciseTargets;
 use App\Livewire\Concerns\PicksExercises;
 use App\Models\CardioLog;
@@ -25,7 +26,7 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Run extends Component
 {
-    use EditsExerciseTargets, PicksExercises;
+    use ConfirmsDeletion, EditsExerciseTargets, PicksExercises;
 
     public WorkoutSession $session;
 
@@ -267,6 +268,31 @@ class Run extends Component
         foreach ($ids as $index => $exerciseId) {
             $this->session->exercises()->whereKey($exerciseId)->update(['position' => $index + 1]);
         }
+    }
+
+    /** Oefening uit deze training halen (met sets en cardio); de workout zelf blijft zoals hij is */
+    public function confirmDelete(int $id): void
+    {
+        $item = $this->findExercise($id);
+
+        $this->deletingId = $item->id;
+        $this->deletingName = $item->exercise->name;
+        $this->confirmingDeletion = true;
+    }
+
+    public function delete(int $id): void
+    {
+        $this->findExercise($id)->delete();
+
+        $this->session->exercises()->pluck('id')->each(
+            fn ($exerciseId, $index) => $this->session->exercises()->whereKey($exerciseId)->update(['position' => $index + 1])
+        );
+        unset($this->cardio[$id], $this->splits[$id]);
+    }
+
+    protected function deletableModel(): string
+    {
+        return SessionExercise::class;
     }
 
     /** Machine bezet: oefening achteraan zetten */

@@ -160,6 +160,15 @@ php artisan fitness:import-legacy antoine@la-online.nl --database=MyFitness
 
 Nog een keer draaien kan geen kwaad: wat al is overgezet, wordt overgeslagen.
 
+## 10. Jezelf admin maken
+
+Een admin mag de standaardoefeningen, lichaamsdelen, spiergroepen en spieren wijzigen en ziet in het menu **Gebruikers**.
+
+```bash
+php artisan fitness:admin antoine@la-online.nl            # admin maken
+php artisan fitness:admin iemand@example.com --remove     # weer gewone gebruiker
+```
+
 ---
 
 ## Later: een nieuwe versie online zetten

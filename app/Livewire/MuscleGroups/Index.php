@@ -77,7 +77,7 @@ class Index extends Component
             $group = new MuscleGroup(['user_id' => $user->id]);
         }
 
-        $group->fill([...Arr::except($data, 'image'), 'slug' => MuscleGroup::uniqueSlug($data['name'], $user->id, $group->id)]);
+        $group->fill([...Arr::except($data, 'image'), 'slug' => $group->slugFor($data['name'])]);
         $this->applyImage($group, 'musclegroups');
         $group->save();
 

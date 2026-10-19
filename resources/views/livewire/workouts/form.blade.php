@@ -97,7 +97,7 @@
 
     {{-- Oefening kiezen --}}
     <x-modal wire:model="showPicker" title="Oefening toevoegen" maxWidth="2xl">
-        <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType"
+        <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType" :own="$pickerOwn" :own-count="$this->pickerOwnCount"
                            :added="collect($items)->countBy('exercise_id')" action="addExercise" />
 
         <x-slot:footer>

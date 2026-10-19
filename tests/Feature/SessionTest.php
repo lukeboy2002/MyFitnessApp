@@ -8,6 +8,7 @@ use App\Livewire\Sessions\Summary;
 use App\Livewire\Workouts\Show;
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
+use App\Models\SetLog;
 use App\Models\User;
 use App\Models\Workout;
 use App\Models\WorkoutExercise;
@@ -260,4 +261,29 @@ test('an exercise with history cannot be deleted', function () {
         ->assertSet('error', fn ($error) => str_contains($error, 'historie'));
 
     expect($mine->fresh())->not->toBeNull();
+});
+
+test('an exercise can be removed during a training, the workout stays the same', function () {
+    $session = startSession();
+    [$press, $bike] = $session->exercises->all();
+
+    Livewire::actingAs($this->user)->test(Run::class, ['session' => $session])
+        ->call('confirmDelete', $press->id)->assertSet('deletingName', 'Chest Press')
+        ->call('deleteConfirmed')
+        ->assertSet('confirmingDeletion', false);
+
+    expect($session->exercises()->pluck('id')->all())->toBe([$bike->id])
+        ->and($bike->fresh()->position)->toBe(1)
+        ->and(SetLog::count())->toBe(0)
+        ->and($this->workout->exercises()->count())->toBe(2);
+});
+
+test('cardio shows the average speed', function () {
+    $session = startSession();
+    $bike = $session->exercises->last();
+
+    Livewire::actingAs($this->user)->test(Run::class, ['session' => $session])
+        ->set("cardio.{$bike->id}.time", '30')
+        ->set("cardio.{$bike->id}.distance", '12,2')
+        ->assertSee('24,4 km/h');
 });

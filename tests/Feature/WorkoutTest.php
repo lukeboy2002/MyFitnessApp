@@ -195,3 +195,19 @@ test('the seeder gives cardio machines a setting', function () {
         ->and(Exercise::where('slug', 'cross-trainer')->first()->default_metric)->toBe(CardioMetric::Level)
         ->and(Exercise::where('slug', 'jump-rope')->first()->default_metric)->toBeNull();
 });
+
+test('the exercise picker can show only own exercises', function () {
+    workoutExercise('strength', ['name' => 'Standaard Press']);
+
+    Livewire::actingAs($this->user)->test(Form::class)
+        ->call('openPicker')->assertDontSee('Eigen oefeningen');
+
+    workoutExercise('strength', ['name' => 'Mijn Curl', 'user_id' => $this->user->id]);
+
+    Livewire::actingAs($this->user)->test(Form::class)
+        ->call('openPicker')
+        ->assertSee(['Eigen oefeningen', 'Standaard Press', 'Mijn Curl'])
+        ->set('pickerOwn', true)
+        ->assertSee('Mijn Curl')->assertDontSee('Standaard Press')
+        ->call('openPicker')->assertSet('pickerOwn', false);
+});

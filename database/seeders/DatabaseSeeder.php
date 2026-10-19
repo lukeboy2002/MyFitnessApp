@@ -28,15 +28,17 @@ class DatabaseSeeder extends Seeder
             'username' => 'admin',
             'email' => 'admin@myfitness.test',
             'password' => bcrypt('adminadmin'),
+            'is_admin' => true,
         ]);
 
-        User::factory()->create([
-            'name' => 'Antoine Hendriks',
-            'username' => 'Antoine',
-            'email' => 'antoine@myfitness.test',
-            'password' => bcrypt('password'),
-        ]);
+        //        User::factory()->create([
+        //            'name' => 'Antoine Hendriks',
+        //            'username' => 'Antoine',
+        //            'email' => 'antoine@myfitness.test',
+        //            'password' => bcrypt('password'),
+        //        ]);
 
         $this->call(WorkoutSeeder::class);  // drie voorbeeldworkouts voor Antoine
+        $this->call(OnlineDataSeeder::class); // jouw echte gegevens van online, als database/seeders/data/online.json er staat
     }
 }

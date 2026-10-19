@@ -61,7 +61,7 @@ class Index extends Component
             $bodyPart = new BodyPart(['user_id' => $user->id]);
         }
 
-        $bodyPart->fill([...Arr::except($data, 'image'), 'slug' => BodyPart::uniqueSlug($data['name'], $user->id, $bodyPart->id)]);
+        $bodyPart->fill([...Arr::except($data, 'image'), 'slug' => $bodyPart->slugFor($data['name'])]);
         $this->applyImage($bodyPart, 'bodyparts');
         $bodyPart->save();
 

@@ -1,9 +1,10 @@
 {{--
     Oefening kiezen (hoort bij de trait PicksExercises), in een <x-modal>:
     <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType"
+                       :own="$pickerOwn" :own-count="$this->pickerOwnCount"
                        :added="collect($items)->countBy('exercise_id')" action="addExercise" />
 --}}
-@props(['exercises', 'groups', 'type' => '', 'added' => [], 'action'])
+@props(['exercises', 'groups', 'type' => '', 'own' => false, 'ownCount' => 0, 'added' => [], 'action'])
 
 <div class="flex flex-col gap-3">
     <div class="grid gap-3 sm:grid-cols-[1fr_13rem]">
@@ -17,6 +18,14 @@
                             'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $type === $value,
                             'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => $type !== $value])>{{ $label }}</button>
         @endforeach
+        @if ($ownCount)
+            <button type="button" wire:click="$toggle('pickerOwn')" aria-pressed="{{ $own ? 'true' : 'false' }}"
+                    @class(['ml-auto inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ring-1 ring-inset transition',
+                            'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $own,
+                            'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => ! $own])>
+                <x-icon name="user" class="size-4" /> Eigen oefeningen
+            </button>
+        @endif
     </div>
 
     <ul class="-mx-2 flex max-h-[50dvh] flex-col overflow-y-auto">

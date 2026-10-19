@@ -262,3 +262,18 @@ test('confirming a muscle group deletion still checks for linked exercises', fun
 
     expect($group->fresh())->not->toBeNull();
 });
+
+test('the own exercises filter only shows when you have own exercises', function () {
+    Exercise::factory()->create(['name' => 'Standaard Press']);
+
+    Livewire::actingAs($this->user)->test(Index::class)->assertDontSee('Eigen oefeningen');
+
+    Exercise::factory()->create(['user_id' => $this->user->id, 'name' => 'Mijn Curl']);
+    Exercise::factory()->create(['user_id' => User::factory()->create()->id, 'name' => 'Andermans Curl']);
+
+    Livewire::actingAs($this->user)->test(Index::class)
+        ->assertSee(['Eigen oefeningen', 'Standaard Press', 'Mijn Curl'])
+        ->set('ownOnly', true)
+        ->assertSee('Mijn Curl')->assertDontSee('Standaard Press')->assertDontSee('Andermans Curl')
+        ->call('resetFilters')->assertSet('ownOnly', false);
+});

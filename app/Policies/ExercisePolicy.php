@@ -6,7 +6,7 @@ use App\Models\Exercise;
 use App\Models\User;
 
 /**
- * Standaardoefeningen (user_id = null) zijn voor iedereen zichtbaar en te kopiëren, maar niet te wijzigen.
+ * Standaardoefeningen (user_id = null) zijn voor iedereen zichtbaar en te kopiëren; alleen een admin mag ze wijzigen.
  * Eigen oefeningen alleen voor de eigenaar.
  */
 class ExercisePolicy
@@ -23,11 +23,11 @@ class ExercisePolicy
 
     public function update(User $user, Exercise $exercise): bool
     {
-        return $exercise->isOwnedBy($user);
+        return $exercise->isManageableBy($user);
     }
 
     public function delete(User $user, Exercise $exercise): bool
     {
-        return $exercise->isOwnedBy($user);
+        return $exercise->isManageableBy($user);
     }
 }

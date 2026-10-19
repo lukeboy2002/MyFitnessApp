@@ -29,6 +29,9 @@ class Index extends Component
     #[Url(as: 'groep')]
     public ?int $groupFilter = null;
 
+    #[Url(as: 'eigen', except: false)]
+    public bool $ownOnly = false;
+
     #[Url(as: 'archief', except: false)]
     public bool $showArchived = false;
 
@@ -120,7 +123,7 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('search', 'typeFilter', 'groupFilter');
+        $this->reset('search', 'typeFilter', 'groupFilter', 'ownOnly');
     }
 
     #[Computed]
@@ -135,11 +138,19 @@ class Index extends Component
         return Exercise::visibleTo(Auth::user())
             ->with('muscleGroups')
             ->when($this->showArchived, fn ($q) => $q->archived(), fn ($q) => $q->active())
+            ->when($this->ownOnly && $this->ownCount, fn ($q) => $q->where('user_id', Auth::id()))
             ->when($this->search !== '', fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->when(ExerciseType::tryFrom($this->typeFilter), fn ($q, $type) => $q->where('type', $type))
             ->when($this->groupFilter, fn ($q) => $q->whereHas('muscleGroups', fn ($q) => $q->whereKey($this->groupFilter)))
             ->orderBy('name')
             ->get();
+    }
+
+    /** Eigen oefeningen (ook gearchiveerd); 0 = filter niet tonen */
+    #[Computed]
+    public function ownCount(): int
+    {
+        return Exercise::where('user_id', Auth::id())->count();
     }
 
     #[Computed]

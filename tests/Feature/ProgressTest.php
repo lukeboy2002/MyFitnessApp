@@ -143,3 +143,17 @@ test('other users trainings are not shown', function () {
     expect(ExerciseProgress::for($this->user, $this->press)->rows)->toBeEmpty()
         ->and((new TrainingStats($this->user))->totals(CarbonImmutable::now()->startOfYear())['count'])->toBe(0);
 });
+
+test('the dashboard shows at most 5 own exercises', function () {
+    Livewire::actingAs($this->user)->test(Dashboard::class)->assertDontSee('Eigen oefeningen');
+
+    foreach (range(1, 6) as $i) {
+        Exercise::factory()->create(['user_id' => $this->user->id, 'name' => "Mijn oefening {$i}", 'created_at' => now()->addMinutes($i)]);
+    }
+    Exercise::factory()->create(['user_id' => User::factory()->create()->id, 'name' => 'Andermans oefening']);
+
+    Livewire::actingAs($this->user)->test(Dashboard::class)
+        ->assertSee(['Eigen oefeningen', 'Mijn oefening 6', 'Mijn oefening 2', 'Alle 6'])
+        ->assertDontSee('Mijn oefening 1<')->assertDontSee('Andermans oefening')
+        ->assertViewHas('ownExercises', fn ($items) => $items->count() === 5);
+});

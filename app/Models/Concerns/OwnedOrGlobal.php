@@ -34,6 +34,18 @@ trait OwnedOrGlobal
         return $user !== null && $this->user_id === $user->id;
     }
 
+    /** Wijzigen en verwijderen: je eigen items, en als admin ook de standaardlijst */
+    public function isManageableBy(?User $user): bool
+    {
+        return $this->isOwnedBy($user) || ($this->isStandard() && $user?->isAdmin());
+    }
+
+    /** Slug bij opslaan; standaarditems houden hun slug, want de seeders herkennen ze daaraan */
+    public function slugFor(string $name): string
+    {
+        return $this->exists && $this->isStandard() ? $this->slug : static::uniqueSlug($name, $this->user_id, $this->id);
+    }
+
     /** Unieke slug per gebruiker (of binnen de standaardlijst) */
     public static function uniqueSlug(string $name, ?int $userId, ?int $ignoreId = null): string
     {

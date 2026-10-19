@@ -23,11 +23,11 @@ class MusclePolicy
 
     public function update(User $user, Muscle $model): bool
     {
-        return $model->isOwnedBy($user);
+        return $model->isManageableBy($user);
     }
 
     public function delete(User $user, Muscle $model): bool
     {
-        return $model->isOwnedBy($user);
+        return $model->isManageableBy($user);
     }
 }

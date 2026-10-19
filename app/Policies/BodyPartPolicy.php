@@ -23,11 +23,11 @@ class BodyPartPolicy
 
     public function update(User $user, BodyPart $model): bool
     {
-        return $model->isOwnedBy($user);
+        return $model->isManageableBy($user);
     }
 
     public function delete(User $user, BodyPart $model): bool
     {
-        return $model->isOwnedBy($user);
+        return $model->isManageableBy($user);
     }
 }

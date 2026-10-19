@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Users;
 use App\Livewire\BodyParts\Index;
 use App\Livewire\Calendar;
 use App\Livewire\Dashboard;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Kalender
     Route::get('calendar', Calendar::class)->name('calendar');
+    Route::get('admin/users', Users::class)->middleware('can:admin')->name('admin.users');
 
     // Progress
     Route::get('progress', App\Livewire\Progress\Index::class)->name('progress.index');
