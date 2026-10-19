@@ -67,6 +67,7 @@
                                 {{ collect([
                                     $log->duration_seconds ? \App\Models\WorkoutSession::clock($log->duration_seconds).' min' : null,
                                     $log->distance_m ? $n($log->distance_m / 1000).' km' : null,
+                                    $log->averageSpeed() ? $log->averageSpeed().' km/h gem.' : null,
                                     $log->metric && filled($log->metric_value) ? $log->metric->format($log->metric_value) : null,
                                     $log->pace_seconds ? 'pace '.\App\Models\CardioLog::pace($log->pace_seconds) : null,
                                     filled($log->stroke_rate) ? $log->stroke_rate.' spm' : null,

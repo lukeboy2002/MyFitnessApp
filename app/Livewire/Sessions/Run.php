@@ -128,7 +128,7 @@ class Run extends Component
         $value = $this->decimal($value);
 
         $column = match (true) {
-            $field === 'time' => ['duration_seconds', $this->seconds($value)],
+            $field === 'time' => ['duration_seconds', $this->clockSeconds($value)],
             $field === 'distance' => ['distance_m', filled($value) && is_numeric($value) ? (int) round($value * 1000) : null],
             $field === 'metric' => ['metric', CardioMetric::tryFrom((string) $value)],
             $field === 'pace' => ['pace_seconds', $this->clockSeconds($value)],

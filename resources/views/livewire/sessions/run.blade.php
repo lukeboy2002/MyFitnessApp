@@ -131,7 +131,7 @@
                     @php($metric = \App\Enums\CardioMetric::tryFrom((string) ($cardio[$item->id]['metric'] ?? '')))
                     <div class="px-3 pb-3 sm:px-4 sm:pb-4">
                         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            <x-form.input label="Tijd" wire:model.blur.live="cardio.{{ $item->id }}.time" placeholder="mm:ss" inputmode="numeric" hint="Bijv. 20 of 20:30" />
+                            <x-form.input label="Tijd" wire:model.blur.live="cardio.{{ $item->id }}.time" placeholder="mm:ss" inputmode="decimal" hint="Bijv. 20 of 20.30" />
                             <x-form.input label="Afstand" wire:model.blur.live="cardio.{{ $item->id }}.distance" inputmode="decimal" suffix="km" />
                             <x-form.select label="Instelling" wire:model.live="cardio.{{ $item->id }}.metric" placeholder="Geen" :options="\App\Enums\CardioMetric::options()" />
                             @if ($metric)
@@ -147,12 +147,17 @@
                             @foreach ($exercise->cardioFields() as $extra)
                                 @continue($extra === \App\Enums\CardioField::Splits)
                                 <x-form.input :label="$extra->label()" wire:model.blur.live="cardio.{{ $item->id }}.{{ $extra->value }}"
-                                              :inputmode="$extra === \App\Enums\CardioField::Incline ? 'decimal' : 'numeric'"
+                                              :inputmode="in_array($extra, [\App\Enums\CardioField::Incline, \App\Enums\CardioField::Pace]) ? 'decimal' : 'numeric'"
                                               :suffix="$extra->unit()" :placeholder="$extra === \App\Enums\CardioField::Pace ? 'mm:ss' : null" />
                             @endforeach
                             <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_act_hr'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_act_hr" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_act_hr'][1]" />
                             <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_heart_rate'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_heart_rate" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_heart_rate'][1]" />
                         </div>
+                        @if ($speed = $item->cardio?->averageSpeed())
+                            <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                                Gem. snelheid <span class="font-semibold tabular-nums text-ink dark:text-white">{{ $speed }} km/h</span>
+                            </p>
+                        @endif
                         @if ($new = $record?->cardioRecords($item->cardio))
                             <p class="mt-3 flex items-center gap-1.5 text-sm font-semibold text-accent-500">
                                 <x-icon name="trophy" class="size-4" /> Nieuw record: {{ mb_strtolower(implode(', ', $new)) }}

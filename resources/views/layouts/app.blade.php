@@ -37,7 +37,10 @@
     $more = collect($nav)->whereNotIn('route', ['dashboard', 'workouts.index', 'progress.index']);
 
     $is = fn (string $pattern) => request()->routeIs(...explode('|', $pattern));
-    $current = collect($nav)->merge($mobile)->first(fn ($i) => $is($i['active']))['label'] ?? $title;
+    // Tijdens en na een training de naam van de training (Quickstart-knop blijft wel actief)
+    $current = $is('sessions.*') && $title
+        ? $title
+        : collect($nav)->merge($mobile)->first(fn ($i) => $is($i['active']))['label'] ?? $title;
 @endphp
 
     <!DOCTYPE html>

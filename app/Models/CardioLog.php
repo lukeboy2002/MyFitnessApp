@@ -60,6 +60,14 @@ class CardioLog extends Model
         return $seconds ? WorkoutSession::formatNumber(round(3600 / $seconds, 1)) : null;
     }
 
+    /** Gemiddelde snelheid in km/h uit tijd en afstand: 30 min, 12 km → "24" */
+    public function averageSpeed(): ?string
+    {
+        return $this->duration_seconds && $this->distance_m
+            ? WorkoutSession::formatNumber(round($this->distance_m / 1000 / ($this->duration_seconds / 3600), 1))
+            : null;
+    }
+
     /** 332 → "5:32" */
     public static function pace(?int $seconds): ?string
     {
