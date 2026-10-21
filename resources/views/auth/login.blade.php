@@ -31,7 +31,7 @@
         opnieuw of gebruik je wachtwoord.
     </x-alert>
 
-    @if (Route::has('register'))
+    @if (Route::has('register') && \App\Support\Registration::isOpen())
         <x-slot:footer>
             Nog geen account? <a href="{{ route('register') }}"
                                  class="font-semibold text-brand-700 hover:underline dark:text-brand-300">Registreren</a>

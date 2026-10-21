@@ -1,9 +1,11 @@
 <?php
 
+use App\Livewire\Admin\Settings;
 use App\Livewire\Admin\Users;
 use App\Livewire\MuscleGroups\Index as MuscleGroupsIndex;
 use App\Models\MuscleGroup;
 use App\Models\User;
+use App\Support\Registration;
 use Database\Seeders\BodyPartSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -61,4 +63,38 @@ test('an admin can edit the standard list and keeps its slug', function () {
     // Eigen items van anderen blijven privé
     $own = MuscleGroup::factory()->create(['user_id' => User::factory()->create()->id]);
     Livewire::actingAs($admin)->test(MuscleGroupsIndex::class)->call('edit', $own->id)->assertNotFound();
+});
+
+test('an admin can close and open registration', function () {
+    $admin = User::factory()->create();
+    $admin->forceFill(['is_admin' => true])->save();
+
+    $this->get(route('login'))->assertSee('Registreren');
+    $this->get(route('register'))->assertOk();
+
+    Livewire::actingAs($admin)->test(Settings::class)
+        ->assertSee('Registratie staat open')
+        ->call('toggleRegistration')
+        ->assertSee('Registratie staat dicht');
+
+    auth()->logout();
+    $this->get(route('login'))->assertDontSee('Registreren');
+    $this->get(route('register'))->assertNotFound();
+    $this->post(route('register'), ['name' => 'Iemand', 'email' => 'iemand@example.test', 'password' => 'password', 'password_confirmation' => 'password'])->assertForbidden();
+    expect(User::where('email', 'iemand@example.test')->exists())->toBeFalse();
+
+    Livewire::actingAs($admin)->test(Settings::class)->call('toggleRegistration');
+    expect(Registration::isOpen())->toBeTrue();
+});
+
+test('registration follows ALLOW_REGISTRATION until an admin changes it', function () {
+    config(['fortify.allow_registration' => false]);
+    expect(Registration::isOpen())->toBeFalse();
+
+    Registration::open();
+    expect(Registration::isOpen())->toBeTrue();
+});
+
+test('only admins can change registration', function () {
+    Livewire::actingAs(User::factory()->create())->test(Settings::class)->assertForbidden();
 });

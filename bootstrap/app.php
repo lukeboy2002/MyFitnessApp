@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\BlockWhenOffline;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Offline-melding vóór de inlogcheck, zodat gasten de melding zien in plaats van het inlogscherm
+        $middleware->web(append: [BlockWhenOffline::class]);
+        $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: BlockWhenOffline::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

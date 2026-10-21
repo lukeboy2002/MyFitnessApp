@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Settings;
 use App\Livewire\Admin\Users;
 use App\Livewire\BodyParts\Index;
 use App\Livewire\Calendar;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
+    // Fortify/passkeys sturen standaard naar /dashboard; het dashboard staat op /
+    Route::redirect('dashboard', '/');
 
     Route::view('profile', 'profile.edit')->name('profile.edit');
 
@@ -36,7 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Kalender
     Route::get('calendar', Calendar::class)->name('calendar');
+
     Route::get('admin/users', Users::class)->middleware('can:admin')->name('admin.users');
+    Route::get('admin/settings', Settings::class)->middleware('can:admin')->name('admin.settings');
 
     // Progress
     Route::get('progress', App\Livewire\Progress\Index::class)->name('progress.index');

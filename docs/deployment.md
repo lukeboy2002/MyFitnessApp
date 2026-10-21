@@ -83,7 +83,7 @@ DB_DATABASE=myfitnessapp
 DB_USERNAME=myfitnessapp
 DB_PASSWORD=een-sterk-wachtwoord
 
-ALLOW_REGISTRATION=true   # na stap 8 op false
+ALLOW_REGISTRATION=true   # alleen de beginstand; daarna regelt een admin het in de app
 
 SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=true
@@ -141,13 +141,9 @@ sudo systemctl daemon-reload && sudo systemctl enable --now myfitnessapp-queue
 
 Open nu https://fitness.la-online.nl, registreer je account (met hetzelfde e-mailadres als in je eerste app) en bevestig je e-mailadres.
 
-Daarna registreren dichtzetten, zodat niemand anders een account kan maken. Zet in `.env`:
+Daarna registreren dichtzetten, zodat niemand anders een account kan maken. Maak jezelf eerst admin (zie stap 10) en zet registratie dicht via **Instellingen** in het menu (of `/admin/settings`). Daar kun je het later ook weer openzetten.
 
-```dotenv
-ALLOW_REGISTRATION=false
-```
-
-en draai `php artisan optimize` (na elke wijziging in `.env`).
+`ALLOW_REGISTRATION` in `.env` is alleen de beginstand zolang er nog niemand op de knop heeft gedrukt. Na een wijziging in `.env` altijd `php artisan optimize` draaien.
 
 ## 9. Je oude trainingen overzetten
 

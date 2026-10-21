@@ -26,7 +26,8 @@
 
     // Alleen voor admins
     if (auth()->user()?->isAdmin()) {
-        $nav[] = ['route' => 'admin.users', 'active' => 'admin.*', 'icon' => 'shield', 'label' => 'Gebruikers'];
+        $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => 'Gebruikers'];
+        $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => 'Instellingen'];
     }
 
     // Mobiele menubalk (altijd onderaan)
@@ -146,6 +147,13 @@
     <main
         class="flex-1 pb-[calc(env(safe-area-inset-bottom)+7rem)] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-5 md:px-7 md:pb-10 md:pt-7 lg:px-10 lg:pt-8">
         <div class="mx-auto max-w-6xl">
+            {{-- Mededeling van de admin (Instellingen) --}}
+            @if (\App\Support\Offline::isOn())
+                <x-alert type="danger" :dismissible="false" class="mb-5">De site staat offline: alleen admins kunnen erin. <a href="{{ route('admin.settings') }}" wire:navigate class="underline">Weer online zetten</a></x-alert>
+            @endif
+            @if ($announcement = \App\Models\Setting::get('announcement'))
+                <x-alert :type="\App\Models\Setting::get('announcement_type', 'info')" :timeout="0" class="mb-5">{!! nl2br(e($announcement)) !!}</x-alert>
+            @endif
             @if (session('status'))
                 <x-alert type="success" class="mb-5">{{ session('status') }}</x-alert>
             @endif

@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/',
 
     /*
     |--------------------------------------------------------------------------
@@ -161,9 +161,14 @@ return [
     |
     */
 
+    /*
+    | Registratie open of dicht. Een admin wijzigt dit op de pagina Gebruikers (App\Support\Registration);
+    | dit is alleen de beginstand.
+    */
+    'allow_registration' => (bool) env('ALLOW_REGISTRATION', true),
+
     'features' => [
-        // Na het aanmaken van je eigen account online uitzetten met ALLOW_REGISTRATION=false
-        ...(env('ALLOW_REGISTRATION', true) ? [Features::registration()] : []),
+        Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::updateProfileInformation(),

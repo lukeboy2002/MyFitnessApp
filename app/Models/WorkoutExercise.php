@@ -32,6 +32,12 @@ class WorkoutExercise extends Model
         return $this->belongsTo(Exercise::class);
     }
 
+    /** Rust tussen sets voor een nieuwe regel; een admin kan dit wijzigen bij Instellingen */
+    public static function defaultRestSeconds(): int
+    {
+        return (int) Setting::get('default_rest_seconds', self::DEFAULT_REST_SECONDS);
+    }
+
     /** Doelen voor een nieuwe regel, overgenomen van het standaarddoel van de oefening */
     public static function defaultsFor(Exercise $exercise): array
     {
@@ -41,7 +47,7 @@ class WorkoutExercise extends Model
             'target_sets' => $type->usesSets() ? $exercise->default_sets : null,
             'target_reps' => $type->usesReps() ? $exercise->default_reps : null,
             'target_weight' => $type->usesWeight() || $type->usesExtraWeight() ? $exercise->default_weight : null,
-            'rest_seconds' => $type->usesSets() ? self::DEFAULT_REST_SECONDS : null,
+            'rest_seconds' => $type->usesSets() ? self::defaultRestSeconds() : null,
             'target_duration_seconds' => $type->usesDuration() ? $exercise->default_duration_seconds : null,
             'target_metric' => $type->usesMetric() ? $exercise->default_metric : null,
             'target_metric_value' => $type->usesMetric() ? $exercise->default_metric_value : null,
@@ -59,7 +65,7 @@ class WorkoutExercise extends Model
 
         $sets = $this->target_sets ?: 3;
         $work = $type === ExerciseType::Duration ? ($this->target_duration_seconds ?: 30) : ($this->target_reps ?: 10) * 4;
-        $rest = $this->rest_seconds ?? self::DEFAULT_REST_SECONDS;
+        $rest = $this->rest_seconds ?? self::defaultRestSeconds();
 
         return $sets * $work + ($sets - 1) * $rest + 90;
     }

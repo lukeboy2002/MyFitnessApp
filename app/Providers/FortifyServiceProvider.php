@@ -7,6 +7,7 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Models\User;
+use App\Support\Registration;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -56,7 +57,11 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Views met de guest-layout
         Fortify::loginView(fn () => view('auth.login'));
-        Fortify::registerView(fn () => view('auth.register'));
+        Fortify::registerView(function () {
+            abort_unless(Registration::isOpen(), 404);
+
+            return view('auth.register');
+        });
         Fortify::requestPasswordResetLinkView(fn () => view('auth.forgot-password'));
         Fortify::resetPasswordView(fn () => view('auth.reset-password'));
         Fortify::verifyEmailView(fn () => view('auth.verify-email'));
