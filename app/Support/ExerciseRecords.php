@@ -38,6 +38,9 @@ class ExerciseRecords
 
     public ?string $lastTime = null;         // korte samenvatting van de vorige keer
 
+    /** @var array<int, SetLog> afgevinkte sets van de vorige keer, per setnummer (kracht, lichaamsgewicht, tijd) */
+    public array $lastSets = [];
+
     public function __construct(public ExerciseType $type) {}
 
     /** @return array<int, self> records per exercise_id, voor alle oefeningen in deze training */
@@ -83,6 +86,7 @@ class ExerciseRecords
             ? $item->cardio?->duration_seconds || $item->cardio?->distance_m || $item->cardio?->floors
             : $item->sets->isNotEmpty());
         $records->lastTime = $last ? $records->summarize($last) : null;
+        $records->lastSets = $last && $type !== ExerciseType::Cardio ? $last->sets->keyBy('set_number')->all() : [];
 
         return $records;
     }

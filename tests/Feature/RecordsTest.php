@@ -141,3 +141,17 @@ test('more floors is a cardio record', function () {
 
     expect(ExerciseRecords::forSession($session)[$this->bike->id]->cardioRecords($bike->cardio->fresh()))->toBe(['Meeste floors']);
 });
+
+test('strength shows the previous training per set', function () {
+    pastTraining(10, [[30, 12]]);
+    pastTraining(3, [[41, 12], [46, 10]]);
+
+    $session = app(StartWorkoutSession::class)->handle($this->user, $this->workout);
+    $records = ExerciseRecords::forSession($session)[$this->press->id];
+
+    expect(array_map(fn ($set) => $records->describeSet($set), $records->lastSets))->toBe([1 => '41 kg × 12', 2 => '46 kg × 10']);
+
+    Livewire::actingAs($this->user)->test(Run::class, ['session' => $session])
+        ->assertSeeInOrder(['Chest Press', 'Vorige', '41 kg × 12', '46 kg × 10', 'Loopband', 'Vorige keer'])
+        ->assertDontSee('12, 10 reps');
+});

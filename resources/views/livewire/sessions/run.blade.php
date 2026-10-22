@@ -64,7 +64,8 @@
                 @if ($record && ! $record->isEmpty())
                     <div class="-mt-1 flex flex-wrap items-center gap-1.5 px-3 pb-3 text-xs sm:px-4">
                         <x-icon name="trophy" class="size-4 shrink-0 text-accent-500" />
-                        @foreach ($record->list() as $label => $value)
+                        {{-- Kracht: de vorige keer staat per set bij de regels hieronder --}}
+                        @foreach (collect($record->list())->except($type->usesSets() ? 'Vorige keer' : []) as $label => $value)
                             <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-white/10">
                                 <span class="text-slate-500 dark:text-slate-400">{{ $label }}</span>
                                 <span class="font-semibold tabular-nums">{{ $value }}</span>
@@ -79,11 +80,17 @@
 
                 @if ($type->usesSets())
                     {{-- Sets --}}
+                    @php($previous = $record?->lastSets ?? [])
+                    @php($columns = match (true) {
+                        $type->usesReps() && $previous => 'grid-cols-[2.25rem_minmax(0,1.1fr)_1fr_1fr_2.75rem]',
+                        $type->usesReps() => 'grid-cols-[2.5rem_1fr_1fr_3rem]',
+                        (bool) $previous => 'grid-cols-[2.25rem_minmax(0,1fr)_1fr_2.75rem]',
+                        default => 'grid-cols-[2.5rem_1fr_3rem]',
+                    })
                     <div class="max-w-xl px-3 pb-3 sm:px-4 sm:pb-4">
-                        <div @class(['grid items-center gap-2 px-1 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400',
-                                     'grid-cols-[2.5rem_1fr_1fr_3rem]' => $type->usesReps(),
-                                     'grid-cols-[2.5rem_1fr_3rem]' => ! $type->usesReps()])>
+                        <div class="grid {{ $columns }} items-center gap-2 px-1 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             <span>Set</span>
+                            @if ($previous) <span>Vorige</span> @endif
                             @if ($type->usesReps())
                                 <span class="text-center">{{ $type->usesExtraWeight() ? 'Extra kg' : 'kg' }}</span>
                                 <span class="text-center">Reps</span>
@@ -95,9 +102,7 @@
                         <div class="flex flex-col gap-1.5">
                             @foreach ($item->sets as $set)
                                 <div wire:key="set-{{ $set->id }}"
-                                     @class(['grid items-center gap-2 rounded-xl p-1 transition',
-                                             'grid-cols-[2.5rem_1fr_1fr_3rem]' => $type->usesReps(),
-                                             'grid-cols-[2.5rem_1fr_3rem]' => ! $type->usesReps(),
+                                     @class(['grid items-center gap-2 rounded-xl p-1 transition', $columns,
                                              'bg-emerald-50 dark:bg-emerald-500/10' => $set->is_completed])>
                                     <span class="relative text-center font-display text-lg font-bold text-slate-500 dark:text-slate-400">
                                         {{ $set->set_number }}
@@ -105,6 +110,11 @@
                                             <x-icon name="trophy" class="absolute -top-1 right-0 size-4 text-accent-500" title="Nieuw record" />
                                         @endif
                                     </span>
+                                    @if ($previous)
+                                        <span class="truncate text-sm tabular-nums text-slate-500 dark:text-slate-400" title="Vorige keer set {{ $set->set_number }}">
+                                            {{ isset($previous[$set->set_number]) ? $record->describeSet($previous[$set->set_number]) : '–' }}
+                                        </span>
+                                    @endif
                                     @if ($type->usesReps())
                                         <input type="text" inputmode="decimal" wire:model.blur.live="values.{{ $set->id }}.weight" aria-label="Gewicht set {{ $set->set_number }}"
                                                placeholder="{{ $type->usesExtraWeight() ? '0' : '–' }}" @class([$input, 'ring-red-500!' => $errors->has("values.{$set->id}.weight")])>
