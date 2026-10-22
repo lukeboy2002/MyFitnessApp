@@ -1,7 +1,9 @@
 <?php
 
+use App\Livewire\Admin\Badges as AdminBadges;
 use App\Livewire\Admin\Settings;
 use App\Livewire\Admin\Users;
+use App\Livewire\Badges;
 use App\Livewire\BodyParts\Index;
 use App\Livewire\Calendar;
 use App\Livewire\Dashboard;
@@ -42,8 +44,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('admin/users', Users::class)->middleware('can:admin')->name('admin.users');
     Route::get('admin/settings', Settings::class)->middleware('can:admin')->name('admin.settings');
+    Route::get('admin/badges', AdminBadges::class)->middleware('can:admin')->name('admin.badges');
 
     // Progress
+    // Badges
+    Route::get('badges', Badges::class)->name('badges');
+
     Route::get('progress', App\Livewire\Progress\Index::class)->name('progress.index');
     Route::get('progress/{exercise}', Exercise::class)->name('progress.exercise');
 

@@ -87,6 +87,28 @@ class ExerciseRecords
         return $records;
     }
 
+    /** Een oefening uit een latere training meetellen (oudste eerst), bv. om records over de hele historie te tellen */
+    public function add(SessionExercise $item): void
+    {
+        if ($this->type === ExerciseType::Cardio) {
+            $this->addCardio($item->cardio);
+        } else {
+            $item->sets->each(fn (SetLog $set) => $this->addSet($set));
+        }
+
+        if ($this->type === ExerciseType::Cardio ? $item->cardio?->duration_seconds || $item->cardio?->distance_m || $item->cardio?->floors : $item->sets->isNotEmpty()) {
+            $this->lastTime = $this->summarize($item);
+        }
+    }
+
+    /** Hoeveel records deze oefening uit een training verbetert (afgevinkte sets of cardio-records) */
+    public function countRecords(SessionExercise $item): int
+    {
+        return $this->type === ExerciseType::Cardio
+            ? count($this->cardioRecords($item->cardio))
+            : $item->sets->filter(fn (SetLog $set) => $this->isRecordSet($set))->count();
+    }
+
     public function isEmpty(): bool
     {
         return $this->lastTime === null;

@@ -144,6 +144,30 @@
             @endif
         </x-card>
 
+        {{-- Badges: de laatst behaalde --}}
+        <x-card title="Badges" :padding="false" class="col-span-2">
+            <x-slot:actions>
+                <a href="{{ route('badges') }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Alle badges</a>
+            </x-slot:actions>
+
+            @if ($badges->isEmpty())
+                <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">Rond je eerste training af voor je eerste badge.</p>
+            @else
+                <ul class="mt-3 divide-y divide-slate-100 dark:divide-line-dark">
+                    @foreach ($badges as $row)
+                        <li class="flex items-center gap-3 px-5 py-3 sm:px-6">
+                            <x-medal :badge="$row['badge']" :level="$row['level']" size="sm" />
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate font-semibold">{{ $row['badge']->labelFor($row['level']) }}</span>
+                                <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $row['badge']->name }} · {{ ucfirst($row['badge']->tier($row['level'])) }}</span>
+                            </span>
+                            <span class="text-sm text-slate-500 dark:text-slate-400">{{ $row['at']->translatedFormat('j M') }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-card>
+
         {{-- Eigen oefeningen (alleen als je die hebt) --}}
         @if ($ownExercises->isNotEmpty())
             <x-card title="Eigen oefeningen" :padding="false" class="col-span-2">

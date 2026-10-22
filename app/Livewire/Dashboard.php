@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Exercise;
 use App\Models\ScheduledWorkout;
 use App\Models\WorkoutSession;
+use App\Support\Achievements;
 use App\Support\TrainingStats;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +35,7 @@ class Dashboard extends Component
             // Eigen oefeningen: de 5 nieuwste, met het totaal voor de link naar de lijst
             'ownExercises' => Exercise::where('user_id', $user->id)->active()->with('muscleGroups')->latest()->limit(5)->get(),
             'ownExercisesCount' => Exercise::where('user_id', $user->id)->active()->count(),
+            'badges' => Achievements::recent(Achievements::for($user), 3),
         ])->title('Dashboard');
     }
 }

@@ -22,12 +22,14 @@
         ['route' => 'muscles.index',       'active' => 'muscles.*',        'icon' => 'fiber',    'label' => 'Muscles'],
         ['route' => 'calendar',            'active' => 'calendar',         'icon' => 'calendar', 'label' => 'Calendar'],
         ['route' => 'progress.index',      'active' => 'progress.*',       'icon' => 'chart',    'label' => 'Progress'],
+        ['route' => 'badges',              'active' => 'badges',           'icon' => 'medal',    'label' => 'Badges'],
     ];
 
     // Alleen voor admins
     if (auth()->user()?->isAdmin()) {
         $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => 'Gebruikers'];
         $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => 'Instellingen'];
+        $nav[] = ['route' => 'admin.badges', 'active' => 'admin.badges', 'icon' => 'medal', 'label' => 'Badgebeheer'];
     }
 
     // Mobiele menubalk (altijd onderaan)

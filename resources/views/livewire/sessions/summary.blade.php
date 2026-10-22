@@ -29,6 +29,25 @@
         </p>
     @endif
 
+    @if ($newBadges->isNotEmpty())
+        <div @unless ($newRecords) x-init="setTimeout(() => window.confetti?.(), 300)" @endunless
+             class="mb-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5 dark:bg-panel-dark dark:ring-line-dark">
+            <p class="mb-3 flex items-center gap-2 font-semibold"><x-icon name="medal" class="size-5 text-accent-500" /> {{ $newBadges->count() === 1 ? 'Nieuwe badge!' : $newBadges->count().' nieuwe badges!' }}</p>
+            <ul class="grid gap-3 sm:grid-cols-2">
+                @foreach ($newBadges as $row)
+                    <li class="flex items-center gap-3">
+                        <x-medal :badge="$row['badge']" :level="$row['level']" size="sm" />
+                        <span class="min-w-0">
+                            <span class="block truncate font-semibold">{{ $row['badge']->labelFor($row['level']) }}</span>
+                            <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $row['badge']->name }} · {{ ucfirst($row['badge']->tier($row['level'])) }}</span>
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+            <a href="{{ route('badges') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Alle badges bekijken</a>
+        </div>
+    @endif
+
     <x-card :padding="false" class="overflow-hidden">
         <ol class="divide-y divide-slate-100 dark:divide-line-dark">
             @foreach ($session->exercises as $item)
