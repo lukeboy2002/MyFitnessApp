@@ -35,7 +35,18 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            'onboarded_at' => now(),
         ];
+    }
+
+    /**
+     * Een nieuwe gebruiker die het welkomstscherm nog niet heeft gezien.
+     */
+    public function notOnboarded(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'onboarded_at' => null,
+        ]);
     }
 
     /**

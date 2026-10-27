@@ -62,7 +62,7 @@ class Form extends Component
     {
         $exercise = Exercise::visibleTo(Auth::user())->active()->findOrFail($id);
 
-        $this->items[] = $this->toItem($exercise, WorkoutExercise::defaultsFor($exercise));
+        $this->items[] = $this->toItem($exercise, WorkoutExercise::defaultsFor($exercise, Auth::user()));
         $this->resetErrorBag('items');
         unset($this->itemExercises);
     }

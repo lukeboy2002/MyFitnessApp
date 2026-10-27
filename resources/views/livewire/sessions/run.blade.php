@@ -142,6 +142,7 @@
                     </div>
                 @else
                     {{-- Cardio: gegevens van het apparaat --}}
+                    @php($hrZones ??= \App\Support\HeartRateZones::forUser(auth()->user()))
                     @php($metric = \App\Enums\CardioMetric::tryFrom((string) ($cardio[$item->id]['metric'] ?? '')))
                     <div class="px-3 pb-3 sm:px-4 sm:pb-4">
                         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -167,6 +168,7 @@
                             <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_act_hr'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_act_hr" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_act_hr'][1]" />
                             <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_heart_rate'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_heart_rate" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_heart_rate'][1]" />
                         </div>
+                        <x-heart-rate-zone class="mt-3" :bpm="$item->cardio?->avg_heart_rate" :zones="$hrZones" />
                         @if ($speed = $item->cardio?->averageSpeed())
                             <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
                                 Gem. snelheid <span class="font-semibold tabular-nums text-ink dark:text-white">{{ $speed }} km/h</span>

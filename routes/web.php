@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UsernameAvailabilityController;
 use App\Livewire\Admin\Badges as AdminBadges;
 use App\Livewire\Admin\Settings;
 use App\Livewire\Admin\Users;
@@ -13,7 +14,12 @@ use App\Livewire\Progress\Exercise;
 use App\Livewire\Sessions\Quickstart;
 use App\Livewire\Sessions\Run;
 use App\Livewire\Sessions\Summary;
+use App\Livewire\Welcome;
 use Illuminate\Support\Facades\Route;
+
+// Registreren: is een gebruikersnaam nog vrij? (stap 1 van het formulier)
+Route::get('register/username', UsernameAvailabilityController::class)
+    ->middleware(['guest', 'throttle:30,1'])->name('register.username');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
@@ -55,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Training uitvoeren
     Route::get('quickstart', Quickstart::class)->name('quickstart');
+    Route::get('welcome', Welcome::class)->name('welcome');
     Route::get('sessions/{session}', Run::class)->name('sessions.run');
     Route::get('sessions/{session}/summary', Summary::class)->name('sessions.summary');
 

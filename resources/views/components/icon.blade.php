@@ -39,6 +39,7 @@
         'logout' => '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>',
         'chevron-down' => '<path d="m6 9 6 6 6-6"/>',
         'chevron-right' => '<path d="m9 6 6 6-6 6"/>',
+        'chevron-left' => '<path d="m15 6-6 6 6 6"/>',
         'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
         'alert' => '<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/>',
         'info' => '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
