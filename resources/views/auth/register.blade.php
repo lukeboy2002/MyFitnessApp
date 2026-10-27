@@ -81,7 +81,7 @@
         <div x-ref="step2" x-show="step === 2" x-cloak class="flex flex-col gap-5">
             <p class="text-sm text-slate-500 dark:text-slate-400">Hiermee berekent de app je BMI en hartslagzones. Alles
                 is optioneel en later aan te passen in je profiel.</p>
-            <x-form.input label="Geboortedatum" type="date" name="birth_date" :value="old('birth_date')"
+            <x-form.date label="Geboortedatum" name="birth_date" :value="old('birth_date')"
                           :max="now()->subDay()->format('Y-m-d')"/>
             <div class="grid grid-cols-2 gap-4">
                 <x-form.select label="Geslacht" name="gender" :options="Gender::options()"

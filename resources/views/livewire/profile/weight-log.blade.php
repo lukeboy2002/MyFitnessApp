@@ -38,7 +38,7 @@
     <form wire:submit="save" id="weight-log-form" class="grid grid-cols-2 gap-4">
         <x-form.input label="Gewicht" wire:model="weight" inputmode="decimal" suffix="kg" placeholder="bv. 84,2" />
         <x-form.input label="Vetpercentage" wire:model="bodyFat" inputmode="decimal" suffix="%" placeholder="optioneel" />
-        <x-form.input label="Datum" type="date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2" />
+        <x-form.date label="Datum" id="weight-date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2" />
     </form>
 
     @if ($this->entries->isNotEmpty())
