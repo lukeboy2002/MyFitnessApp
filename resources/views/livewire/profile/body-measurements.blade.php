@@ -37,7 +37,7 @@
         @foreach (BodyMeasurement::FIELDS as $field => $label)
             <x-form.input :label="$label" wire:model="values.{{ $field }}" inputmode="decimal" suffix="cm" />
         @endforeach
-        <x-form.input label="Datum" type="date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2 sm:col-span-1" />
+        <x-form.date label="Datum" id="measurement-date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2 sm:col-span-1" />
         @error('values')
             <p class="col-span-full text-sm font-semibold text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror

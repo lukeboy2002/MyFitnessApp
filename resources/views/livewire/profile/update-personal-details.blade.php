@@ -43,7 +43,7 @@
     @endif
 
     <form wire:submit="save" id="personal-details-form" class="grid gap-5 sm:grid-cols-2">
-        <x-form.input label="Geboortedatum" type="date" wire:model="birthDate" :max="now()->subDay()->format('Y-m-d')" />
+        <x-form.date label="Geboortedatum" wire:model="birthDate" :max="now()->subDay()->format('Y-m-d')" />
         <x-form.select label="Geslacht" wire:model="gender" :options="\App\Enums\Gender::options()" placeholder="Zeg ik liever niet" />
         <x-form.input label="Lengte" wire:model="heightCm" type="number" inputmode="numeric" suffix="cm" placeholder="bv. 180" />
         <x-form.input label="Streefgewicht" wire:model="targetWeight" inputmode="decimal" suffix="kg" placeholder="bv. 82,5" />
