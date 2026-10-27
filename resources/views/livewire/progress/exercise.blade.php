@@ -131,7 +131,7 @@
                                         @if ($has('mets')) <td class="{{ $td }} text-right">{{ filled($log->mets) ? $n($log->mets) : '–' }}</td> @endif
                                         @if ($has('active_kcal') || $has('total_kcal')) <td class="{{ $td }} text-right">{{ $log->active_kcal ?? '–' }} / {{ $log->total_kcal ?? '–' }}</td> @endif
                                         @if ($has('floors')) <td class="{{ $td }} text-right">{{ $log->floors ?? '–' }}</td> @endif
-                                        @if ($has('avg_heart_rate')) <td class="{{ $td }} text-right">{{ $log->avg_heart_rate ? $log->avg_heart_rate.' bpm' : '–' }}</td> @endif
+                                        @if ($has('avg_heart_rate')) <td class="{{ $td }} text-right">{{ $log->avg_heart_rate ? $log->avg_heart_rate.' bpm' : '–' }} @if ($zone = ($hrZones ??= \App\Support\HeartRateZones::forUser(auth()->user()))?->zoneFor($log->avg_heart_rate)) <span class="text-xs font-normal text-slate-500 dark:text-slate-400" title="{{ $zone['name'] }}">Z{{ $zone['number'] }}</span> @endif</td> @endif
                                 @endswitch
                                 <td class="{{ $td }} text-right">
                                     @if ($row['delta'] > 0)

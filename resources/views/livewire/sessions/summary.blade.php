@@ -82,6 +82,7 @@
                                 </div>
                             @endif
                         @elseif ($log = $item->cardio)
+                            @php($hrZones ??= \App\Support\HeartRateZones::forUser(auth()->user()))
                             <p class="text-sm text-slate-600 dark:text-slate-300">
                                 {{ collect([
                                     $log->duration_seconds ? \App\Models\WorkoutSession::clock($log->duration_seconds).' min' : null,
@@ -95,6 +96,7 @@
                                     ...collect(\App\Models\CardioLog::FIELDS)->map(fn ($f, $key) => filled($log->{$key}) ? $n($log->{$key}).($f[1] ? ' '.$f[1] : '').' '.mb_strtolower(str_replace('Gem. ', 'gem. ', $f[0])) : null)->all(),
                                 ])->filter()->implode(' · ') ?: 'Geen gegevens ingevuld' }}
                             </p>
+                            <x-heart-rate-zone class="mt-1" :bpm="$log->avg_heart_rate" :zones="$hrZones" />
                             @if ($new = isset($records[$item->exercise_id]) ? $records[$item->exercise_id]->cardioRecords($log) : [])
                                 <p class="mt-1 flex items-center gap-1.5 text-sm font-semibold text-accent-500">
                                     <x-icon name="trophy" class="size-4" /> Nieuw record: {{ mb_strtolower(implode(', ', $new)) }}

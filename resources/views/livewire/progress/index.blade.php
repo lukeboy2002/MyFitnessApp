@@ -65,6 +65,36 @@
         </x-card>
     </div>
 
+    <x-card class="mb-5" title="Gewicht" description="Het afgelopen jaar. Je weegt jezelf in op je profiel.">
+        <x-slot:actions>
+            <x-button :href="route('profile.edit').'#gewicht'" variant="secondary" icon="plus">Weging</x-button>
+        </x-slot:actions>
+
+        @if ($weights->isEmpty())
+            <p class="text-slate-500 dark:text-slate-400">Nog geen wegingen. Vul je gewicht in op je profiel, dan zie je hier het verloop.</p>
+        @else
+            @php
+                $latest = $weights->last();
+                $change = $weights->count() > 1 ? round($latest->weight_kg - $weights->first()->weight_kg, 1) : null;
+            @endphp
+            <div class="mb-4 flex flex-wrap items-end gap-x-6 gap-y-2">
+                <p class="font-display text-[28px] font-extrabold tabular-nums">{{ $n($latest->weight_kg) }} <span class="text-base font-semibold text-slate-500">kg</span></p>
+                @if ($change !== null)
+                    <p class="text-sm tabular-nums text-slate-600 dark:text-slate-300">
+                        <span @class(['font-semibold', 'text-emerald-600 dark:text-emerald-400' => $change < 0, 'text-amber-600 dark:text-amber-400' => $change > 0])>{{ $change > 0 ? '+' : '' }}{{ $n($change) }} kg</span>
+                        sinds {{ $weights->first()->measured_on->translatedFormat('j M Y') }}
+                    </p>
+                @endif
+                @if ($targetWeight)
+                    <p class="text-sm tabular-nums text-slate-600 dark:text-slate-300">Streefgewicht <span class="font-semibold">{{ $n($targetWeight) }} kg</span></p>
+                @endif
+            </div>
+            @if ($weights->count() > 1)
+                <x-chart.line unit="kg" :points="$weights->map(fn ($weight) => ['date' => $weight->measured_on, 'value' => (float) $weight->weight_kg])" />
+            @endif
+        @endif
+    </x-card>
+
     {{-- Oefeningen --}}
     <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <h2 class="font-display text-2xl font-bold uppercase">Per oefening</h2>

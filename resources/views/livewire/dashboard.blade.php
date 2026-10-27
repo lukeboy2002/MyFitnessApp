@@ -63,8 +63,27 @@
 
         <x-card>
             <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Trainingen</p>
-            <p class="mt-1 font-display text-4xl font-extrabold tabular-nums sm:text-5xl">{{ $thisWeek['count'] }}</p>
-            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ $thisWeek['sets'] }} sets · vorige week {{ $lastWeek['count'] }}</p>
+            <p class="mt-1 font-display text-4xl font-extrabold tabular-nums sm:text-5xl">
+                {{ $thisWeek['count'] }}
+                @if ($user->weekly_goal_sessions)
+                    <span class="text-xl text-slate-400 sm:text-2xl">/ {{ $user->weekly_goal_sessions }}</span>
+                @endif
+            </p>
+            @if ($user->weekly_goal_sessions)
+                <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10" role="progressbar" aria-valuenow="{{ $thisWeek['count'] }}" aria-valuemin="0" aria-valuemax="{{ $user->weekly_goal_sessions }}" aria-label="Trainingen deze week">
+                    <div class="h-full rounded-full bg-linear-to-r from-accent-400 to-fire-500" style="width: {{ min(100, round($thisWeek['count'] / $user->weekly_goal_sessions * 100)) }}%"></div>
+                </div>
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    @if ($thisWeek['count'] >= $user->weekly_goal_sessions)
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">Doel gehaald!</span>
+                    @else
+                        Nog {{ $user->weekly_goal_sessions - $thisWeek['count'] }} te gaan
+                    @endif
+                    · vorige week {{ $lastWeek['count'] }}
+                </p>
+            @else
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ $thisWeek['sets'] }} sets · vorige week {{ $lastWeek['count'] }}</p>
+            @endif
         </x-card>
 
         <x-card>
@@ -102,6 +121,48 @@
                 @endif
                 <x-button variant="secondary" icon="calendar" :href="route('calendar', $next ? ['day' => $next->scheduled_on->toDateString()] : [])" wire:navigate>Kalender</x-button>
             </div>
+        </x-card>
+
+        {{-- Doel uit het profiel: de laatste 30 dagen en een tip --}}
+        <x-card class="col-span-2">
+            <div class="flex items-center gap-3">
+                <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-accent-400/15 text-fire-500">
+                    <x-icon name="trophy" />
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Jouw doel</p>
+                    <p class="truncate font-semibold">{{ $goalProgress?->goal->label() ?? 'Nog geen doel gekozen' }}</p>
+                </div>
+                @if ($goalProgress)
+                    <a href="{{ $goalProgress->link['url'] }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ $goalProgress->link['label'] }}</a>
+                @endif
+            </div>
+
+            @if ($goalProgress)
+                @if ($goalProgress->value !== null)
+                    <p class="mt-4 font-display text-4xl font-extrabold tabular-nums">{{ $goalProgress->value }}<span class="text-lg text-slate-400 sm:text-2xl"> {{ $goalProgress->unit }}</span></p>
+                    @if ($goalProgress->goal !== \App\Enums\FitnessGoal::LoseWeight)
+                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">in de laatste {{ \App\Support\GoalProgress::DAYS }} dagen</p>
+                    @endif
+                @endif
+                @if ($goalProgress->detail)
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ $goalProgress->detail }}</p>
+                @endif
+                @if ($goalProgress->percent !== null)
+                    <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10" role="progressbar" aria-valuenow="{{ $goalProgress->percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Streefgewicht">
+                        <div class="h-full rounded-full bg-linear-to-r from-accent-400 to-fire-500" style="width: {{ $goalProgress->percent }}%"></div>
+                    </div>
+                @endif
+                <p class="mt-4 flex gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-sm text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                    <x-icon name="info" class="mt-0.5 size-4 shrink-0 text-brand-600 dark:text-brand-300" />
+                    <span>{{ $goalProgress->tip }}</span>
+                </p>
+            @else
+                <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                    Kies wat je wilt bereiken, dan houdt het dashboard je voortgang bij.
+                    <a href="{{ route('profile.edit') }}#persoonlijk" wire:navigate class="font-semibold text-brand-700 hover:underline dark:text-brand-300">Doel kiezen</a>
+                </p>
+            @endif
         </x-card>
 
         {{-- Laatste 12 weken --}}

@@ -195,7 +195,7 @@ class Run extends Component
     public function pick(int $id): void
     {
         $exercise = Exercise::visibleTo(Auth::user())->active()->findOrFail($id);
-        $this->adding = $this->toItem($exercise, WorkoutExercise::defaultsFor($exercise));
+        $this->adding = $this->toItem($exercise, WorkoutExercise::defaultsFor($exercise, Auth::user()));
     }
 
     public function addExercise(AddSessionExercise $action): void

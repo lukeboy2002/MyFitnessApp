@@ -77,6 +77,9 @@ class Index extends Component
             'totals' => $stats->totals($this->from()),
             'groups' => $stats->muscleGroups($this->from()),
             'months' => $stats->months(12),
+            // Gewicht van het afgelopen jaar, oudste eerst (bijhouden op de profielpagina)
+            'weights' => Auth::user()->bodyWeights()->where('measured_on', '>=', today()->subYear())->orderBy('measured_on')->get(),
+            'targetWeight' => Auth::user()->target_weight_kg,
         ])->title('Progress');
     }
 }
