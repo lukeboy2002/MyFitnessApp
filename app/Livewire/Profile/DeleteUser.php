@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Profile;
 
+use App\Actions\DeleteUserAccount;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 
 class DeleteUser extends Component
@@ -19,7 +19,7 @@ class DeleteUser extends Component
         $this->confirmingDeletion = true;
     }
 
-    public function deleteUser(): void
+    public function deleteUser(DeleteUserAccount $delete): void
     {
         $this->validate([
             'password' => ['required', 'string', 'current_password:web'],
@@ -29,15 +29,8 @@ class DeleteUser extends Component
 
         $user = Auth::user();
 
-        // Bestanden opruimen; database-rijen gaan via cascadeOnDelete mee
-        if ($user->profile_photo_path) {
-            Storage::disk('public')->delete($user->profile_photo_path);
-        }
-        // Later: ook afbeeldingen van eigen oefeningen verwijderen, bv.
-        // Storage::disk('public')->delete($user->exercises()->whereNotNull('image_path')->pluck('image_path')->all());
-
         Auth::guard('web')->logout();
-        $user->delete();
+        $delete->handle($user);
 
         session()->invalidate();
         session()->regenerateToken();
