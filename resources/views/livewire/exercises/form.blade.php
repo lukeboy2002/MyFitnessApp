@@ -8,7 +8,24 @@
             <x-form.section title="Algemeen" description="Naam, type en waarmee je de oefening doet.">
                 <x-form.input label="Naam" wire:model="name" required class="sm:col-span-2" placeholder="Bijv. Chest Press Machine" />
 
-                <x-form.radio-cards label="Type" wire:model.live="type" class="sm:col-span-2" :options="\App\Enums\ExerciseType::options()" />
+                @if ($typeLocked)
+                    <div class="flex flex-col gap-1.5 sm:col-span-2">
+                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Type</span>
+                        <div class="flex items-center gap-3 rounded-2xl bg-brand-50 p-4 ring-1 ring-brand-200 dark:bg-brand-500/15 dark:ring-brand-400/40">
+                            <x-icon :name="$exerciseType->icon()" class="size-6 shrink-0 text-brand-700 dark:text-brand-300" />
+                            <div class="min-w-0">
+                                <p class="font-semibold">{{ $exerciseType->label() }}</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">{{ $exerciseType->description() }}</p>
+                            </div>
+                            <x-icon name="lock" class="ms-auto size-5 shrink-0 text-slate-400" />
+                        </div>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                            Het type ligt vast, want deze oefening zit al in een workout of training. Wil je een ander type? Maak een nieuwe oefening en archiveer deze.
+                        </p>
+                    </div>
+                @else
+                    <x-form.radio-cards label="Type" wire:model.live="type" class="sm:col-span-2" :options="\App\Enums\ExerciseType::options()" />
+                @endif
 
                 <x-form.select label="Materiaal" wire:model="equipment" :options="\App\Enums\Equipment::options()" required />
             </x-form.section>

@@ -110,6 +110,12 @@ class Exercise extends Model
         return $this->archived_at !== null;
     }
 
+    /** Het type ligt vast zodra de oefening in een workout of training zit, anders kloppen sets, records en badges niet meer */
+    public function isTypeLocked(): bool
+    {
+        return $this->exists && ($this->workoutExercises()->exists() || $this->sessionExercises()->exists());
+    }
+
     #[Scope]
     protected function active(Builder $query): void
     {

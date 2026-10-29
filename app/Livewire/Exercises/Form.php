@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
@@ -25,6 +26,10 @@ class Form extends Component
     public string $name = '';
 
     public string $type = 'strength';
+
+    /** Type niet meer te wijzigen: de oefening zit al in een workout of training */
+    #[Locked]
+    public bool $typeLocked = false;
 
     public string $equipment = 'machine';
 
@@ -74,6 +79,7 @@ class Form extends Component
         $this->cardio_fields = $exercise->cardio_fields ?? [];
         $this->description = $exercise->description ?? '';
         $this->type = $exercise->type->value;
+        $this->typeLocked = $exercise->isTypeLocked();
         $this->equipment = $exercise->equipment?->value ?? 'none';
         $this->instructions = implode("\n", $exercise->instructions ?? []);
         $this->tips = implode("\n", $exercise->tips ?? []);
@@ -90,6 +96,12 @@ class Form extends Component
     /** Bij een ander type: lege doelvelden vullen met de standaard van dat type */
     public function updatedType(string $value): void
     {
+        if ($this->typeLocked) {
+            $this->type = $this->exercise->type->value;
+
+            return;
+        }
+
         $type = ExerciseType::tryFrom($value) ?? ExerciseType::Strength;
         $defaults = $type->defaults();
 
@@ -114,6 +126,12 @@ class Form extends Component
     public function save()
     {
         $user = Auth::user();
+
+        // Ook bij een gemanipuleerd verzoek blijft het type gelijk
+        if ($this->exercise && $this->exercise->isTypeLocked()) {
+            $this->type = $this->exercise->type->value;
+        }
+
         $type = $this->type;
         $this->default_metric_value = is_string($this->default_metric_value) ? str_replace(',', '.', trim($this->default_metric_value)) : $this->default_metric_value;
         $visibleGroup = Rule::exists('muscle_groups', 'id')->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', $user->id));
