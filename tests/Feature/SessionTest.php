@@ -15,6 +15,7 @@ use App\Models\WorkoutExercise;
 use App\Models\WorkoutSession;
 use Database\Seeders\BodyPartSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -69,6 +70,26 @@ test('only one training can run at a time', function () {
 
     expect(app(StartWorkoutSession::class)->handle($this->user, $other)->id)->toBe($first->id)
         ->and(WorkoutSession::count())->toBe(1);
+});
+
+test('quickstart and a workout share the one running training', function () {
+    $start = app(StartWorkoutSession::class);
+    $free = $start->quickstart($this->user);
+
+    expect($start->handle($this->user, $this->workout)->id)->toBe($free->id)
+        ->and($start->quickstart($this->user)->id)->toBe($free->id)
+        ->and(WorkoutSession::count())->toBe(1);
+});
+
+test('starting locks the user so a double tap waits for the first one', function () {
+    $queries = [];
+    DB::listen(function ($query) use (&$queries) {
+        $queries[] = $query->sql;
+    });
+
+    startSession();
+
+    expect(collect($queries)->first(fn ($sql) => str_contains($sql, 'from "users"')))->not->toBeNull();
 });
 
 test('sets can be edited, ticked off and added', function () {
