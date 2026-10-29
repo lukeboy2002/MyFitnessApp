@@ -287,3 +287,38 @@ test('cardio shows the average speed', function () {
         ->set("cardio.{$bike->id}.distance", '12,2')
         ->assertSee('24,4 km/h');
 });
+
+test('an old tab cannot change a training that was finished elsewhere', function () {
+    $session = startSession();
+    $item = $session->exercises()->first();
+    $set = $item->sets()->first();
+    $setCount = $item->sets()->count();
+
+    $component = Livewire::actingAs($this->user)->test(Run::class, ['session' => $session]);
+
+    // Afgerond op een ander apparaat
+    $session->finish();
+
+    $component->call('toggleSet', $set->id)->assertRedirect(route('sessions.summary', $session));
+    $component->set("values.{$set->id}.reps", '99');
+    $component->call('addSet', $item->id);
+    $component->call('delete', $item->id);
+    $component->call('cancel');
+
+    expect($set->fresh()->is_completed)->toBeFalse();
+    expect($set->fresh()->reps)->not->toBe(99);
+    expect($item->sets()->count())->toBe($setCount);
+    expect($item->fresh())->not->toBeNull();
+    expect($session->fresh())->not->toBeNull();
+    expect($session->fresh()->status)->toBe(SessionStatus::Completed);
+});
+
+test('returning to an old tab sends you to the summary', function () {
+    $session = startSession();
+    $component = Livewire::actingAs($this->user)->test(Run::class, ['session' => $session]);
+
+    $component->call('checkRunning')->assertNoRedirect();
+
+    $session->finish();
+    $component->call('checkRunning')->assertRedirect(route('sessions.summary', $session));
+});

@@ -4,7 +4,8 @@
 @endphp
 
 {{-- Ruimte onderaan voor de timerbalk --}}
-<div x-on:exercise-added.window="$nextTick(() => document.getElementById(`se-${$event.detail.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))"
+<div x-on:visibilitychange.document="document.visibilityState === 'visible' && $wire.checkRunning()"
+     x-on:exercise-added.window="$nextTick(() => document.getElementById(`se-${$event.detail.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))"
      class="pb-20 md:pb-24" style="--c: {{ $session->color ?? '#1d63c5' }}">
     <x-page-header :title="$session->name"
                    :description="($session->isQuickstart() ? \App\Models\WorkoutSession::QUICKSTART_DESCRIPTION.' ' : '').'Gestart om '.$session->started_at->format('H:i').'.'">

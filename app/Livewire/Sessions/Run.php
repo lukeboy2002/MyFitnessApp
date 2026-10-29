@@ -4,6 +4,7 @@ namespace App\Livewire\Sessions;
 
 use App\Actions\AddSessionExercise;
 use App\Enums\CardioMetric;
+use App\Exceptions\SessionNotRunning;
 use App\Livewire\Concerns\ConfirmsDeletion;
 use App\Livewire\Concerns\EditsExerciseTargets;
 use App\Livewire\Concerns\PicksExercises;
@@ -56,6 +57,26 @@ class Run extends Component
         }
 
         $this->fillInputs();
+    }
+
+    /**
+     * Elke wijziging controleert of de training nog loopt. Is hij intussen afgerond
+     * (bijv. in een ander tabblad), dan wordt niets opgeslagen en ga je naar de samenvatting.
+     */
+    public function exception($e, $stopPropagation): void
+    {
+        if ($e instanceof SessionNotRunning) {
+            $stopPropagation();
+            session()->flash('status', 'Deze training is al afgerond. Je laatste wijziging is niet opgeslagen.');
+            $this->redirectRoute('sessions.summary', $this->session, navigate: true);
+        }
+    }
+
+    /** Terug naar dit tabblad: meteen doorsturen als de training elders is afgerond */
+    public function checkRunning(): void
+    {
+        $this->ensureRunning();
+        $this->skipRender();
     }
 
     public function updatedValues($value, string $key): void
@@ -200,6 +221,7 @@ class Run extends Component
 
     public function addExercise(AddSessionExercise $action): void
     {
+        $this->ensureRunning();
         abort_unless($this->adding, 404);
 
         $this->adding = $this->normalizeDecimals($this->adding);
@@ -303,16 +325,19 @@ class Run extends Component
 
     public function pause(): void
     {
+        $this->ensureRunning();
         $this->session->pause();
     }
 
     public function resume(): void
     {
+        $this->ensureRunning();
         $this->session->resume();
     }
 
     public function finish()
     {
+        $this->ensureRunning();
         $this->session->finish();
 
         return $this->redirectRoute('sessions.summary', $this->session, navigate: true);
@@ -321,6 +346,7 @@ class Run extends Component
     /** Training stoppen zonder op te slaan */
     public function cancel()
     {
+        $this->ensureRunning();
         $workout = $this->session->workout;
         $this->session->delete();
 
@@ -378,8 +404,17 @@ class Run extends Component
         ];
     }
 
+    private function ensureRunning(): void
+    {
+        if (! $this->session->isRunning()) {
+            throw new SessionNotRunning;
+        }
+    }
+
     private function findSet(int $id): SetLog
     {
+        $this->ensureRunning();
+
         return SetLog::whereKey($id)
             ->whereHas('sessionExercise', fn ($q) => $q->where('workout_session_id', $this->session->id))
             ->with('sessionExercise.exercise')
@@ -388,6 +423,8 @@ class Run extends Component
 
     private function findExercise(int $id): SessionExercise
     {
+        $this->ensureRunning();
+
         return $this->session->exercises()->with('exercise')->findOrFail($id);
     }
 
