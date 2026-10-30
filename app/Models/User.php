@@ -84,6 +84,27 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->is_admin;
     }
 
+    /** Zo lang telt een account als nieuw (badge in het menu en label op de gebruikerslijst) */
+    public const NEW_USER_DAYS = 7;
+
+    public function isNew(): bool
+    {
+        return $this->created_at?->gte(now()->subDays(self::NEW_USER_DAYS)) ?? false;
+    }
+
+    /** Admin: accounts van de afgelopen 7 dagen (behalve je eigen) */
+    public function newUsersCount(): int
+    {
+        if (! $this->isAdmin()) {
+            return 0;
+        }
+
+        return self::query()
+            ->whereKeyNot($this->getKey())
+            ->where('created_at', '>=', now()->subDays(self::NEW_USER_DAYS))
+            ->count();
+    }
+
     public function workouts(): HasMany
     {
         return $this->hasMany(Workout::class);

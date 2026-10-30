@@ -37,8 +37,7 @@ class Users extends Component
         return User::query()
             ->withCount(['workouts', 'workoutSessions as trainings_count' => fn ($q) => $q->where('status', SessionStatus::Completed)])
             ->withMax(['workoutSessions as last_training_at' => fn ($q) => $q->where('status', SessionStatus::Completed)], 'started_at')
-            ->orderByDesc('is_admin')
-            ->orderBy('name')
+            ->orderByDesc('created_at')
             ->get();
     }
 

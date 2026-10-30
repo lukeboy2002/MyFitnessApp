@@ -1,5 +1,5 @@
-{{-- Sidebar-item: md = alleen icoon (met tooltip), lg = icoon + tekst --}}
-@props(['href', 'icon', 'active' => false])
+{{-- Sidebar-item: md = alleen icoon (met tooltip), lg = icoon + tekst. badge = teller, bv. nieuwe gebruikers --}}
+@props(['href', 'icon', 'active' => false, 'badge' => 0])
 
 <a href="{{ $href }}" wire:navigate title="{{ $slot }}" @if ($active) aria-current="page" @endif
    {{ $attributes->class([
@@ -12,4 +12,8 @@
     @endif
     <x-icon :name="$icon" class="size-5.5" />
     <span class="hidden lg:inline">{{ $slot }}</span>
+    @if ($badge)
+        <span class="absolute right-1.5 top-1 min-w-5 rounded-full bg-fire-500 px-1.5 text-center text-xs font-bold leading-5 text-white tabular-nums lg:static lg:ms-auto"
+              title="{{ $badge }} nieuw">{{ $badge }}</span>
+    @endif
 </a>

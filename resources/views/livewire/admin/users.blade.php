@@ -9,6 +9,7 @@
                     <div class="min-w-0 flex-1">
                         <p class="flex flex-wrap items-center gap-2 font-semibold">
                             <span class="truncate">{{ $user->name }}</span>
+                            @if ($user->isNew() && ! $user->is(auth()->user())) <x-badge color="fire">Nieuw</x-badge> @endif
                             @if ($user->is_admin) <x-badge color="brand" icon="shield">Admin</x-badge> @endif
                             @unless ($user->email_verified_at) <x-badge color="fire">Niet bevestigd</x-badge> @endunless
                         </p>

@@ -27,7 +27,8 @@
 
     // Alleen voor admins
     if (auth()->user()?->isAdmin()) {
-        $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => 'Gebruikers'];
+        // Teller: nieuwe accounts sinds je de gebruikerslijst voor het laatst bekeek
+        $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => 'Gebruikers', 'badge' => auth()->user()->newUsersCount()];
         $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => 'Instellingen'];
         $nav[] = ['route' => 'admin.badges', 'active' => 'admin.badges', 'icon' => 'medal', 'label' => 'Badgebeheer'];
     }
@@ -68,7 +69,7 @@
 
     <nav class="flex flex-col gap-1" aria-label="Hoofdmenu">
         @foreach ($nav as $item)
-            <x-nav.sidebar-link :href="$link($item['route'])" :icon="$item['icon']" :active="$is($item['active'])">
+            <x-nav.sidebar-link :href="$link($item['route'])" :icon="$item['icon']" :active="$is($item['active'])" :badge="$item['badge'] ?? 0">
                 {{ $item['label'] }}
             </x-nav.sidebar-link>
         @endforeach
@@ -120,8 +121,11 @@
         {{--        </form>--}}
         {{--        <x-theme-toggle/>--}}
         <button type="button" x-on:click="more = ! more" :aria-expanded="more" aria-label="Meer"
-                class="grid size-11 place-items-center rounded-xl transition hover:bg-white/15">
+                class="relative grid size-11 place-items-center rounded-xl transition hover:bg-white/15">
             <x-icon name="dots" class="size-6"/>
+            @if ($more->sum('badge'))
+                <span class="absolute right-2 top-2 size-2.5 rounded-full bg-fire-500 ring-2 ring-brand-700 dark:ring-brand-950" aria-hidden="true"></span>
+            @endif
         </button>
 
         <div x-show="more" x-cloak x-transition.origin.top.right x-on:click.outside="more = false"
@@ -131,6 +135,9 @@
                     @class(['flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold hover:bg-slate-100 dark:hover:bg-white/5',
                             'text-brand-700 dark:text-brand-300' => $is($item['active'])])>
                     <x-icon :name="$item['icon']"/> {{ $item['label'] }}
+                    @if ($item['badge'] ?? 0)
+                        <span class="ms-auto rounded-full bg-fire-500 px-2 py-0.5 text-xs font-bold text-white tabular-nums">{{ $item['badge'] }}</span>
+                    @endif
                 </a>
             @endforeach
             <form method="POST" action="{{ $link('logout') }}"
