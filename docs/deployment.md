@@ -3,7 +3,7 @@
 Server: la-online.nl (Ubuntu 24.04, MySQL 8). Projectmap op de server: `/var/www/myfitnessapp`.
 Vervang overal `fitness.la-online.nl` door het domein dat je kiest.
 
-De app heeft nodig: **PHP 8.4 of nieuwer** (lokaal draai je 8.5), Composer, Node 22, nginx, MySQL en HTTPS (passkeys werken alleen via https).
+De app heeft nodig: **PHP 8.5 of nieuwer** (zoals in composer.json; lokaal in Herd ook 8.5), Composer, Node 22, nginx, MySQL en HTTPS (passkeys werken alleen via https).
 
 ---
 
