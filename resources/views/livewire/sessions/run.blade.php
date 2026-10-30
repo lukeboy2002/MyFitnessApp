@@ -79,6 +79,22 @@
                     </p>
                 @endif
 
+                {{-- Voorstel voor vandaag: een herhaling erbij, of zwaarder als je vorige keer het maximum haalde --}}
+                @php($hint = \App\Support\ProgressionHint::for($type, $record?->lastSets ?? [], $item->target_reps))
+                @php($open = $item->sets->where('is_completed', false))
+                @if ($hint && $open->isNotEmpty())
+                    <div class="mx-3 mb-3 flex max-w-xl items-start gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm sm:mx-4 dark:bg-brand-500/15">
+                        <x-icon name="bolt" class="mt-0.5 size-4 shrink-0 text-brand-700 dark:text-brand-300" />
+                        <p class="min-w-0 flex-1">{{ $hint->text }}</p>
+                        @if ($open->contains(fn ($set) => (int) $set->reps !== $hint->reps || ($hint->weight !== null && (float) $set->weight !== $hint->weight)))
+                            <button type="button" wire:click="applyHint({{ $item->id }})"
+                                    class="-my-0.5 shrink-0 rounded-lg px-2 py-0.5 font-semibold text-brand-700 transition hover:bg-brand-100 dark:text-brand-300 dark:hover:bg-brand-500/20">
+                                Overnemen
+                            </button>
+                        @endif
+                    </div>
+                @endif
+
                 @if ($type->usesSets())
                     {{-- Sets --}}
                     @php($previous = $record?->lastSets ?? [])

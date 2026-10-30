@@ -102,6 +102,9 @@
                                     <a href="{{ route('sessions.summary', $row['session']) }}" wire:navigate class="font-semibold text-brand-700 hover:underline dark:text-brand-300">
                                         {{ $row['session']->started_at->translatedFormat('j M Y') }}
                                     </a>
+                                    @if ($row['session']->notes)
+                                        <span class="block max-w-48 truncate text-xs italic text-slate-500 dark:text-slate-400" title="{{ $row['session']->notes }}">“{{ $row['session']->notes }}”</span>
+                                    @endif
                                 </td>
                                 @switch($type)
                                     @case(ExerciseType::Strength)

@@ -48,6 +48,25 @@
         </div>
     @endif
 
+    {{-- Notitie: eenmaal opgeslagen ligt hij vast --}}
+    <div class="mb-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5 dark:bg-panel-dark dark:ring-line-dark">
+        @if (filled($session->notes))
+            <p class="mb-1 flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                Notitie <x-icon name="lock" class="size-3.5 text-slate-400" title="Ligt vast" />
+            </p>
+            <p class="whitespace-pre-line italic">“{{ $session->notes }}”</p>
+        @else
+            <form wire:submit="saveNotes" class="flex flex-col gap-2">
+                <x-form.textarea label="Notitie" wire:model="notes" rows="2" maxlength="1000"
+                                 placeholder="Bijv. knie voelde stijf, drukke sportschool, slecht geslapen"
+                                 hint="Na het opslaan kun je de notitie niet meer wijzigen." />
+                <div class="flex justify-end">
+                    <x-button size="sm" icon="check" loading="saveNotes">Opslaan</x-button>
+                </div>
+            </form>
+        @endif
+    </div>
+
     <x-card :padding="false" class="overflow-hidden">
         <ol class="divide-y divide-slate-100 dark:divide-line-dark">
             @foreach ($session->exercises as $item)

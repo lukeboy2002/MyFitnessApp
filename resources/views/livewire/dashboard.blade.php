@@ -196,6 +196,9 @@
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate font-semibold">{{ $session->name }}</span>
                                     <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $session->started_at->translatedFormat('D j M, H:i') }} · {{ $session->exercises->count() }} oefeningen</span>
+                                    @if ($session->notes)
+                                        <span class="block truncate text-sm italic text-slate-500 dark:text-slate-400" title="{{ $session->notes }}">“{{ $session->notes }}”</span>
+                                    @endif
                                 </span>
                                 <span class="font-semibold tabular-nums">{{ WorkoutSession::clock($session->duration_seconds ?? 0) }}</span>
                             </a>

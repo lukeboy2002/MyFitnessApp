@@ -15,6 +15,7 @@ use App\Models\SetLog;
 use App\Models\WorkoutExercise;
 use App\Models\WorkoutSession;
 use App\Support\ExerciseRecords;
+use App\Support\ProgressionHint;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
@@ -114,6 +115,23 @@ class Run extends Component
         $records = $done ? ExerciseRecords::build($this->session, $exercise->id, $exercise->type) : null;
         if ($records?->isRecordSet($set)) {
             $this->dispatch('record', title: 'Nieuw record!', text: $exercise->name.' · '.$records->describeSet($set));
+        }
+    }
+
+    /** Het voorstel uit de vorige keer (ProgressionHint) invullen in de sets die nog niet zijn afgevinkt */
+    public function applyHint(int $sessionExerciseId): void
+    {
+        $item = $this->findExercise($sessionExerciseId);
+        $records = ExerciseRecords::forSession($this->session)[$item->exercise_id] ?? null;
+        $hint = ProgressionHint::for($item->exercise->type, $records?->lastSets ?? [], $item->target_reps);
+
+        if (! $hint) {
+            return;
+        }
+
+        foreach ($item->sets()->where('is_completed', false)->get() as $set) {
+            $set->update(['reps' => $hint->reps, ...($hint->weight !== null ? ['weight' => $hint->weight] : [])]);
+            $this->values[$set->id] = $this->setValues($set);
         }
     }
 

@@ -109,6 +109,9 @@
                                     {{ $session->started_at->format('H:i') }} ·
                                     {{ $session->isRunning() ? 'bezig' : WorkoutSession::clock($session->duration_seconds ?? 0).' · '.$session->exercises_count.' oefeningen' }}
                                 </span>
+                                @if ($session->notes)
+                                    <span class="block truncate text-sm italic text-slate-500 dark:text-slate-400" title="{{ $session->notes }}">“{{ $session->notes }}”</span>
+                                @endif
                             </span>
                             <x-icon name="chevron-right" class="size-5 text-slate-400" />
                         </a>
