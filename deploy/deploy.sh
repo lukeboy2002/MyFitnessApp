@@ -18,6 +18,9 @@ echo "→ CSS en JavaScript bouwen"
 npm ci --no-audit --no-fund
 npm run build
 
+echo "→ Back-up van de database (vóór de migrations)"
+bash deploy/backup.sh --db-only
+
 echo "→ Database bijwerken"
 php artisan migrate --force
 

@@ -179,12 +179,39 @@ Dat zet de site even in onderhoud, haalt de code op, installeert pakketten, bouw
 
 **Let op:** op de server nooit `migrate:fresh` draaien, dan ben je alles kwijt.
 
-## Back-up (aanrader)
+## Back-up
 
-Dagelijkse dump via `crontab -e`:
+Je lokale database is om te testen; de echte trainingen staan alleen online. `deploy/backup.sh` maakt een kopie van de online database (en van de plaatjes in `storage/app/public`) in `~/backups/myfitnessapp` en ruimt kopieën ouder dan 14 dagen op. De inloggegevens leest het script uit `.env`.
 
-```cron
-0 3 * * * mysqldump --single-transaction myfitnessapp | gzip > /var/backups/myfitnessapp-$(date +\%u).sql.gz
+**Eenmalig instellen.** Eerst één keer met de hand proberen:
+
+```bash
+cd /var/www/myfitnessapp && bash deploy/backup.sh
+ls -lh ~/backups/myfitnessapp
 ```
 
-(bewaart er 7, één per weekdag; zet de inloggegevens in `~/.my.cnf`).
+Dan elke nacht om 3:00 via `crontab -e` (als dezelfde gebruiker, die `.env` moet kunnen lezen):
+
+```cron
+0 3 * * * cd /var/www/myfitnessapp && bash deploy/backup.sh >> ~/backups/myfitnessapp/backup.log 2>&1
+```
+
+`deploy.sh` maakt bovendien vóór elke `migrate` een extra database-back-up. Gaat er bij een deploy iets mis, dan heb je de stand van vlak ervoor.
+
+**Ook buiten de server bewaren.** Een back-up op dezelfde VPS helpt niet als de server zelf weg is. Haal ze af en toe naar je Mac:
+
+```bash
+# op je Mac
+rsync -av jij@la-online.nl:backups/myfitnessapp/ ~/Backups/myfitnessapp/
+```
+
+**Terugzetten** (alleen in nood; overschrijft de huidige database):
+
+```bash
+php artisan down
+gunzip < ~/backups/myfitnessapp/db-2026-10-30_0300.sql.gz | mysql -u myfitnessapp -p myfitnessapp
+tar -xzf ~/backups/myfitnessapp/images-2026-10-30_0300.tar.gz -C storage/app    # alleen als plaatjes weg zijn
+php artisan optimize && php artisan up
+```
+
+Je kunt een back-up ook lokaal terugzetten in een aparte database (bv. `myfitness_backup` in Herd) om te kijken of hij compleet is.
