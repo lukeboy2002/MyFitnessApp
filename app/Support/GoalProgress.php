@@ -126,27 +126,40 @@ class GoalProgress
     /** Aantal records (zoals op het trainingsscherm) in afgeronde trainingen tussen $from en $until */
     private static function recordsBetween(User $user, CarbonImmutable $from, CarbonImmutable $until): int
     {
-        $sessions = WorkoutSession::query()
-            ->where('user_id', $user->id)
-            ->where('status', SessionStatus::Completed)
-            ->where('started_at', '<', $until)
-            ->with(['exercises.exercise', 'exercises.sets' => fn ($q) => $q->where('is_completed', true), 'exercises.cardio.splits'])
-            ->orderBy('started_at')->orderBy('id')
-            ->get();
+        return collect(self::recordsPerSession($user))
+            ->filter(fn (array $row) => $row['at'] >= $from->getTimestamp() && $row['at'] < $until->getTimestamp())
+            ->sum('count');
+    }
 
-        $history = [];
-        $count = 0;
+    /**
+     * Records per afgeronde training, oudste eerst. Bewaard tot er een training bij komt of af gaat.
+     *
+     * @return array<int, array{at: int, count: int}>
+     */
+    private static function recordsPerSession(User $user): array
+    {
+        return TrainingCache::remember($user->id, 'records-per-session', function () use ($user) {
+            $sessions = WorkoutSession::query()
+                ->where('user_id', $user->id)
+                ->where('status', SessionStatus::Completed)
+                ->with(['exercises.exercise', 'exercises.sets' => fn ($q) => $q->where('is_completed', true), 'exercises.cardio.splits'])
+                ->orderBy('started_at')->orderBy('id')
+                ->get();
 
-        foreach ($sessions as $session) {
-            foreach ($session->exercises as $item) {
-                $history[$item->exercise_id] ??= new ExerciseRecords($item->exercise->type);
-                if ($session->started_at->gte($from)) {
+            $history = [];
+            $rows = [];
+
+            foreach ($sessions as $session) {
+                $count = 0;
+                foreach ($session->exercises as $item) {
+                    $history[$item->exercise_id] ??= new ExerciseRecords($item->exercise->type);
                     $count += $history[$item->exercise_id]->countRecords($item);
                 }
+                $session->exercises->each(fn ($item) => $history[$item->exercise_id]->add($item));
+                $rows[] = ['at' => $session->started_at->getTimestamp(), 'count' => $count];
             }
-            $session->exercises->each(fn ($item) => $history[$item->exercise_id]->add($item));
-        }
 
-        return $count;
+            return $rows;
+        });
     }
 }

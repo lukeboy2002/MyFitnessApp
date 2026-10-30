@@ -43,14 +43,26 @@ class ExerciseRecords
 
     public function __construct(public ExerciseType $type) {}
 
-    /** @return array<int, self> records per exercise_id, voor alle oefeningen in deze training */
+    /**
+     * Records per exercise_id, voor alle oefeningen in deze training. De historie vóór deze training
+     * verandert tijdens het trainen niet, dus dit wordt één keer berekend en daarna uit de cache gehaald
+     * (opnieuw als je een oefening toevoegt of als er een afgeronde training bij komt).
+     *
+     * @return array<int, self>
+     */
     public static function forSession(WorkoutSession $session): array
     {
         $session->loadMissing('exercises.exercise');
+        $types = $session->exercises->unique('exercise_id')->mapWithKeys(fn (SessionExercise $item) => [$item->exercise_id => $item->exercise->type]);
 
-        return $session->exercises->unique('exercise_id')->mapWithKeys(fn (SessionExercise $item) => [
-            $item->exercise_id => self::build($session, $item->exercise_id, $item->exercise->type),
-        ])->all();
+        $state = TrainingCache::remember(
+            $session->user_id,
+            'session-records',
+            fn () => $types->map(fn (ExerciseType $type, int $id) => self::build($session, $id, $type)->state())->all(),
+            [$session->id, $session->started_at->getTimestamp(), $types->map->value->sortKeys()->all()],
+        );
+
+        return $types->map(fn (ExerciseType $type, int $id) => self::fromState($type, $state[$id] ?? []))->all();
     }
 
     /** Records van één oefening, bv. om bij het afvinken te kijken of je er eentje verbetert */
@@ -87,6 +99,29 @@ class ExerciseRecords
             : $item->sets->isNotEmpty());
         $records->lastTime = $last ? $records->summarize($last) : null;
         $records->lastSets = $last && $type !== ExerciseType::Cardio ? $last->sets->keyBy('set_number')->all() : [];
+
+        return $records;
+    }
+
+    /** De records als gewone array, om te bewaren in de cache */
+    public function state(): array
+    {
+        return [
+            ...collect(get_object_vars($this))->except('type', 'lastSets')->all(),
+            'lastSets' => array_map(fn (SetLog $set) => $set->only('set_number', 'reps', 'weight', 'duration_seconds', 'is_completed'), $this->lastSets),
+        ];
+    }
+
+    public static function fromState(ExerciseType $type, array $state): self
+    {
+        $records = new self($type);
+
+        foreach (collect($state)->except('type', 'lastSets') as $property => $value) {
+            if (property_exists($records, $property)) {
+                $records->{$property} = $value;
+            }
+        }
+        $records->lastSets = array_map(fn (array $set) => (new SetLog)->forceFill($set), $state['lastSets'] ?? []);
 
         return $records;
     }

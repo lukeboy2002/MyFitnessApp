@@ -16,18 +16,34 @@ use Illuminate\Support\Collection;
  * Badges van een gebruiker, berekend uit al zijn afgeronde trainingen (oudste eerst).
  * De badges zelf (drempels) beheert een admin; behaalde niveaus worden niet opgeslagen. Zo tellen ook
  * geïmporteerde trainingen mee, en van elk niveau weten we in welke training het is gehaald.
+ * De uitkomst wordt bewaard (TrainingCache) en pas opnieuw berekend na een nieuwe of verwijderde training.
  */
 class Achievements
 {
     /** @return Collection<int, BadgeProgress> per badge-id, in de volgorde van de admin */
     public static function for(User $user): Collection
     {
-        $badges = Badge::query()->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get()
-            ->mapWithKeys(fn (Badge $badge) => [$badge->id => new BadgeProgress($badge)]);
+        $badges = Badge::query()->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get();
 
         if ($badges->isEmpty()) {
-            return $badges;
+            return collect();
         }
+
+        // Past de admin een drempel, metric of oefening aan, dan opnieuw rekenen
+        $definitions = $badges->map(fn (Badge $badge) => [$badge->id, $badge->metric->value, $badge->thresholds, $badge->exercise_id])->all();
+        $state = TrainingCache::remember($user->id, 'badges', fn () => self::calculate($user, $badges), $definitions);
+
+        return $badges->mapWithKeys(fn (Badge $badge) => [$badge->id => BadgeProgress::fromState($badge, $state[$badge->id] ?? [])]);
+    }
+
+    /**
+     * Alle trainingen doorlopen, oudste eerst.
+     *
+     * @return array<int, array> toestand per badge-id (BadgeProgress::state)
+     */
+    private static function calculate(User $user, Collection $definitions): array
+    {
+        $badges = $definitions->mapWithKeys(fn (Badge $badge) => [$badge->id => new BadgeProgress($badge)]);
 
         $sessions = WorkoutSession::query()
             ->where('user_id', $user->id)
@@ -95,7 +111,7 @@ class Achievements
             }
         }
 
-        return $badges;
+        return $badges->map(fn (BadgeProgress $progress) => $progress->state())->all();
     }
 
     /**

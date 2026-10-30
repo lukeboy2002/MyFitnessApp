@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Badge;
 use App\Models\WorkoutSession;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Date;
 
 /**
  * Hoe ver een gebruiker is met één badge: de waarde en wanneer (in welke training) elk niveau is gehaald.
@@ -38,6 +39,25 @@ final class BadgeProgress
         $this->icon = $badge->icon;
         $this->unit = $badge->metric->unit();
         $this->thresholds = array_values($badge->thresholds);
+    }
+
+    /** Waarde en behaalde niveaus als gewone array, om te bewaren in de cache */
+    public function state(): array
+    {
+        return [
+            'value' => $this->value,
+            'earned' => array_map(fn (array $earned) => ['at' => $earned['at']->format('Y-m-d H:i:s'), 'session_id' => $earned['session_id']], $this->earned),
+        ];
+    }
+
+    /** Terug uit de cache, bij de badge zoals hij nu in de database staat */
+    public static function fromState(Badge $badge, array $state): self
+    {
+        $progress = new self($badge);
+        $progress->value = $state['value'] ?? 0;
+        $progress->earned = array_map(fn (array $earned) => ['at' => Date::parse($earned['at']), 'session_id' => $earned['session_id']], $state['earned'] ?? []);
+
+        return $progress;
     }
 
     /** Nieuwe waarde na een training; hogere niveaus die nu gehaald zijn krijgen deze training als datum */
