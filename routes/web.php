@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PreviewController;
 use App\Http\Controllers\UsernameAvailabilityController;
 use App\Livewire\Admin\Badges as AdminBadges;
 use App\Livewire\Admin\Settings;
@@ -51,6 +52,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/users', Users::class)->middleware('can:admin')->name('admin.users');
     Route::get('admin/settings', Settings::class)->middleware('can:admin')->name('admin.settings');
     Route::get('admin/badges', AdminBadges::class)->middleware('can:admin')->name('admin.badges');
+    Route::get('admin/preview/mail/{mail}', [PreviewController::class, 'mail'])->middleware('can:admin')->name('admin.preview.mail');
+    Route::get('admin/preview/error/{code}', [PreviewController::class, 'error'])->middleware('can:admin')->whereNumber('code')->name('admin.preview.error');
 
     // Progress
     // Badges

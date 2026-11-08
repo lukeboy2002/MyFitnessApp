@@ -73,6 +73,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'target_weight_kg' => null,
         'goal' => null,
         'experience' => null,
+        'weekly_goal_minutes' => null,
         'weekly_goal_sessions' => null,
         'default_rest_seconds' => null,
         'onboarded_at' => null,

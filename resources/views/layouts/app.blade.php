@@ -27,7 +27,7 @@
 
     // Alleen voor admins
     if (auth()->user()?->isAdmin()) {
-        // Teller: nieuwe accounts sinds je de gebruikerslijst voor het laatst bekeek
+        // Teller: nieuwe accounts van de afgelopen 7 dagen
         $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => 'Gebruikers', 'badge' => auth()->user()->newUsersCount()];
         $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => 'Instellingen'];
         $nav[] = ['route' => 'admin.badges', 'active' => 'admin.badges', 'icon' => 'medal', 'label' => 'Badgebeheer'];

@@ -5,21 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#00468c">
     <title>Geen verbinding · Lukeboy Fitness</title>
+    <!-- Getoond door de service worker (sw.js) zonder internet. Zelfde stijl als de foutpagina's (resources/views/errors), maar zonder server: alles staat hier -->
     <style>
-        body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 24px; box-sizing: border-box;
-               background: #00468c; color: #fff; font: 16px/1.5 system-ui, -apple-system, sans-serif; text-align: center; }
-        img { width: 120px; height: 120px; }
-        h1 { margin: 16px 0 4px; font-size: 24px; text-transform: uppercase; letter-spacing: .03em; }
-        p { margin: 0 0 24px; opacity: .85; }
-        button { border: 0; border-radius: 12px; padding: 12px 24px; background: #ffbc04; color: #002a55; font: inherit; font-weight: 700; }
+        :root { --canvas: #eef3fa; --panel: #fff; --ink: #0b1f3f; --muted: #475569; --ring: rgba(226, 232, 240, .8); }
+        @media (prefers-color-scheme: dark) { :root { --canvas: #0a1222; --panel: #111c31; --ink: #f1f5f9; --muted: #cbd5e1; --ring: #24344f; } }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100dvh; background: var(--canvas); color: var(--ink); font: 15px/1.5 Barlow, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+        .band { position: absolute; inset: 0 0 auto; height: 320px; overflow: hidden; border-radius: 0 0 2.5rem 2.5rem; background: linear-gradient(to bottom right, #1d63c5, #00468c, #071730); }
+        .band::before, .band::after { content: ''; position: absolute; border-radius: 50%; filter: blur(64px); }
+        .band::before { right: -64px; top: -96px; width: 288px; height: 288px; background: rgba(255, 188, 4, .25); }
+        .band::after { left: -80px; top: 128px; width: 256px; height: 256px; background: rgba(249, 115, 22, .2); }
+        main { position: relative; display: flex; min-height: 100dvh; flex-direction: column; align-items: center;
+               padding: calc(env(safe-area-inset-top) + 40px) max(16px, env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 40px); }
+        @media (min-width: 640px) { main { justify-content: center; } }
+        img { width: 104px; height: 104px; margin-bottom: 24px; border-radius: 24px; filter: drop-shadow(0 20px 13px rgba(0, 0, 0, .1)); }
+        .card { width: 100%; max-width: 448px; padding: 32px 24px; border-radius: 24px; background: var(--panel); text-align: center;
+                box-shadow: 0 20px 25px -5px rgba(7, 31, 63, .1), 0 0 0 1px var(--ring); }
+        .icon { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; color: #fff; background: linear-gradient(to bottom right, #ffbc04, #f97316); }
+        h1 { margin: 12px 0 0; font: 800 30px/1 'Barlow Condensed', Barlow, system-ui, sans-serif; text-transform: uppercase; }
+        p { margin: 12px 0 24px; color: var(--muted); }
+        button { min-height: 44px; border: 0; border-radius: 12px; padding: 0 20px; background: #00468c; color: #fff; font: 600 15px Barlow, system-ui, sans-serif; cursor: pointer; }
+        button:active { transform: scale(.98); }
     </style>
 </head>
 <body>
+<div class="band" aria-hidden="true"></div>
 <main>
-    <img src="/icons/icon-192.png" alt="">
-    <h1>Geen verbinding</h1>
-    <p>Lukeboy Fitness heeft internet nodig. Controleer je verbinding en probeer het opnieuw.</p>
-    <button type="button" onclick="location.reload()">Opnieuw proberen</button>
+    <img src="/icons/icon-192.png" alt="Lukeboy Fitness">
+    <div class="card">
+        <span class="icon" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.7"/><path d="M19 12.9a10 10 0 0 0-2.1-1.6"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6"/><path d="M22 8.8a15 15 0 0 0-11.3-3.7"/><path d="m2 2 20 20"/></svg>
+        </span>
+        <h1>Geen verbinding</h1>
+        <p>Lukeboy Fitness heeft internet nodig. Controleer je verbinding en probeer het opnieuw.</p>
+        <button type="button" onclick="location.reload()">Opnieuw proberen</button>
+    </div>
 </main>
 </body>
 </html>

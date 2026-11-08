@@ -74,6 +74,32 @@
         </x-card>
     </div>
 
+    {{-- Voorbeelden --}}
+    <x-card title="Mails en foutpagina's" description="Bekijk ze zoals een gebruiker ze ziet. Er wordt niets verstuurd; de mails gebruiken jouw account als voorbeeld." class="mt-5">
+        <div class="grid gap-x-8 gap-y-6 lg:grid-cols-2">
+            <div>
+                <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Mails</h3>
+                <ul class="divide-y divide-slate-100 text-sm dark:divide-line-dark">
+                    @foreach (\App\Http\Controllers\Admin\PreviewController::MAILS as $key => $label)
+                        <li>
+                            <a href="{{ route('admin.preview.mail', $key) }}" target="_blank" class="flex items-center gap-3 py-2 font-semibold text-brand-700 hover:underline dark:text-brand-300">
+                                <x-icon name="mail" class="size-4.5 shrink-0" /> {{ $label }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+            <div>
+                <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Foutpagina's</h3>
+                <div class="flex flex-wrap gap-2">
+                    @foreach (\App\Http\Controllers\Admin\PreviewController::ERRORS as $code)
+                        <x-button variant="secondary" size="sm" :href="route('admin.preview.error', $code)" target="_blank">{{ $code }}</x-button>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </x-card>
+
     {{-- Systeem --}}
     <x-card title="Systeem" description="Hoe de app nu draait." class="mt-5">
         @if (app()->isProduction() && config('app.debug'))
