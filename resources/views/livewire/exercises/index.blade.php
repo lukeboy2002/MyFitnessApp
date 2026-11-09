@@ -1,4 +1,5 @@
-<div>
+{{-- pr: ruimte voor de letterstrook rechts --}}
+<div class="pr-7 md:pr-6 lg:pr-3">
     <x-page-header title="Exercises" description="Alle oefeningen: de standaardlijst van je gym en je eigen oefeningen.">
         <x-button icon="plus" :href="route('exercises.create')" wire:navigate>Oefening toevoegen</x-button>
     </x-page-header>
@@ -42,8 +43,47 @@
         </div>
     </div>
 
-    <p class="mb-3 text-sm text-slate-500 dark:text-slate-400">
-        {{ $this->exercises->count() }} {{ $this->exercises->count() === 1 ? 'oefening' : 'oefeningen' }}{{ $showArchived ? ' in het archief' : '' }}
+    {{--
+        Letterstrook rechts langs het scherm, zoals contacten op de iPhone. Tik een letter (nog eens tikken = alles);
+        op een telefoon kun je ook met je vinger langs de strook schuiven, de letter onder je vinger telt bij loslaten.
+    --}}
+    @php($available = $this->letters)
+    <nav aria-label="Kies een beginletter"
+         x-data="{
+             scrub: null,
+             at(event) {
+                 const touch = event.touches[0] ?? event.changedTouches[0];
+                 return document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-letter]')?.dataset.letter ?? null;
+             },
+         }"
+         x-on:touchstart.prevent="scrub = at($event)"
+         x-on:touchmove.prevent="scrub = at($event) ?? scrub"
+         x-on:touchend.prevent="if (scrub) $wire.pickLetter(scrub); scrub = null"
+         class="fixed right-[max(.25rem,env(safe-area-inset-right))] top-[calc(env(safe-area-inset-top)+4.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] z-10 flex w-7 touch-none select-none flex-col rounded-full bg-white/85 py-1.5 shadow-sm ring-1 ring-slate-200 backdrop-blur md:right-3 md:top-6 md:bottom-6 md:w-8 dark:bg-panel-dark/85 dark:ring-line-dark">
+        @foreach (\App\Livewire\Exercises\Index::LETTERS as $l)
+            @php($has = in_array($l, $available, true))
+            <button type="button" wire:click="pickLetter('{{ $l }}')" wire:key="l-{{ $l }}" @disabled(! $has && $letter !== $l)
+                    @if ($has || $letter === $l) data-letter="{{ $l }}" @endif
+                    aria-pressed="{{ $letter === $l ? 'true' : 'false' }}" aria-label="Oefeningen met {{ $l === '#' ? 'een cijfer' : $l }}"
+                    @class(['mx-auto grid min-h-0 w-6 flex-1 place-items-center rounded-full text-[11px] font-bold leading-none transition md:w-7 md:text-xs',
+                            'bg-brand-700 text-white dark:bg-brand-500' => $letter === $l,
+                            'text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-white/10' => $letter !== $l && $has,
+                            'cursor-default text-slate-300 dark:text-slate-600' => $letter !== $l && ! $has])
+                    x-bind:class="scrub === '{{ $l }}' && 'scale-125 bg-accent-400 text-ink'">{{ $l }}</button>
+        @endforeach
+
+        {{-- Grote letter naast je vinger tijdens het schuiven --}}
+        <span x-show="scrub" x-cloak x-text="scrub"
+              class="pointer-events-none fixed right-16 top-1/2 grid size-20 -translate-y-1/2 place-items-center rounded-3xl bg-brand-700/90 font-display text-5xl font-extrabold text-white shadow-xl"></span>
+    </nav>
+
+    <p class="mb-3 flex flex-wrap items-center gap-x-3 text-sm text-slate-500 dark:text-slate-400">
+        {{ $this->exercises->count() }} {{ $this->exercises->count() === 1 ? 'oefening' : 'oefeningen' }}{{ $letter !== '' ? ' met '.($letter === '#' ? 'een cijfer' : 'de '.$letter) : '' }}{{ $showArchived ? ' in het archief' : '' }}
+        @if ($letter !== '')
+            <button type="button" wire:click="pickLetter('')" class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300">
+                <x-icon name="x" class="size-3.5" /> Alle letters
+            </button>
+        @endif
     </p>
 
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -108,7 +148,7 @@
         @empty
             <div class="rounded-2xl bg-white p-8 text-center ring-1 ring-slate-200 sm:col-span-2 xl:col-span-3 dark:bg-panel-dark dark:ring-line-dark">
                 <p class="text-slate-500 dark:text-slate-400">{{ $showArchived ? 'Er staan geen oefeningen in het archief.' : 'Geen oefeningen gevonden.' }}</p>
-                @if ($search !== '' || $typeFilter !== '' || $groupFilter || $ownOnly)
+                @if ($search !== '' || $typeFilter !== '' || $groupFilter || $ownOnly || $letter !== '')
                     <x-button variant="secondary" size="sm" type="button" wire:click="resetFilters" class="mt-3">Filters wissen</x-button>
                 @endif
             </div>

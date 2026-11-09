@@ -8,6 +8,7 @@ use App\Models\Exercise;
 use App\Models\MuscleGroup;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -19,6 +20,9 @@ use Livewire\Component;
 class Index extends Component
 {
     use ConfirmsDeletion;
+
+    /** A t/m Z, plus # voor namen die met een cijfer of teken beginnen */
+    public const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '#'];
 
     #[Url(as: 'zoek', except: '')]
     public string $search = '';
@@ -34,6 +38,10 @@ class Index extends Component
 
     #[Url(as: 'archief', except: false)]
     public bool $showArchived = false;
+
+    /** Letterbalk (zoals contactpersonen): alleen oefeningen die met deze letter beginnen; '#' = cijfer of teken */
+    #[Url(as: 'letter', except: '')]
+    public string $letter = '';
 
     public ?string $message = null;
 
@@ -74,7 +82,7 @@ class Index extends Component
 
         $exercise->update(['archived_at' => now()]);
         $this->message = "{$exercise->name} is gearchiveerd.";
-        unset($this->exercises);
+        unset($this->filtered, $this->exercises, $this->letters);
     }
 
     public function restore(int $id): void
@@ -84,7 +92,7 @@ class Index extends Component
 
         $exercise->update(['archived_at' => null]);
         $this->message = "{$exercise->name} staat weer in je lijst.";
-        unset($this->exercises);
+        unset($this->filtered, $this->exercises, $this->letters);
     }
 
     protected function deletableModel(): string
@@ -118,12 +126,24 @@ class Index extends Component
         $exercise->delete();
         $this->error = null;
         $this->message = "{$exercise->name} is verwijderd.";
-        unset($this->exercises);
+        unset($this->filtered, $this->exercises, $this->letters);
     }
 
     public function resetFilters(): void
     {
-        $this->reset('search', 'typeFilter', 'groupFilter', 'ownOnly');
+        $this->reset('search', 'typeFilter', 'groupFilter', 'ownOnly', 'letter');
+    }
+
+    public function pickLetter(string $letter): void
+    {
+        $this->letter = $this->letter === $letter || ! in_array($letter, self::LETTERS, true) ? '' : $letter;
+    }
+
+    public static function letterOf(string $name): string
+    {
+        $first = Str::upper(Str::ascii(mb_substr(ltrim($name), 0, 1)));
+
+        return in_array($first, self::LETTERS, true) ? $first : '#';
     }
 
     #[Computed]
@@ -132,8 +152,9 @@ class Index extends Component
         return MuscleGroup::visibleTo(Auth::user())->orderBy('sort_order')->orderBy('name')->get();
     }
 
+    /** Oefeningen na zoeken en filters, nog zonder letter (daaruit volgt welke letters er zijn) */
     #[Computed]
-    public function exercises()
+    public function filtered()
     {
         return Exercise::visibleTo(Auth::user())
             ->with('muscleGroups')
@@ -144,6 +165,21 @@ class Index extends Component
             ->when($this->groupFilter, fn ($q) => $q->whereHas('muscleGroups', fn ($q) => $q->whereKey($this->groupFilter)))
             ->orderBy('name')
             ->get();
+    }
+
+    #[Computed]
+    public function exercises()
+    {
+        return $this->letter === ''
+            ? $this->filtered
+            : $this->filtered->filter(fn (Exercise $exercise) => self::letterOf($exercise->name) === $this->letter)->values();
+    }
+
+    /** Letters waarmee minstens één oefening begint; de rest staat grijs in de letterbalk */
+    #[Computed]
+    public function letters(): array
+    {
+        return $this->filtered->map(fn (Exercise $exercise) => self::letterOf($exercise->name))->unique()->values()->all();
     }
 
     /** Eigen oefeningen (ook gearchiveerd); 0 = filter niet tonen */
