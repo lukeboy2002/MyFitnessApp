@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PreviewController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UsernameAvailabilityController;
 use App\Livewire\Admin\Badges as AdminBadges;
 use App\Livewire\Admin\Settings;
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('dashboard', '/');
 
     Route::view('profile', 'profile.edit')->name('profile.edit');
+    Route::get('profile/export/{type}', ExportController::class)->middleware('throttle:10,1')->name('profile.export');
 
     // Stamgegevens
     Route::get('body-parts', Index::class)->name('body-parts.index');
