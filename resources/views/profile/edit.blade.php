@@ -56,7 +56,29 @@
         </div>
 
         <div x-show="tab === 'account'" role="tabpanel" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-            <livewire:profile.update-profile-information/>
+            <div class="grid gap-5">
+                <livewire:profile.update-profile-information/>
+
+                {{-- Eigen gegevens als CSV (ExportController, App\Support\DataExport) --}}
+                <x-card title="Je gegevens downloaden" description="Als CSV-bestand, te openen in Excel of Numbers.">
+                    <ul class="divide-y divide-slate-100 dark:divide-line-dark">
+                        @foreach (\App\Support\DataExport::TYPES as $type => $label)
+                            @php($count = \App\Support\DataExport::count(auth()->user(), $type))
+                            <li class="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold">{{ $label }}</p>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                                        {{ $count }} {{ match ($type) { 'trainingen' => $count === 1 ? 'training' : 'trainingen', 'wegingen' => $count === 1 ? 'weging' : 'wegingen', default => $count === 1 ? 'meting' : 'metingen' } }}{{ $type === 'trainingen' ? ', met alle sets en cardio' : '' }}
+                                    </p>
+                                </div>
+                                @if ($count)
+                                    <x-button variant="secondary" size="sm" icon="upload" class="[&>svg]:rotate-180" :href="route('profile.export', $type)" download>Download</x-button>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-card>
+            </div>
 
             <div class="grid gap-5">
                 <livewire:profile.update-profile-photo/>
