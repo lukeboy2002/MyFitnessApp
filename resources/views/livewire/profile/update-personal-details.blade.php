@@ -11,8 +11,9 @@
     $stats = [
         ['label' => 'Leeftijd', 'value' => $user->age() !== null ? $user->age().' jaar' : null, 'hint' => 'uit je geboortedatum'],
         ['label' => 'BMI', 'value' => $bmi !== null ? $n($bmi) : null, 'hint' => $bmiLabel ?? 'lengte en gewicht nodig'],
-        ['label' => 'Max. hartslag', 'value' => $user->maxHeartRate() ? $user->maxHeartRate().' bpm' : null, 'hint' => 'geschat uit je leeftijd'],
+        ['label' => 'Max. hartslag', 'value' => $user->maxHeartRate() ? $user->maxHeartRate().' bpm' : null, 'hint' => $user->max_heart_rate ? 'je eigen waarde' : ($user->maxHeartRate() ? 'geschat uit je leeftijd' : 'geboortedatum nodig')],
     ];
+    $zones = \App\Support\HeartRateZones::forUser($user);
 @endphp
 
 <x-card title="Persoonlijke gegevens" description="Alles is optioneel. De app gebruikt het voor je BMI, hartslagzones en je doel.">
@@ -26,9 +27,18 @@
         @endforeach
     </div>
 
-    @if ($zones = \App\Support\HeartRateZones::forUser($user))
+    @if ($zones)
         <div class="mb-6">
-            <p class="mb-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Hartslagzones (zie je terug bij cardio)</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Hartslagzones (zie je terug bij cardio)</p>
+            <p class="mb-2 text-[11px] text-slate-500 dark:text-slate-400">
+                @if ($zones->usesReserve())
+                    Berekend met je rusthartslag ({{ $zones->rest }} bpm) en max. hartslag ({{ $zones->max }} bpm), de Karvonen-methode.
+                @elseif ($user->max_heart_rate)
+                    Percentage van je eigen max. hartslag. Vul ook je rusthartslag in voor zones die beter bij jou passen.
+                @else
+                    Geschat uit je leeftijd. Weet je je echte max. hartslag of rusthartslag? Vul ze hieronder in.
+                @endif
+            </p>
             <ul class="grid gap-1 text-sm">
                 @foreach ($zones->all() as $zone)
                     <li class="flex items-center gap-3">
@@ -49,6 +59,8 @@
         <x-form.input label="Streefgewicht" wire:model="targetWeight" inputmode="decimal" suffix="kg" placeholder="bv. 82,5" />
         <x-form.select label="Doel" wire:model="goal" :options="\App\Enums\FitnessGoal::options()" placeholder="Kies je doel…" />
         <x-form.select label="Ervaring" wire:model="experience" :options="\App\Enums\ExperienceLevel::options()" placeholder="Kies…" />
+        <x-form.input label="Max. hartslag" wire:model="maxHeartRate" type="number" inputmode="numeric" suffix="bpm" :placeholder="$user->estimatedMaxHeartRate() ? 'geschat: '.$user->estimatedMaxHeartRate() : 'bv. 175'" hint="Het hoogste dat je horloge ooit mat bij een zware inspanning. Leeg = schatting." />
+        <x-form.input label="Rusthartslag" wire:model="restingHeartRate" type="number" inputmode="numeric" suffix="bpm" placeholder="bv. 60" hint="'s Ochtends gemeten, staat in Apple Gezondheid of op je horloge." />
     </form>
 
     <x-slot:footer>

@@ -1,5 +1,5 @@
 {{--
-    Hartslag met zone, bv. "zone 3 · Aeroob · 84% van max".
+    Hartslag met zone, bv. "zone 3 · Aeroob · 84%" (van je max, of van je hartslagreserve als je rusthartslag bekend is).
     <x-heart-rate-zone :bpm="$log->avg_heart_rate" :zones="$zones" />  ($zones = HeartRateZones::forUser(...), mag null zijn)
 --}}
 @props(['bpm' => null, 'zones' => null])
@@ -12,7 +12,7 @@
         'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300' => $zone['number'] === 3,
         'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300' => $zone['number'] === 4,
         'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' => $zone['number'] === 5,
-    ]) }} title="{{ $zone['percent'] }}% van je max. hartslag ({{ $zones->max }} bpm)">
+    ]) }} title="{{ $zone['percent'] }}% {{ $zones->basis() }}">
         <x-icon name="heart" class="size-3.5" /> Zone {{ $zone['number'] }} · {{ $zone['name'] }} · {{ $zone['percent'] }}%
     </span>
 @endif

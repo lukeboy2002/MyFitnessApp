@@ -24,6 +24,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
     'name', 'username', 'email', 'password', 'weekly_goal_minutes', 'weekly_goal_sessions', 'default_rest_seconds',
     'onboarded_at',
     'birth_date', 'gender', 'height_cm', 'target_weight_kg', 'goal', 'experience',
+    'max_heart_rate', 'resting_heart_rate',
 ])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
@@ -73,6 +74,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'target_weight_kg' => null,
         'goal' => null,
         'experience' => null,
+        'max_heart_rate' => null,
+        'resting_heart_rate' => null,
         'weekly_goal_minutes' => null,
         'weekly_goal_sessions' => null,
         'default_rest_seconds' => null,
@@ -155,11 +158,25 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return round($weight / ($this->height_cm / 100) ** 2, 1);
     }
 
-    /** Geschatte maximale hartslag (Tanaka: 208 - 0,7 x leeftijd) */
+    /** Je eigen maximale hartslag, anders de schatting uit je leeftijd */
     public function maxHeartRate(): ?int
+    {
+        return $this->max_heart_rate ?: $this->estimatedMaxHeartRate();
+    }
+
+    /** Geschatte maximale hartslag (Tanaka: 208 - 0,7 x leeftijd) */
+    public function estimatedMaxHeartRate(): ?int
     {
         $age = $this->age();
 
         return $age ? (int) round(208 - 0.7 * $age) : null;
+    }
+
+    /** Rusthartslag, alleen als die onder je max ligt (anders kunnen we er niet mee rekenen) */
+    public function restingHeartRate(): ?int
+    {
+        $max = $this->maxHeartRate();
+
+        return $this->resting_heart_rate && $max && $this->resting_heart_rate < $max ? $this->resting_heart_rate : null;
     }
 }

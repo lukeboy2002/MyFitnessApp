@@ -68,3 +68,56 @@ test('progress invites you to start weighing', function () {
     Livewire::actingAs(User::factory()->create())->test(Index::class)
         ->assertSee('Nog geen wegingen');
 });
+
+test('your own max heart rate replaces the estimate', function () {
+    $user = User::factory()->create(['birth_date' => now()->subYears(54)->subMonth(), 'max_heart_rate' => 182]);
+
+    expect($user->estimatedMaxHeartRate())->toBe(170)
+        ->and($user->maxHeartRate())->toBe(182)
+        ->and(HeartRateZones::forUser($user)->usesReserve())->toBeFalse()
+        ->and(HeartRateZones::forUser(User::factory()->create(['max_heart_rate' => 180])))->not->toBeNull();
+});
+
+test('with a resting heart rate the zones use the heart rate reserve', function () {
+    $zones = new HeartRateZones(170, 60);
+
+    expect($zones->usesReserve())->toBeTrue()
+        ->and($zones->all()[1])->toBe(['number' => 2, 'name' => 'Vetverbranding', 'from' => 126, 'to' => 137])
+        ->and($zones->zoneFor(140))->toMatchArray(['number' => 3, 'percent' => 73])
+        ->and($zones->zoneFor(110))->toBeNull()
+        ->and((new HeartRateZones(170, 175))->usesReserve())->toBeFalse();
+});
+
+test('a resting heart rate only counts when your max is known', function () {
+    $user = User::factory()->create(['birth_date' => now()->subYears(54)->subMonth(), 'resting_heart_rate' => 60]);
+
+    expect($user->restingHeartRate())->toBe(60);
+
+    $user->update(['birth_date' => null]);
+
+    expect($user->restingHeartRate())->toBeNull();
+});
+
+test('you can save your own max and resting heart rate', function () {
+    $user = User::factory()->create(['birth_date' => now()->subYears(54)->subMonth()]);
+
+    Livewire::actingAs($user)->test(UpdatePersonalDetails::class)
+        ->set('maxHeartRate', '180')
+        ->set('restingHeartRate', '190')
+        ->call('save')
+        ->assertHasErrors(['restingHeartRate'])
+        ->set('restingHeartRate', '58')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertSee('Karvonen');
+
+    expect($user->fresh())->max_heart_rate->toBe(180)->resting_heart_rate->toBe(58);
+
+    Livewire::actingAs($user->fresh())->test(UpdatePersonalDetails::class)
+        ->set('maxHeartRate', '')
+        ->set('restingHeartRate', '')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($user->fresh())->max_heart_rate->toBeNull()->resting_heart_rate->toBeNull();
+});

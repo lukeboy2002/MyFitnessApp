@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-/** Persoonlijke gegevens: geboortedatum, geslacht, lengte, streefgewicht, doel en ervaring */
+/** Persoonlijke gegevens: geboortedatum, geslacht, lengte, streefgewicht, doel, ervaring en hartslag */
 class UpdatePersonalDetails extends Component
 {
     public string $birthDate = '';
@@ -25,6 +25,10 @@ class UpdatePersonalDetails extends Component
 
     public string $experience = '';
 
+    public string $maxHeartRate = '';
+
+    public string $restingHeartRate = '';
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -35,6 +39,8 @@ class UpdatePersonalDetails extends Component
         $this->targetWeight = $user->target_weight_kg ? str_replace('.', ',', (string) (float) $user->target_weight_kg) : '';
         $this->goal = $user->goal?->value ?? '';
         $this->experience = $user->experience?->value ?? '';
+        $this->maxHeartRate = (string) ($user->max_heart_rate ?? '');
+        $this->restingHeartRate = (string) ($user->resting_heart_rate ?? '');
     }
 
     public function save(): void
@@ -48,6 +54,8 @@ class UpdatePersonalDetails extends Component
             'targetWeight' => ['nullable', 'numeric', 'between:30,300'],
             'goal' => ['nullable', Rule::enum(FitnessGoal::class)],
             'experience' => ['nullable', Rule::enum(ExperienceLevel::class)],
+            'maxHeartRate' => ['nullable', 'integer', 'between:100,230'],
+            'restingHeartRate' => ['nullable', 'integer', 'between:30,120', ...($this->maxHeartRate !== '' ? ['lt:maxHeartRate'] : [])],
         ], attributes: [
             'birthDate' => 'geboortedatum',
             'gender' => 'geslacht',
@@ -55,6 +63,8 @@ class UpdatePersonalDetails extends Component
             'targetWeight' => 'streefgewicht',
             'goal' => 'doel',
             'experience' => 'ervaring',
+            'maxHeartRate' => 'max. hartslag',
+            'restingHeartRate' => 'rusthartslag',
         ]);
 
         Auth::user()->update([
@@ -64,6 +74,8 @@ class UpdatePersonalDetails extends Component
             'target_weight_kg' => $this->targetWeight === '' ? null : round((float) $this->targetWeight, 1),
             'goal' => $this->goal ?: null,
             'experience' => $this->experience ?: null,
+            'max_heart_rate' => $this->maxHeartRate === '' ? null : (int) $this->maxHeartRate,
+            'resting_heart_rate' => $this->restingHeartRate === '' ? null : (int) $this->restingHeartRate,
         ]);
 
         $this->targetWeight = str_replace('.', ',', $this->targetWeight);
