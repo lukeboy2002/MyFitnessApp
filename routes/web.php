@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PreviewController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\UsernameAvailabilityController;
 use App\Livewire\Admin\Badges as AdminBadges;
 use App\Livewire\Admin\Settings as AdminSettings;
@@ -40,6 +41,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Profiel
     Route::view('profile', 'profile.edit')->name('profile.edit');
     Route::get('profile/export/{type}', ExportController::class)->middleware('throttle:10,1')->name('profile.export');
+
+    // Pushmeldingen voor dit apparaat (rust voorbij)
+    Route::post('push/subscription', [PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::delete('push/subscription', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+    Route::post('push/test', [PushSubscriptionController::class, 'test'])->middleware('throttle:5,1')->name('push.test');
 
     // Stamgegevens
     Route::get('body-parts', BodyPartsIndex::class)->name('body-parts.index');

@@ -324,10 +324,18 @@
                      this.now = Date.now();
                      if (this.restUntil && this.now >= this.restUntil) {
                          this.restUntil = null;
-                         navigator.vibrate?.([200, 100, 200]);
+                         this.restOver();
                      }
                  }, 250);
              },
+             {{-- Rust voorbij met de app open: piep, trillen (alleen Android) en 'Rust voorbij' in de balk. De pushmelding sluit sw.js dan zelf weer --}}
+             restOver() {
+                 navigator.vibrate?.([200, 100, 200]);
+                 window.LukeboyPush?.beep();
+                 this.restDone = true;
+                 setTimeout(() => this.restDone = false, 4000);
+             },
+             restDone: false,
              get elapsed() {
                  const d = this.$root.dataset;
                  const end = d.pausedAt ? +d.pausedAt : this.now + this.offset;
@@ -354,14 +362,17 @@
             </div>
 
             {{-- Rusttimer --}}
-            <button type="button" x-show="rest > 0" x-cloak x-on:click="restUntil = null" title="Rust overslaan" aria-label="Rust overslaan"
+            <button type="button" x-show="rest > 0" x-cloak x-on:click="restUntil = null; $wire.skipRest()" title="Rust overslaan" aria-label="Rust overslaan"
                     class="relative mx-auto shrink-0 overflow-hidden rounded-xl bg-accent-400 px-3 pt-1 pb-1.5 text-center text-brand-950">
                 <span class="block text-[10px] font-bold uppercase tracking-wider">Rust</span>
                 <span class="block font-display text-xl leading-none font-bold tabular-nums" x-text="clock(rest)"></span>
                 <span class="absolute bottom-0 left-0 h-1 bg-brand-950/30 transition-[width] duration-300" :style="`width: ${restTotal ? rest / restTotal * 100 : 0}%`"></span>
             </button>
 
-            <div class="ml-auto flex shrink-0 items-center gap-2" :class="rest > 0 && 'ml-0!'">
+            <span x-show="restDone && rest === 0" x-cloak x-transition.opacity
+                  class="mx-auto shrink-0 rounded-xl bg-accent-400 px-3 py-2 font-display text-lg leading-none font-extrabold uppercase text-brand-950">Rust voorbij</span>
+
+            <div class="ml-auto flex shrink-0 items-center gap-2" :class="(rest > 0 || restDone) && 'ml-0!'">
                 @if ($session->isPaused())
                     <button type="button" wire:click="resume" aria-label="Hervatten" class="grid size-11 place-items-center rounded-xl bg-white/15 hover:bg-white/25">
                         <x-icon name="play" />

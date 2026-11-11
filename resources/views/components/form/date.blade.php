@@ -90,7 +90,7 @@
             <x-icon name="calendar" class="size-5" />
             <input type="date" tabindex="-1" aria-label="Kies een datum" class="absolute inset-0 size-full cursor-pointer opacity-0"
                    @if ($min) min="{{ $min }}" @endif @if ($max) max="{{ $max }}" @endif
-                   x-bind:value="value" x-on:click="try { $el.showPicker() } catch (e) {}" x-on:change="picked($el)">
+                   x-bind:value="value" x-on:click="(() => { try { $el.showPicker() } catch (e) {} })()" x-on:change="picked($el)">
         </span>
     </div>
 </x-form.field>
