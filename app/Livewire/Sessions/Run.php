@@ -16,6 +16,7 @@ use App\Models\WorkoutExercise;
 use App\Models\WorkoutSession;
 use App\Support\ExerciseRecords;
 use App\Support\ProgressionHint;
+use App\Support\RestReminder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
@@ -105,13 +106,20 @@ class Run extends Component
 
         $set->update(['is_completed' => $done, 'completed_at' => $done ? now() : null]);
 
+        // Nieuw record: confetti en een melding
+        $exercise = $set->sessionExercise->exercise;
+
         $rest = $set->sessionExercise->rest_seconds;
         if ($done && $rest) {
             $this->dispatch('rest-start', seconds: $rest);
+
+            // Ook met je scherm uit: pushmelding als de rust voorbij is
+            $next = $set->sessionExercise->sets()->where('is_completed', false)->orderBy('set_number')->first();
+            RestReminder::schedule(Auth::user(), $rest,
+                $next ? "Tijd voor set {$next->set_number} van {$exercise->name}." : 'Tijd voor je volgende oefening.',
+                route('sessions.run', $this->session));
         }
 
-        // Nieuw record: confetti en een melding
-        $exercise = $set->sessionExercise->exercise;
         $records = $done ? ExerciseRecords::build($this->session, $exercise->id, $exercise->type) : null;
         if ($records?->isRecordSet($set)) {
             $this->dispatch('record', title: 'Nieuw record!', text: $exercise->name.' · '.$records->describeSet($set));
@@ -341,9 +349,17 @@ class Run extends Component
         $this->sortExercise($id, PHP_INT_MAX);
     }
 
+    /** Rust overslaan (tik op de rusttimer): de pushmelding gaat dan niet meer */
+    public function skipRest(): void
+    {
+        RestReminder::cancel(Auth::user());
+        $this->skipRender();
+    }
+
     public function pause(): void
     {
         $this->ensureRunning();
+        RestReminder::cancel(Auth::user());
         $this->session->pause();
     }
 
@@ -356,6 +372,7 @@ class Run extends Component
     public function finish()
     {
         $this->ensureRunning();
+        RestReminder::cancel(Auth::user());
         $this->session->finish();
 
         return $this->redirectRoute('sessions.summary', $this->session, navigate: true);
@@ -365,6 +382,7 @@ class Run extends Component
     public function cancel()
     {
         $this->ensureRunning();
+        RestReminder::cancel(Auth::user());
         $workout = $this->session->workout;
         $this->session->delete();
 

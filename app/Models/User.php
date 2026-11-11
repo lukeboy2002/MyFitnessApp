@@ -111,6 +111,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(Workout::class);
     }
 
+    /** Apparaten waarop pushmeldingen aan staan (rust voorbij) */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     public function workoutSessions(): HasMany
     {
         return $this->hasMany(WorkoutSession::class);

@@ -13,6 +13,9 @@
 <link rel="icon" href="{{ asset('icons/favicon-32.png') }}" type="image/png">
 <link rel="apple-touch-icon" href="{{ asset('icons/apple-touch-icon.png') }}">
 <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+@if ($vapid = config('services.webpush.public_key'))
+    <meta name="vapid-public-key" content="{{ $vapid }}">
+@endif
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));

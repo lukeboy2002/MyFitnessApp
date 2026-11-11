@@ -167,6 +167,18 @@ php artisan fitness:admin iemand@example.com --remove     # weer gewone gebruike
 
 ---
 
+## Pushmeldingen (rust voorbij)
+
+Eenmalig, als `minishlink/web-push` in composer staat. Maak op de server een eigen paar sleutels:
+
+```bash
+php artisan fitness:vapid-keys
+```
+
+Zet de twee regels `VAPID_PUBLIC_KEY=` en `VAPID_PRIVATE_KEY=` in `.env` en draai `php artisan optimize`. De meldingen worden met vertraging verstuurd via de wachtrij, dus `myfitnessapp-queue` moet draaien (stap 8). Daarna zet iedereen het zelf aan via **Profiel > Training > Melding na je rust**. Op een iPhone kan dat alleen vanuit de app op het beginscherm (iOS 16.4 of nieuwer).
+
+Maak geen nieuwe sleutels zonder reden: met nieuwe sleutels werken de bestaande aanmeldingen niet meer en moet iedereen meldingen opnieuw aanzetten.
+
 ## Later: een nieuwe versie online zetten
 
 Lokaal committen en pushen naar GitHub, dan op de server:
