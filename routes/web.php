@@ -6,6 +6,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\UsernameAvailabilityController;
 use App\Livewire\Admin\Badges as AdminBadges;
+use App\Livewire\Admin\PushMessages as AdminPushMessages;
 use App\Livewire\Admin\Settings as AdminSettings;
 use App\Livewire\Admin\Users as AdminUsers;
 use App\Livewire\Badges;
@@ -88,6 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('users', AdminUsers::class)->name('users');
         Route::get('settings', AdminSettings::class)->name('settings');
         Route::get('badges', AdminBadges::class)->name('badges');
+        Route::get('push', AdminPushMessages::class)->name('push');
         Route::get('preview/mail/{mail}', [PreviewController::class, 'mail'])->name('preview.mail');
         Route::get('preview/error/{code}', [PreviewController::class, 'error'])->whereNumber('code')->name('preview.error');
     });

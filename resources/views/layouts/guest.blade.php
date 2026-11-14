@@ -42,6 +42,10 @@
             <x-alert type="success" class="mb-5">{{ session('status') }}</x-alert>
         @endif
 
+        @if (session('banned'))
+            <x-alert type="danger" class="mb-5">{{ session('banned') }}</x-alert>
+        @endif
+
         {{ $slot }}
     </div>
 

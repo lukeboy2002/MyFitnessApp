@@ -47,7 +47,7 @@ class PushSubscriptionController extends Controller
         $sent = WebPush::send($request->user(), [
             'title' => __('Notifications are on'),
             'body' => __('This is how you get a signal when your rest is over.'),
-            'url' => route('profile.edit').'#weekdoel',
+            'url' => route('profile.edit').'#meldingen',
             'tag' => 'test',
         ]);
 

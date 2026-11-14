@@ -21,7 +21,7 @@ class SendRestOverPush implements ShouldQueue
     {
         $user = User::find($this->userId);
 
-        if (! $user || ! RestReminder::claim($this->userId, $this->token)) {
+        if (! $user || ! $user->push_rest || ! RestReminder::claim($this->userId, $this->token)) {
             return; // intussen een nieuwe rust, overgeslagen of training afgerond
         }
 

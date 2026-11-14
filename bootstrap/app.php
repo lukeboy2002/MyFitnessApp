@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\BlockWhenOffline;
+use App\Http\Middleware\LogoutBannedUser;
 use App\Http\Middleware\SetLocale;
 use App\Support\Locale;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -18,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Offline-melding vóór de inlogcheck, zodat gasten de melding zien in plaats van het inlogscherm
         // Taal eerst, zodat ook de offline-pagina in je eigen taal is
-        $middleware->web(append: [SetLocale::class, BlockWhenOffline::class]);
+        $middleware->web(append: [SetLocale::class, LogoutBannedUser::class, BlockWhenOffline::class]);
         $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: BlockWhenOffline::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
