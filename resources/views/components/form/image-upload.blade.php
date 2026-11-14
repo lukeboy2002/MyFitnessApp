@@ -4,9 +4,10 @@
                          :preview="$image?->temporaryUrl() ?? $exercise?->image_url" remove="removeImage" />
     Voor de profielfoto: shape="round".
 --}}
-@props(['label' => null, 'name' => null, 'id' => null, 'preview' => null, 'hint' => 'JPG, PNG of WEBP · max 4 MB', 'remove' => null, 'shape' => 'wide'])
+@props(['label' => null, 'name' => null, 'id' => null, 'preview' => null, 'hint' => false, 'remove' => null, 'shape' => 'wide'])
 
 @php
+    $hint = $hint === false ? __('JPG, PNG or WEBP · up to :size MB', ['size' => 4]) : $hint;
     $name ??= $attributes->whereStartsWith('wire:model')->first();
     $id ??= 'f-'.str($name ?? 'image')->replace(['.', '[', ']'], '-')->trim('-');
 @endphp
@@ -34,7 +35,7 @@
             @else
                 <span class="flex flex-col items-center gap-1.5 p-4 text-center text-sm font-semibold">
                     <x-icon :name="$shape === 'round' ? 'user' : 'image'" class="size-8" />
-                    @if ($shape === 'wide') Klik of sleep een afbeelding hierheen @endif
+                    @if ($shape === 'wide') {{ __('Click or drag an image here') }} @endif
                 </span>
             @endif
             <input type="file" id="{{ $id }}" accept="image/*" class="sr-only"
@@ -49,10 +50,10 @@
         @if ($shape === 'round' || ($preview && $remove))
             <div @class(['flex flex-wrap gap-2', 'mt-3' => $shape === 'wide'])>
                 <x-button variant="secondary" size="sm" icon="upload" type="button" x-on:click="document.getElementById('{{ $id }}').click()">
-                    {{ $preview ? 'Wijzigen' : 'Uploaden' }}
+                    {{ $preview ? __('Change') : __('Upload') }}
                 </x-button>
                 @if ($preview && $remove)
-                    <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="{{ $remove }}">Verwijderen</x-button>
+                    <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="{{ $remove }}">{{ __('Remove') }}</x-button>
                 @endif
             </div>
         @endif

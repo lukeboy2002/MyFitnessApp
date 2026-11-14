@@ -16,7 +16,7 @@ class Passkeys extends Component
 {
     use ConfirmsPassword;
 
-    #[Validate('required|string|max:60', as: 'naam')]
+    #[Validate('required|string|max:60')]
     public string $passkeyName = '';
 
     public ?string $failure = null;
@@ -31,7 +31,7 @@ class Passkeys extends Component
      */
     public function startRegistration(): void
     {
-        $this->validate();
+        $this->validate(attributes: ['passkeyName' => __('name')]);
         $this->failure = null;
 
         if (! $this->ensurePasswordIsConfirmed('startRegistration')) {
@@ -53,7 +53,7 @@ class Passkeys extends Component
 
     public function registrationFailed(?string $message = null): void
     {
-        $this->failure = $message ?: 'Het toevoegen van de passkey is niet gelukt.';
+        $this->failure = $message ?: __('Adding the passkey did not work.');
     }
 
     public function delete(int $id): void
@@ -76,14 +76,16 @@ class Passkeys extends Component
     {
         $agent = request()->userAgent() ?? '';
 
-        return match (true) {
+        $device = match (true) {
             str_contains($agent, 'iPhone') => 'iPhone',
             str_contains($agent, 'iPad') => 'iPad',
             str_contains($agent, 'Android') => 'Android',
             str_contains($agent, 'Macintosh') => 'Mac',
-            str_contains($agent, 'Windows') => 'Windows-pc',
-            default => 'Mijn passkey',
-        }.' van '.str(Auth::user()->name)->before(' ');
+            str_contains($agent, 'Windows') => __('Windows PC'),
+            default => __('My passkey'),
+        };
+
+        return __(':device of :name', ['device' => $device, 'name' => str(Auth::user()->name)->before(' ')]);
     }
 
     public function render()

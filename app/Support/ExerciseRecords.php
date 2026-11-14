@@ -205,10 +205,10 @@ class ExerciseRecords
         $fastest = $log->splits->pluck('duration_seconds')->filter()->min();
 
         return array_keys(array_filter([
-            'Langste afstand' => $log->distance_m && $log->distance_m > ($this->longestDistance ?? PHP_INT_MAX),
-            'Langste tijd' => $log->duration_seconds && $log->duration_seconds > ($this->longestDuration ?? PHP_INT_MAX),
-            'Snelste km' => $fastest && $fastest < ($this->fastestKm ?? 0),
-            'Meeste floors' => $log->floors && $log->floors > ($this->mostFloors ?? PHP_INT_MAX),
+            __('Longest distance') => $log->distance_m && $log->distance_m > ($this->longestDistance ?? PHP_INT_MAX),
+            __('Longest time') => $log->duration_seconds && $log->duration_seconds > ($this->longestDuration ?? PHP_INT_MAX),
+            __('Fastest km') => $fastest && $fastest < ($this->fastestKm ?? 0),
+            __('Most floors') => $log->floors && $log->floors > ($this->mostFloors ?? PHP_INT_MAX),
         ]));
     }
 
@@ -219,23 +219,23 @@ class ExerciseRecords
 
         return array_filter(match ($this->type) {
             ExerciseType::Strength => [
-                'Zwaarste' => $this->heaviestWeight ? $n($this->heaviestWeight).' kg × '.$this->heaviestReps : null,
-                'Geschat 1RM' => $this->bestOneRepMax ? $n($this->bestOneRepMax).' kg' : null,
+                __('Heaviest') => $this->heaviestWeight ? $n($this->heaviestWeight).' kg × '.$this->heaviestReps : null,
+                __('Estimated 1RM') => $this->bestOneRepMax ? $n($this->bestOneRepMax).' kg' : null,
             ],
             ExerciseType::Bodyweight => [
-                'Meeste reps' => $this->mostReps,
-                'Zwaarste extra' => $this->heaviestWeight > 0 ? '+'.$n($this->heaviestWeight).' kg × '.$this->heaviestReps : null,
+                __('Most reps') => $this->mostReps,
+                __('Heaviest extra') => $this->heaviestWeight > 0 ? '+'.$n($this->heaviestWeight).' kg × '.$this->heaviestReps : null,
             ],
             ExerciseType::Duration => [
-                'Langste set' => $this->longestSet ? $this->longestSet.' sec' : null,
+                __('Longest set') => $this->longestSet ? $this->longestSet.' sec' : null,
             ],
             ExerciseType::Cardio => [
-                'Langste afstand' => $this->longestDistance ? $n($this->longestDistance / 1000).' km' : null,
-                'Langste tijd' => $this->longestDuration ? WorkoutSession::clock($this->longestDuration).' min' : null,
-                'Snelste km' => $this->fastestKm ? CardioLog::pace($this->fastestKm) : null,
-                'Meeste floors' => $this->mostFloors,
+                __('Longest distance') => $this->longestDistance ? $n($this->longestDistance / 1000).' km' : null,
+                __('Longest time') => $this->longestDuration ? WorkoutSession::clock($this->longestDuration).' min' : null,
+                __('Fastest km') => $this->fastestKm ? CardioLog::pace($this->fastestKm) : null,
+                __('Most floors') => $this->mostFloors,
             ],
-        } + ['Vorige keer' => $this->lastTime]);
+        } + [__('Last time') => $this->lastTime]);
     }
 
     private function addSet(SetLog $set): void

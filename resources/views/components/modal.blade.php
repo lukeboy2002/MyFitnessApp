@@ -27,7 +27,7 @@
                 @if ($title)
                     <h2 class="font-display text-2xl font-extrabold uppercase leading-none">{{ $title }}</h2>
                 @endif
-                <button type="button" x-on:click="show = false" aria-label="Sluiten"
+                <button type="button" x-on:click="show = false" aria-label="{{ __('Close') }}"
                         class="-mr-2 -mt-2 ml-auto grid size-10 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-ink dark:hover:bg-white/10 dark:hover:text-white">
                     <x-icon name="x" />
                 </button>

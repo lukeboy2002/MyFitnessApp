@@ -133,10 +133,10 @@ class TrainingStats
         $minutes = intdiv($seconds, 60);
 
         if ($minutes < 60) {
-            return $minutes.'m';
+            return $minutes.__('m (minutes, short)');
         }
 
-        return intdiv($minutes, 60).'u'.($minutes % 60 ? ' '.($minutes % 60).'m' : '');
+        return intdiv($minutes, 60).__('h (hours, short)').($minutes % 60 ? ' '.($minutes % 60).__('m (minutes, short)') : '');
     }
 
     /** 16439 → "16.439" */

@@ -10,12 +10,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Muscles')]
 class Index extends Component
 {
     use ConfirmsDeletion, ManagesMasterData;
@@ -61,7 +59,7 @@ class Index extends Component
             'name' => ['required', 'string', 'max:80'],
             'latin_name' => ['nullable', 'string', 'max:120'],
             'sort_order' => ['required', 'integer', 'between:0,999'],
-        ], attributes: ['muscle_group_id' => 'spiergroep', 'name' => 'naam', 'latin_name' => 'Latijnse naam', 'sort_order' => 'volgorde']);
+        ], attributes: ['muscle_group_id' => __('muscle group'), 'name' => __('name'), 'latin_name' => __('Latin name'), 'sort_order' => __('order')]);
 
         if ($this->editingId) {
             $muscle = Muscle::findOrFail($this->editingId);
@@ -73,7 +71,7 @@ class Index extends Component
 
         $muscle->fill([...$data, 'slug' => $muscle->slugFor($data['name'])])->save();
 
-        $this->done("{$muscle->name} is opgeslagen.");
+        $this->done(__(':name is saved.', ['name' => $muscle->name]));
         unset($this->muscles);
     }
 
@@ -88,7 +86,7 @@ class Index extends Component
         $this->authorize('delete', $muscle);
 
         $muscle->delete();
-        $this->done("{$muscle->name} is verwijderd.");
+        $this->done(__(':name is deleted.', ['name' => $muscle->name]));
         unset($this->muscles);
     }
 
@@ -116,6 +114,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.muscles.index');
+        return view('livewire.muscles.index')->title(__('Muscles'));
     }
 }

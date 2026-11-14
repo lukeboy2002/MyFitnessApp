@@ -14,6 +14,6 @@
     <span class="hidden lg:inline">{{ $slot }}</span>
     @if ($badge)
         <span class="absolute right-1.5 top-1 min-w-5 rounded-full bg-fire-500 px-1.5 text-center text-xs font-bold leading-5 text-white tabular-nums lg:static lg:ms-auto"
-              title="{{ $badge }} nieuw">{{ $badge }}</span>
+              title="{{ __(':count new', ['count' => $badge]) }}">{{ $badge }}</span>
     @endif
 </a>

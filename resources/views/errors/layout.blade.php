@@ -46,8 +46,8 @@
             @hasSection('actions')
                 @yield('actions')
             @else
-                <x-button variant="secondary" type="button" icon="chevron-left" onclick="history.length > 1 ? history.back() : location.assign('{{ url('/') }}')">Terug</x-button>
-                <x-button :href="url('/')" icon="home">Naar dashboard</x-button>
+                <x-button variant="secondary" type="button" icon="chevron-left" onclick="history.length > 1 ? history.back() : location.assign('{{ url('/') }}')">{{ __('Back') }}</x-button>
+                <x-button :href="url('/')" icon="home">{{ __('To dashboard') }}</x-button>
             @endif
         </div>
     </div>

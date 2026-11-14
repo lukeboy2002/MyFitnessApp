@@ -1,11 +1,11 @@
 @extends('errors.layout')
 
 @section('code', '503')
-@section('title', 'Even onderhoud')
+@section('title', __('Maintenance'))
 @section('message')
-We werken de app bij. Over een paar minuten kun je weer verder.
+{{ __('We are updating the app. You can continue in a few minutes.') }}
 @endsection
 
 @section('actions')
-    <x-button type="button" icon="clock" onclick="location.reload()">Opnieuw proberen</x-button>
+    <x-button type="button" icon="clock" onclick="location.reload()">{{ __('Try again') }}</x-button>
 @endsection

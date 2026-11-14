@@ -14,11 +14,11 @@ enum FitnessGoal: string
     public function label(): string
     {
         return match ($this) {
-            self::LoseWeight => 'Afvallen',
-            self::BuildMuscle => 'Spiermassa opbouwen',
-            self::Strength => 'Sterker worden',
-            self::Endurance => 'Betere conditie',
-            self::StayFit => 'Fit blijven',
+            self::LoseWeight => __('Lose weight'),
+            self::BuildMuscle => __('Build muscle'),
+            self::Strength => __('Get stronger'),
+            self::Endurance => __('Better endurance'),
+            self::StayFit => __('Stay fit'),
         };
     }
 

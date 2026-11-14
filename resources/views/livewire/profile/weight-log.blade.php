@@ -6,25 +6,25 @@
     $toGo = $latest && $target ? round($latest->weight_kg - $target, 1) : null;
 @endphp
 
-<x-card title="Gewicht" description="Weeg jezelf op een vast moment, bv. 's ochtends voor het ontbijt.">
+<x-card :title="__('Weight')" :description="__('Weigh yourself at a fixed time, e.g. in the morning before breakfast.')">
     @if ($latest)
         <div class="mb-4 flex flex-wrap items-end gap-x-6 gap-y-2">
             <div>
-                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Laatste weging · {{ $latest->measured_on->translatedFormat('j M') }}</p>
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ __('Last weigh-in') }} · {{ $latest->measured_on->translatedFormat('j M') }}</p>
                 <p class="text-2xl font-bold tabular-nums">{{ $n($latest->weight_kg) }} <span class="text-base font-semibold text-slate-500">kg</span></p>
             </div>
             @if ($change !== null)
                 <p class="text-sm tabular-nums text-slate-600 dark:text-slate-300">
                     <span @class(['font-semibold', 'text-emerald-600 dark:text-emerald-400' => $change < 0, 'text-amber-600 dark:text-amber-400' => $change > 0])>{{ $change > 0 ? '+' : '' }}{{ $n($change) }} kg</span>
-                    sinds {{ $first->measured_on->translatedFormat('j M') }}
+                    {{ __('since :date', ['date' => $first->measured_on->translatedFormat('j M')]) }}
                 </p>
             @endif
             @if ($toGo !== null)
                 <p class="text-sm tabular-nums text-slate-600 dark:text-slate-300">
                     @if ($toGo == 0)
-                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">Streefgewicht bereikt</span>
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ __('Target weight reached') }}</span>
                     @else
-                        Nog <span class="font-semibold">{{ $n(abs($toGo)) }} kg</span> {{ $toGo > 0 ? 'eraf' : 'erbij' }} tot {{ $n($target) }} kg
+                        {!! __($toGo > 0 ? ':amount to lose to reach :target' : ':amount to gain to reach :target', ['amount' => '<span class="font-semibold">'.e($n(abs($toGo))).' kg</span>', 'target' => e($n($target)).' kg']) !!}
                     @endif
                 </p>
             @endif
@@ -36,9 +36,9 @@
     @endif
 
     <form wire:submit="save" id="weight-log-form" class="grid grid-cols-2 gap-4">
-        <x-form.input label="Gewicht" wire:model="weight" inputmode="decimal" suffix="kg" placeholder="bv. 84,2" />
-        <x-form.input label="Vetpercentage" wire:model="bodyFat" inputmode="decimal" suffix="%" placeholder="optioneel" />
-        <x-form.date label="Datum" id="weight-date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2" />
+        <x-form.input :label="__('Weight')" wire:model="weight" inputmode="decimal" suffix="kg" :placeholder="__('e.g. :value', ['value' => $n(84.2)])" />
+        <x-form.input :label="__('Body fat percentage')" wire:model="bodyFat" inputmode="decimal" suffix="%" :placeholder="__('optional')" />
+        <x-form.date :label="__('Date')" id="weight-date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2" />
     </form>
 
     @if ($this->entries->isNotEmpty())
@@ -49,10 +49,10 @@
                     <span class="flex-1 font-semibold tabular-nums">
                         {{ $n($entry->weight_kg) }} kg
                         @if ($entry->body_fat !== null)
-                            <span class="font-normal text-slate-500 dark:text-slate-400">· {{ $n($entry->body_fat) }}% vet</span>
+                            <span class="font-normal text-slate-500 dark:text-slate-400">· {{ __(':value% fat', ['value' => $n($entry->body_fat)]) }}</span>
                         @endif
                     </span>
-                    <button type="button" wire:click="delete({{ $entry->id }})" wire:confirm="Deze weging verwijderen?" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" aria-label="Weging verwijderen">
+                    <button type="button" wire:click="delete({{ $entry->id }})" wire:confirm="{{ __('Delete this weigh-in?') }}" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" aria-label="{{ __('Delete weigh-in') }}">
                         <x-icon name="trash" class="size-4" />
                     </button>
                 </li>
@@ -61,7 +61,7 @@
     @endif
 
     <x-slot:footer>
-        <x-action-message on="body-weight-saved">Opgeslagen.</x-action-message>
-        <x-button form="weight-log-form" icon="check" loading="save">Weging opslaan</x-button>
+        <x-action-message on="body-weight-saved">{{ __('Saved.') }}</x-action-message>
+        <x-button form="weight-log-form" icon="check" loading="save">{{ __('Save weigh-in') }}</x-button>
     </x-slot:footer>
 </x-card>

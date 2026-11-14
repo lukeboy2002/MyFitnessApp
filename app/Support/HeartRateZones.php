@@ -10,13 +10,13 @@ use App\Models\User;
  */
 class HeartRateZones
 {
-    /** nummer => [naam, vanaf %, tot %] */
+    /** nummer => [Engelse naam (vertaald in all()), vanaf %, tot %] */
     public const ZONES = [
-        1 => ['Herstel', 50, 60],
-        2 => ['Vetverbranding', 60, 70],
-        3 => ['Aeroob', 70, 80],
-        4 => ['Anaeroob', 80, 90],
-        5 => ['Maximaal', 90, 100],
+        1 => ['Recovery', 50, 60],
+        2 => ['Fat burning', 60, 70],
+        3 => ['Aerobic', 70, 80],
+        4 => ['Anaerobic', 80, 90],
+        5 => ['Maximum', 90, 100],
     ];
 
     public function __construct(public int $max, public ?int $rest = null)
@@ -44,8 +44,8 @@ class HeartRateZones
     public function basis(): string
     {
         return $this->usesReserve()
-            ? 'van je hartslagreserve (rust '.$this->rest.', max '.$this->max.' bpm)'
-            : 'van je max. hartslag ('.$this->max.' bpm)';
+            ? __('of your heart rate reserve (rest :rest, max :max bpm)', ['rest' => $this->rest, 'max' => $this->max])
+            : __('of your max. heart rate (:max bpm)', ['max' => $this->max]);
     }
 
     /** @return list<array{number: int, name: string, from: int, to: int}> met slagen per minuut */
@@ -53,7 +53,7 @@ class HeartRateZones
     {
         return collect(self::ZONES)->map(fn ($zone, $number) => [
             'number' => $number,
-            'name' => $zone[0],
+            'name' => __($zone[0]),
             'from' => $this->bpmAt($zone[1]),
             'to' => $this->bpmAt($zone[2]),
         ])->values()->all();

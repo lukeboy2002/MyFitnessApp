@@ -22,7 +22,7 @@ class UpdateRestTime extends Component
 
         $this->validate(
             ['seconds' => ['nullable', 'integer', 'between:15,600']],
-            attributes: ['seconds' => 'rusttijd'],
+            attributes: ['seconds' => __('rest time')],
         );
 
         Auth::user()->update(['default_rest_seconds' => $this->seconds === '' ? null : (int) $this->seconds]);

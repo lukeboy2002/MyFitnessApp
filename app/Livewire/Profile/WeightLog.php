@@ -33,9 +33,9 @@ class WeightLog extends Component
             'weight' => ['required', 'numeric', 'between:20,400'],
             'bodyFat' => ['nullable', 'numeric', 'between:2,70'],
         ], attributes: [
-            'date' => 'datum',
-            'weight' => 'gewicht',
-            'bodyFat' => 'vetpercentage',
+            'date' => __('date'),
+            'weight' => __('weight'),
+            'bodyFat' => __('body fat percentage'),
         ]);
 
         // Op dezelfde dag opnieuw wegen vervangt de vorige weging

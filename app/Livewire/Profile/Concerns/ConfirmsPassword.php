@@ -60,8 +60,8 @@ trait ConfirmsPassword
         $this->validate([
             'confirmablePassword' => ['required', 'string', 'current_password:web'],
         ], [
-            'confirmablePassword.required' => 'Vul je wachtwoord in.',
-            'confirmablePassword.current_password' => 'Dit wachtwoord klopt niet.',
+            'confirmablePassword.required' => __('Enter your password.'),
+            'confirmablePassword.current_password' => __('This password is incorrect.'),
         ]);
 
         session()->put('auth.password_confirmed_at', time());

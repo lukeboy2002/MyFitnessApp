@@ -58,9 +58,9 @@
              },
              check(input, value, done) {
                  let message = '';
-                 if (this.text && value === null && (done || this.text.replace(/\D/g, '').length >= 8)) message = 'Vul een bestaande datum in als dd-mm-jjjj.';
-                 else if (value && this.max && value > this.max) message = 'Deze datum ligt te laat.';
-                 else if (value && this.min && value < this.min) message = 'Deze datum ligt te vroeg.';
+                 if (this.text && value === null && (done || this.text.replace(/\D/g, '').length >= 8)) message = @js(__('Enter an existing date as :format.', ['format' => __('dd-mm-yyyy')]));
+                 else if (value && this.max && value > this.max) message = @js(__('This date is too late.'));
+                 else if (value && this.min && value < this.min) message = @js(__('This date is too early.'));
                  input.setCustomValidity(message);
              },
              left(input) {
@@ -74,7 +74,7 @@
                  this.$refs.text.setCustomValidity('');
              },
          }">
-        <input type="text" x-ref="text" inputmode="numeric" placeholder="dd-mm-jjjj" autocomplete="off" maxlength="10"
+        <input type="text" x-ref="text" inputmode="numeric" placeholder="{{ __('dd-mm-yyyy') }}" autocomplete="off" maxlength="10"
                @if ($id) id="{{ $id }}" @endif
                @if ($required) required @endif
                @if ($invalid) aria-invalid="true" aria-describedby="{{ $id }}-error" @elseif ($hint) aria-describedby="{{ $id }}-hint" @endif
@@ -88,7 +88,7 @@
         {{-- Kalenderknop: een onzichtbaar datumveld erover, zodat telefoons hun eigen kiezer openen --}}
         <span class="absolute right-1 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:text-ink dark:hover:text-white">
             <x-icon name="calendar" class="size-5" />
-            <input type="date" tabindex="-1" aria-label="Kies een datum" class="absolute inset-0 size-full cursor-pointer opacity-0"
+            <input type="date" tabindex="-1" aria-label="{{ __('Choose a date') }}" class="absolute inset-0 size-full cursor-pointer opacity-0"
                    @if ($min) min="{{ $min }}" @endif @if ($max) max="{{ $max }}" @endif
                    x-bind:value="value" x-on:click="(() => { try { $el.showPicker() } catch (e) {} })()" x-on:change="picked($el)">
         </span>

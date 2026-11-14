@@ -1,14 +1,13 @@
-<x-guest-layout title="Wachtwoord vergeten"
-                subtitle="Vul je e-mailadres in, dan sturen we je een link om een nieuw wachtwoord te kiezen.">
+<x-guest-layout :title="__('Forgot password')"
+                :subtitle="__('Enter your email address and we will send you a link to choose a new password.')">
     <form method="POST" action="{{ route('password.email') }}" class="flex flex-col gap-5">
         @csrf
-        <x-form.input label="E-mailadres" type="email" name="email" icon="mail" :value="old('email')" required
+        <x-form.input :label="__('Email address')" type="email" name="email" icon="mail" :value="old('email')" required
                       autofocus/>
-        <x-button block size="lg" icon="mail">Link versturen</x-button>
+        <x-button block size="lg" icon="mail">{{ __('Send link') }}</x-button>
     </form>
 
     <x-slot:footer>
-        <a href="{{ route('login') }}" class="font-semibold text-brand-700 hover:underline dark:text-brand-300">Terug
-            naar inloggen</a>
+        <a href="{{ route('login') }}" class="font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ __('Back to login') }}</a>
     </x-slot:footer>
 </x-guest-layout>

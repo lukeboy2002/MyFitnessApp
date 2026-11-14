@@ -11,12 +11,10 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /** Admin: badges en hun drempels (niveaus) beheren; geldt voor alle gebruikers */
 #[Layout('layouts.app')]
-#[Title('Badgebeheer')]
 class Badges extends Component
 {
     public bool $showForm = false;
@@ -97,7 +95,7 @@ class Badges extends Component
             'first_label' => ['nullable', 'string', 'max:80'],
             'sort_order' => ['required', 'integer', 'between:0,999'],
             'is_active' => ['boolean'],
-        ], attributes: ['thresholds' => 'drempels', 'name' => 'naam', 'icon' => 'icoon', 'metric' => 'meetwaarde', 'exercise_id' => 'oefening', 'label' => 'naam per niveau', 'first_label' => 'naam eerste niveau', 'sort_order' => 'volgorde']);
+        ], attributes: ['thresholds' => __('thresholds'), 'name' => __('name'), 'icon' => __('icon'), 'metric' => __('metric'), 'exercise_id' => __('exercise'), 'label' => __('name per level'), 'first_label' => __('name of first level'), 'sort_order' => __('order')]);
 
         $badge = $this->editingId ? Badge::findOrFail($this->editingId) : new Badge;
         $badge->fill([
@@ -108,7 +106,7 @@ class Badges extends Component
         ])->save();
 
         $this->showForm = false;
-        session()->flash('status', "{$badge->name} is opgeslagen.");
+        session()->flash('status', __(':name is saved.', ['name' => $badge->name]));
         $this->redirectRoute('admin.badges', navigate: true);
     }
 
@@ -181,7 +179,7 @@ class Badges extends Component
 
     public function render()
     {
-        return view('livewire.admin.badges');
+        return view('livewire.admin.badges')->title(__('Badge management'));
     }
 
     /**
@@ -195,11 +193,11 @@ class Badges extends Component
         $numbers = array_map(fn ($part) => is_numeric($part) ? $part + 0 : null, $parts);
 
         $error = match (true) {
-            $numbers === [] => 'Vul minstens één drempel in.',
-            count($numbers) > 10 => 'Hoogstens 10 niveaus.',
-            in_array(null, $numbers, true) => 'Alleen getallen, gescheiden door komma\'s. Decimalen met een punt, bv. 21.1.',
-            min($numbers) <= 0 => 'Drempels moeten groter zijn dan 0.',
-            $numbers !== array_values(array_unique($numbers)) || $numbers !== collect($numbers)->sort()->values()->all() => 'Zet de drempels van laag naar hoog, zonder dubbele.',
+            $numbers === [] => __('Fill in at least one threshold.'),
+            count($numbers) > 10 => __('At most 10 levels.'),
+            in_array(null, $numbers, true) => __('Only numbers, separated by commas. Decimals with a point, e.g. 21.1.'),
+            min($numbers) <= 0 => __('Thresholds must be greater than 0.'),
+            $numbers !== array_values(array_unique($numbers)) || $numbers !== collect($numbers)->sort()->values()->all() => __('Put the thresholds from low to high, without duplicates.'),
             default => null,
         };
 

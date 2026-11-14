@@ -7,12 +7,10 @@ use App\Models\Workout;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Workouts')]
 class Index extends Component
 {
     use ConfirmsDeletion;
@@ -33,9 +31,9 @@ class Index extends Component
     public function duplicate(int $id)
     {
         $workout = $this->find($id);
-        $copy = $workout->duplicate("{$workout->name} (kopie)");
+        $copy = $workout->duplicate(__(':name (copy)', ['name' => $workout->name]));
 
-        session()->flash('status', "Kopie van {$workout->name} gemaakt.");
+        session()->flash('status', __('Copy of :name created.', ['name' => $workout->name]));
 
         return $this->redirectRoute('workouts.edit', $copy, navigate: true);
     }
@@ -44,7 +42,7 @@ class Index extends Component
     {
         $workout = $this->find($id);
         $workout->update(['archived_at' => now()]);
-        $this->message = "{$workout->name} staat in het archief.";
+        $this->message = __(':name is in the archive.', ['name' => $workout->name]);
         unset($this->workouts, $this->counts);
     }
 
@@ -52,7 +50,7 @@ class Index extends Component
     {
         $workout = $this->find($id);
         $workout->update(['archived_at' => null]);
-        $this->message = "{$workout->name} is teruggezet.";
+        $this->message = __(':name is restored.', ['name' => $workout->name]);
         unset($this->workouts, $this->counts);
     }
 
@@ -62,7 +60,7 @@ class Index extends Component
         $this->authorize('delete', $workout);
 
         $workout->delete();
-        $this->message = "{$workout->name} is verwijderd.";
+        $this->message = __(':name is deleted.', ['name' => $workout->name]);
         unset($this->workouts, $this->counts);
     }
 
@@ -92,7 +90,7 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.workouts.index');
+        return view('livewire.workouts.index')->title(__('Workouts'));
     }
 
     private function find(int $id): Workout

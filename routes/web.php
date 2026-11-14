@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PreviewController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\UsernameAvailabilityController;
 use App\Livewire\Admin\Badges as AdminBadges;
@@ -30,6 +31,9 @@ use Illuminate\Support\Facades\Route;
 // Registreren: is een gebruikersnaam nog vrij? (stap 1 van het formulier)
 Route::get('register/username', UsernameAvailabilityController::class)
     ->middleware(['guest', 'throttle:30,1'])->name('register.username');
+
+// Taal kiezen (ook als gast, op het inlogscherm)
+Route::post('locale/{locale}', LocaleController::class)->middleware('throttle:20,1')->name('locale.update');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard en welkomstscherm (eerste keer inloggen)

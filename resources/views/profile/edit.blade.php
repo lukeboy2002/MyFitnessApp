@@ -2,16 +2,16 @@
 @php
     // Tabbladen; een link als /profile#gewicht opent meteen het juiste tabblad
     $tabs = [
-        'account' => ['label' => 'Account', 'icon' => 'user'],
-        'persoonlijk' => ['label' => 'Persoonlijke gegevens', 'short' => 'Persoonlijk', 'icon' => 'heart'],
-        'weekdoel' => ['label' => 'Training', 'icon' => 'dumbbell'],
-        'gewicht' => ['label' => 'Gewicht en maten', 'short' => 'Gewicht', 'icon' => 'chart'],
-        'beveiliging' => ['label' => 'Beveiliging', 'icon' => 'shield'],
+        'account' => ['label' => __('Account'), 'icon' => 'user'],
+        'persoonlijk' => ['label' => __('Personal details'), 'short' => __('Personal'), 'icon' => 'heart'],
+        'weekdoel' => ['label' => __('Training'), 'icon' => 'dumbbell'],
+        'gewicht' => ['label' => __('Weight and measurements'), 'short' => __('Weight'), 'icon' => 'chart'],
+        'beveiliging' => ['label' => __('Security'), 'icon' => 'shield'],
     ];
 @endphp
 
-<x-app-layout title="Profiel">
-    <x-page-header title="Profiel" :description="auth()->user()->email"/>
+<x-app-layout :title="__('Profile')">
+    <x-page-header :title="__('Profile')" :description="auth()->user()->email"/>
 
     <div x-data="{
             tabs: @js(array_keys($tabs)),
@@ -34,7 +34,7 @@
             },
          }">
         {{-- Tabbladen: op mobiel horizontaal scrollen --}}
-        <div class="-mx-4 mb-5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0" role="tablist" aria-label="Profiel" x-ref="tabbar">
+        <div class="-mx-4 mb-5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0" role="tablist" aria-label="{{ __('Profile') }}" x-ref="tabbar">
             <div class="inline-flex gap-1 rounded-full bg-white p-1 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-line-dark">
                 @foreach ($tabs as $key => $item)
                     <button type="button" role="tab" x-on:click="open('{{ $key }}')"
@@ -60,19 +60,19 @@
                 <livewire:profile.update-profile-information/>
 
                 {{-- Eigen gegevens als CSV (ExportController, App\Support\DataExport) --}}
-                <x-card title="Je gegevens downloaden" description="Als CSV-bestand, te openen in Excel of Numbers.">
+                <x-card :title="__('Download your data')" :description="__('As a CSV file, to open in Excel or Numbers.')">
                     <ul class="divide-y divide-slate-100 dark:divide-line-dark">
                         @foreach (\App\Support\DataExport::TYPES as $type => $label)
                             @php($count = \App\Support\DataExport::count(auth()->user(), $type))
                             <li class="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-semibold">{{ $label }}</p>
+                                    <p class="font-semibold">{{ __($label) }}</p>
                                     <p class="text-sm text-slate-500 dark:text-slate-400">
-                                        {{ $count }} {{ match ($type) { 'trainingen' => $count === 1 ? 'training' : 'trainingen', 'wegingen' => $count === 1 ? 'weging' : 'wegingen', default => $count === 1 ? 'meting' : 'metingen' } }}{{ $type === 'trainingen' ? ', met alle sets en cardio' : '' }}
+                                        {{ match ($type) { 'trainingen' => trans_choice(':count training, with all sets and cardio|:count trainings, with all sets and cardio', $count), 'wegingen' => trans_choice(':count weigh-in|:count weigh-ins', $count), default => trans_choice(':count measurement|:count measurements', $count) } }}
                                     </p>
                                 </div>
                                 @if ($count)
-                                    <x-button variant="secondary" size="sm" icon="upload" class="[&>svg]:rotate-180" :href="route('profile.export', $type)" download>Download</x-button>
+                                    <x-button variant="secondary" size="sm" icon="upload" class="[&>svg]:rotate-180" :href="route('profile.export', $type)" download>{{ __('Download') }}</x-button>
                                 @endif
                             </li>
                         @endforeach
@@ -83,8 +83,12 @@
             <div class="grid gap-5">
                 <livewire:profile.update-profile-photo/>
 
-                <x-card title="Thema" description="Kies light, dark of volg je apparaat.">
+                <x-card :title="__('Theme')" :description="__('Choose light, dark or follow your device.')">
                     <x-theme-toggle variant="segmented"/>
+                </x-card>
+
+                <x-card :title="__('Language')" :description="__('The language of the app and of the emails you receive.')">
+                    <x-language-switcher variant="segmented"/>
                 </x-card>
             </div>
         </div>

@@ -1,11 +1,11 @@
-<x-card title="Rusttijd" description="Hoe lang je standaard rust tussen sets. Geldt voor oefeningen die je vanaf nu aan een workout of training toevoegt.">
+<x-card :title="__('Rest time')" :description="__('How long you rest between sets by default. Applies to exercises you add to a workout or training from now on.')">
     <form wire:submit="save" id="rest-time-form">
-        <x-form.input label="Rust tussen sets" wire:model="seconds" type="number" inputmode="numeric" suffix="sec"
-                      :placeholder="$appDefault" :hint="'Leeg laten = de standaard van de app ('.$appDefault.' sec)'" />
+        <x-form.input :label="__('Rest between sets')" wire:model="seconds" type="number" inputmode="numeric" :suffix="__('sec')"
+                      :placeholder="$appDefault" :hint="__('Leave empty = the app default (:seconds sec)', ['seconds' => $appDefault])" />
     </form>
 
     <x-slot:footer>
-        <x-action-message on="saved">Opgeslagen.</x-action-message>
-        <x-button form="rest-time-form" icon="check" loading="save">Opslaan</x-button>
+        <x-action-message on="saved">{{ __('Saved.') }}</x-action-message>
+        <x-button form="rest-time-form" icon="check" loading="save">{{ __('Save') }}</x-button>
     </x-slot:footer>
 </x-card>

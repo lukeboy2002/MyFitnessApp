@@ -24,7 +24,7 @@ beforeEach(function () {
 
 test('the quickstart page starts a free training', function () {
     $this->actingAs($this->user)->get(route('quickstart'))->assertOk()
-        ->assertSee(['Free Training', WorkoutSession::QUICKSTART_DESCRIPTION, 'Start Free Training']);
+        ->assertSee(['Free Training', __(WorkoutSession::QUICKSTART_DESCRIPTION), 'Start Free Training']);
 
     Livewire::actingAs($this->user)->test(Quickstart::class)
         ->call('start')
@@ -38,7 +38,7 @@ test('the quickstart page starts a free training', function () {
         ->and($session->exercises)->toBeEmpty();
 
     $this->actingAs($this->user)->get(route('sessions.run', $session))
-        ->assertSee([WorkoutSession::QUICKSTART_DESCRIPTION, 'Nog geen oefeningen']);
+        ->assertSee([__(WorkoutSession::QUICKSTART_DESCRIPTION), 'Nog geen oefeningen']);
 
     // Nog een keer: je komt in dezelfde training terecht
     Livewire::actingAs($this->user)->test(Quickstart::class)->assertSee('Verder met training')->call('start');

@@ -24,7 +24,7 @@ class Calendar extends Component
     use ConfirmsDeletion;
 
     /** Herhalen: aantal weken => label */
-    public const REPEAT = [0 => 'Niet herhalen', 4 => '4 weken', 8 => '8 weken', 12 => '12 weken'];
+    public const REPEAT = [0 => 'Do not repeat', 4 => '4 weeks', 8 => '8 weeks', 12 => '12 weeks'];
 
     #[Url]
     public string $month = '';
@@ -118,7 +118,7 @@ class Calendar extends Component
         $planned = $this->planned($id);
 
         $this->deletingId = $planned->id;
-        $this->deletingName = $planned->workout->name.' op '.$planned->scheduled_on->translatedFormat('l j F');
+        $this->deletingName = __(':name on :date', ['name' => $planned->workout->name, 'date' => $planned->scheduled_on->translatedFormat('l j F')]);
         $this->confirmingDeletion = true;
     }
 
@@ -169,7 +169,7 @@ class Calendar extends Component
             'sessions' => $sessions,
             'planned' => $planned,
             'selected' => CarbonImmutable::parse($this->day),
-        ])->title('Kalender');
+        ])->title(__('Calendar'));
     }
 
     private function planned(int $id): ScheduledWorkout

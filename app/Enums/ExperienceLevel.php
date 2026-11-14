@@ -12,9 +12,9 @@ enum ExperienceLevel: string
     public function label(): string
     {
         return match ($this) {
-            self::Beginner => 'Beginner (korter dan een jaar)',
-            self::Intermediate => 'Gemiddeld (1 tot 3 jaar)',
-            self::Advanced => 'Gevorderd (langer dan 3 jaar)',
+            self::Beginner => __('Beginner (less than a year)'),
+            self::Intermediate => __('Intermediate (1 to 3 years)'),
+            self::Advanced => __('Advanced (more than 3 years)'),
         };
     }
 

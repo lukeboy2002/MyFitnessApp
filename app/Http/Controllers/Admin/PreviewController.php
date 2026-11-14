@@ -13,9 +13,9 @@ class PreviewController extends Controller
 {
     /** Sleutel => titel, voor de lijst op Instellingen */
     public const MAILS = [
-        'verify-email' => 'E-mailadres bevestigen',
-        'reset-password' => 'Wachtwoord vergeten',
-        'new-user' => 'Nieuwe gebruiker (aan admins)',
+        'verify-email' => 'Confirm email address',
+        'reset-password' => 'Forgot password',
+        'new-user' => 'New user (to admins)',
     ];
 
     public const ERRORS = [401, 403, 404, 419, 429, 500, 503];

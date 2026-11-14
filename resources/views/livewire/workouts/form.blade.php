@@ -1,15 +1,15 @@
 <div>
-    <x-page-header :title="$workout ? 'Workout bewerken' : 'Nieuwe workout'"
-                   description="Kies je oefeningen, zet ze in volgorde en vul per oefening je doel in." />
+    <x-page-header :title="$workout ? __('Edit workout') : __('New workout')"
+                   :description="__('Choose your exercises, put them in order and fill in your target per exercise.')" />
 
 
     <form wire:submit="save" class="flex flex-col gap-5">
         <x-card>
-            <x-form.section title="Algemeen" description="Naam, kleur en (optioneel) hoe lang de workout duurt.">
-                <x-form.input label="Naam" wire:model="name" required class="sm:col-span-2" placeholder="Bijv. Push, Benen + cardio" />
+            <x-form.section :title="__('General')" :description="__('Name, colour and (optionally) how long the workout takes.')">
+                <x-form.input :label="__('Name')" wire:model="name" required class="sm:col-span-2" :placeholder="__('e.g. Push, Legs + cardio')" />
 
                 <fieldset class="sm:col-span-2">
-                    <legend class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Kleur</legend>
+                    <legend class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">{{ __('Colour') }}</legend>
                     <div class="flex flex-wrap gap-2">
                         @foreach (\App\Models\Workout::COLORS as $hex)
                             <label class="cursor-pointer">
@@ -21,15 +21,15 @@
                     </div>
                 </fieldset>
 
-                <x-form.input label="Duur" type="number" wire:model="estimated_minutes" inputmode="numeric" suffix="min"
-                              placeholder="Automatisch" hint="Leeg laten = geschat uit sets, rust en cardio-tijd" />
-                <x-form.textarea label="Omschrijving" wire:model="description" rows="2" class="sm:col-span-2" />
+                <x-form.input :label="__('Duration')" type="number" wire:model="estimated_minutes" inputmode="numeric" suffix="min"
+                              :placeholder="__('Automatic')" :hint="__('Leave empty = estimated from sets, rest and cardio time')" />
+                <x-form.textarea :label="__('Description')" wire:model="description" rows="2" class="sm:col-span-2" />
             </x-form.section>
         </x-card>
 
-        <x-card title="Oefeningen" description="Sleep aan het handvat om de volgorde te wijzigen. Het doel komt van de oefening; pas het hier aan voor deze workout.">
+        <x-card :title="__('Exercises in this workout')" :description="__('Drag the handle to change the order. The target comes from the exercise; adjust it here for this workout.')">
             <x-slot:actions>
-                <x-button type="button" variant="secondary" size="sm" icon="plus" wire:click="openPicker" class="shrink-0">Toevoegen</x-button>
+                <x-button type="button" variant="secondary" size="sm" icon="plus" wire:click="openPicker" class="shrink-0">{{ __('Add') }}</x-button>
             </x-slot:actions>
 
             @error('items')
@@ -45,7 +45,7 @@
                     <li wire:key="item-{{ $item['key'] }}" wire:sort:item="{{ $item['key'] }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
                         class="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200 sm:p-4 dark:bg-white/[.03] dark:ring-line-dark">
                         <div class="flex items-center gap-3">
-                            <button type="button" wire:sort:handle aria-label="Verslepen"
+                            <button type="button" wire:sort:handle aria-label="{{ __('Drag') }}"
                                     class="grid h-10 w-7 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-slate-400 hover:bg-slate-200/60 hover:text-ink active:cursor-grabbing dark:hover:bg-white/10 dark:hover:text-white">
                                 <x-icon name="grip" class="size-5" />
                             </button>
@@ -61,7 +61,7 @@
                                 <p class="truncate font-semibold">{{ $exercise->name }}</p>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">{{ $type->label() }}@if ($primary) · {{ $primary->name }}@endif</p>
                             </div>
-                            <button type="button" wire:click="removeItem('{{ $item['key'] }}')" aria-label="Weghalen"
+                            <button type="button" wire:click="removeItem('{{ $item['key'] }}')" aria-label="{{ __('Take out') }}"
                                     class="grid size-9 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400">
                                 <x-icon name="x" class="size-5" />
                             </button>
@@ -75,14 +75,14 @@
             <button type="button" wire:click="openPicker"
                     @class(['flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 py-4 font-semibold text-slate-500 transition hover:border-brand-400 hover:text-brand-700 dark:border-line-dark dark:text-slate-400 dark:hover:border-brand-400 dark:hover:text-brand-300',
                             'mt-3' => $items])>
-                <x-icon name="plus" class="size-5" /> Oefening toevoegen
+                <x-icon name="plus" class="size-5" /> {{ __('Add exercise') }}
             </button>
         </x-card>
 
-        <x-card title="Spiergroepen" description="Wat train je met deze workout? Leeg laten = automatisch de primaire spiergroepen van je oefeningen.">
+        <x-card :title="__('Muscle groups')" :description="__('What do you train with this workout? Leave empty = the primary muscle groups of your exercises.')">
             @if ($items)
                 <x-slot:actions>
-                    <x-button type="button" variant="ghost" size="sm" wire:click="fillMuscleGroups" class="shrink-0">Overnemen</x-button>
+                    <x-button type="button" variant="ghost" size="sm" wire:click="fillMuscleGroups" class="shrink-0">{{ __('Copy over') }}</x-button>
                 </x-slot:actions>
             @endif
             <x-form.chips wire:model="muscle_group_ids"
@@ -90,19 +90,19 @@
         </x-card>
 
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <x-button variant="ghost" :href="$workout ? route('workouts.show', $workout) : route('workouts.index')" wire:navigate>Annuleren</x-button>
-            <x-button icon="check" loading="save">Opslaan</x-button>
+            <x-button variant="ghost" :href="$workout ? route('workouts.show', $workout) : route('workouts.index')" wire:navigate>{{ __('Cancel') }}</x-button>
+            <x-button icon="check" loading="save">{{ __('Save') }}</x-button>
         </div>
     </form>
 
     {{-- Oefening kiezen --}}
-    <x-modal wire:model="showPicker" title="Oefening toevoegen" maxWidth="2xl">
+    <x-modal wire:model="showPicker" :title="__('Add exercise')" maxWidth="2xl">
         <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType" :own="$pickerOwn" :own-count="$this->pickerOwnCount"
                            :added="collect($items)->countBy('exercise_id')" action="addExercise" />
 
         <x-slot:footer>
-            <span class="mr-auto self-center text-sm text-slate-500 dark:text-slate-400">{{ count($items) }} in deze workout</span>
-            <x-button type="button" x-on:click="show = false">Klaar</x-button>
+            <span class="mr-auto self-center text-sm text-slate-500 dark:text-slate-400">{{ __(':count in this workout', ['count' => count($items)]) }}</span>
+            <x-button type="button" x-on:click="show = false">{{ __('Done') }}</x-button>
         </x-slot:footer>
     </x-modal>
 </div>

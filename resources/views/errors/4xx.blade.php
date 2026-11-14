@@ -1,8 +1,8 @@
 @extends('errors.layout')
 
 @section('code', $exception->getStatusCode())
-@section('title', 'Dat lukte niet')
+@section('title', __('That did not work'))
 @section('message')
-Er ging iets mis met je verzoek. Ga terug en probeer het opnieuw.
+{{ __('Something went wrong with your request. Go back and try again.') }}
 @endsection
 

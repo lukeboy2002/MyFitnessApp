@@ -16,7 +16,7 @@
                @if ($required) required @endif
                @if ($invalid) aria-invalid="true" aria-describedby="{{ $id }}-error" @endif
                {{ $attributes->except('class')->class([$c['base'], 'px-11', $c['invalid'] => $invalid]) }}>
-        <button type="button" x-on:click="show = ! show" :aria-label="show ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'"
+        <button type="button" x-on:click="show = ! show" :aria-label="show ? @js(__('Hide password')) : @js(__('Show password'))"
                 class="absolute right-1 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:text-ink dark:hover:text-white">
             <x-icon name="eye" class="size-5" x-show="! show" />
             <x-icon name="eye-off" class="size-5" x-show="show" x-cloak />

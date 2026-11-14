@@ -35,7 +35,7 @@ final class BadgeProgress
     public function __construct(public Badge $badge)
     {
         $this->key = $badge->id;
-        $this->name = $badge->name;
+        $this->name = $badge->displayName();
         $this->icon = $badge->icon;
         $this->unit = $badge->metric->unit();
         $this->thresholds = array_values($badge->thresholds);
@@ -109,6 +109,12 @@ final class BadgeProgress
         $level ??= $this->level() - 1;
 
         return $level < 0 ? null : self::TIERS[min($level, count(self::TIERS) - 1)];
+    }
+
+    /** Niveau als tekst in de taal van de gebruiker, bv. "Goud" */
+    public function tierLabel(?int $level = null): ?string
+    {
+        return ($tier = $this->tier($level)) ? __(ucfirst($tier)) : null;
     }
 
     /** Waarde zoals op het scherm, bv. "12.340" kg of "94,6" uur */

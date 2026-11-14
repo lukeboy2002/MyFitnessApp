@@ -8,8 +8,8 @@
 @endphp
 
 <div>
-    <x-page-header title="Hoi {{ str($user->name)->before(' ') }}" :description="now()->translatedFormat('l j F').' · week '.now()->isoWeek()">
-        <x-button variant="fire" icon="play" :href="route('quickstart')" wire:navigate>Quickstart</x-button>
+    <x-page-header :title="__('Hi :name', ['name' => str($user->name)->before(' ')])" :description="now()->translatedFormat('l j F').' · '.__('week :number', ['number' => now()->isoWeek()])">
+        <x-button variant="fire" icon="play" :href="route('quickstart')" wire:navigate>{{ __('Quickstart') }}</x-button>
     </x-page-header>
 
     {{-- Lopende training --}}
@@ -22,12 +22,12 @@
                 <x-icon :name="$running->isPaused() ? 'pause' : 'play'" class="size-5" />
             </span>
             <span class="min-w-0 flex-1">
-                <span class="block text-xs font-bold uppercase tracking-wide text-white/80">{{ $running->isPaused() ? 'Training gepauzeerd' : 'Training bezig' }}</span>
+                <span class="block text-xs font-bold uppercase tracking-wide text-white/80">{{ $running->isPaused() ? __('Training paused') : __('Training in progress') }}</span>
                 <span class="block truncate font-semibold">{{ $running->name }}</span>
             </span>
             <span class="font-display text-2xl font-bold tabular-nums"
                   x-text="(s >= 3600 ? Math.floor(s / 3600) + ':' : '') + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0')">{{ WorkoutSession::clock($running->elapsedSeconds()) }}</span>
-            <span class="hidden font-semibold sm:inline">Verder</span>
+            <span class="hidden font-semibold sm:inline">{{ __('Continue') }}</span>
             <x-icon name="chevron-right" class="size-5" />
         </a>
     @endif
@@ -35,7 +35,7 @@
     <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {{-- Weektotaal --}}
         <x-card class="border-0 bg-linear-to-br from-brand-600 via-brand-700 to-brand-900 text-white ring-0 col-span-2 dark:bg-linear-to-br">
-            <p class="text-xs font-bold uppercase tracking-widest text-white/80">Trainingstijd deze week</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-white/80">{{ __('Training time this week') }}</p>
             <p class="mt-1 font-display text-5xl font-extrabold tabular-nums">
                 {{ TrainingStats::hours($thisWeek['seconds']) }}
                 @if ($goal)
@@ -44,25 +44,25 @@
             </p>
 
             @if ($goal)
-                <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Weekdoel">
+                <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuenow="{{ $percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ __('Weekly goal') }}">
                     <div class="h-full rounded-full bg-linear-to-r from-accent-400 to-fire-500" style="width: {{ $percent }}%"></div>
                 </div>
                 <p class="mt-2 text-sm text-white/80">
                     @if ($thisWeek['seconds'] >= $goal)
-                        <span class="font-semibold text-accent-300">Weekdoel gehaald!</span>
+                        <span class="font-semibold text-accent-300">{{ __('Weekly goal reached!') }}</span>
                     @else
-                        Nog {{ TrainingStats::hours($goal - $thisWeek['seconds']) }} tot je weekdoel · {{ $percent }}%
+                        {{ __(':time to go until your weekly goal', ['time' => TrainingStats::hours($goal - $thisWeek['seconds'])]) }} · {{ $percent }}%
                     @endif
                 </p>
             @else
                 <p class="mt-3 text-sm text-white/80">
-                    <a href="{{ route('profile.edit') }}#weekdoel" wire:navigate class="font-semibold text-white underline">Stel een weekdoel in</a> om je voortgang te zien.
+                    <a href="{{ route('profile.edit') }}#weekdoel" wire:navigate class="font-semibold text-white underline">{{ __('Set a weekly goal') }}</a> {{ __('to see your progress.') }}
                 </p>
             @endif
         </x-card>
 
         <x-card>
-            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Trainingen</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ __('Trainings') }}</p>
             <p class="mt-1 font-display text-4xl font-extrabold tabular-nums sm:text-5xl">
                 {{ $thisWeek['count'] }}
                 @if ($user->weekly_goal_sessions)
@@ -70,30 +70,30 @@
                 @endif
             </p>
             @if ($user->weekly_goal_sessions)
-                <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10" role="progressbar" aria-valuenow="{{ $thisWeek['count'] }}" aria-valuemin="0" aria-valuemax="{{ $user->weekly_goal_sessions }}" aria-label="Trainingen deze week">
+                <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10" role="progressbar" aria-valuenow="{{ $thisWeek['count'] }}" aria-valuemin="0" aria-valuemax="{{ $user->weekly_goal_sessions }}" aria-label="{{ __('Trainings this week') }}">
                     <div class="h-full rounded-full bg-linear-to-r from-accent-400 to-fire-500" style="width: {{ min(100, round($thisWeek['count'] / $user->weekly_goal_sessions * 100)) }}%"></div>
                 </div>
                 <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                     @if ($thisWeek['count'] >= $user->weekly_goal_sessions)
-                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">Doel gehaald!</span>
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ __('Goal reached!') }}</span>
                     @else
-                        Nog {{ $user->weekly_goal_sessions - $thisWeek['count'] }} te gaan
+                        {{ __(':count to go', ['count' => $user->weekly_goal_sessions - $thisWeek['count']]) }}
                     @endif
-                    · vorige week {{ $lastWeek['count'] }}
+                    · {{ __('last week :value', ['value' => $lastWeek['count']]) }}
                 </p>
             @else
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ $thisWeek['sets'] }} sets · vorige week {{ $lastWeek['count'] }}</p>
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __(':count sets', ['count' => $thisWeek['sets']]) }} · {{ __('last week :value', ['value' => $lastWeek['count']]) }}</p>
             @endif
         </x-card>
 
         <x-card>
-            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Volume kracht</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ __('Strength volume') }}</p>
             <p class="mt-1 font-display text-[28px] font-extrabold whitespace-nowrap tabular-nums sm:text-5xl lg:text-4xl 2xl:text-5xl">{{ TrainingStats::kilos($thisWeek['volume']) }}<span class="text-lg text-slate-400 sm:text-2xl"> kg</span></p>
             <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                 @if ($thisWeek['distance_m'])
                     {{ $n(round($thisWeek['distance_m'] / 1000, 1)) }} km cardio ·
                 @endif
-                vorige week {{ TrainingStats::kilos($lastWeek['volume']) }} kg
+                {{ __('last week :value', ['value' => TrainingStats::kilos($lastWeek['volume']).' kg']) }}
             </p>
         </x-card>
 
@@ -106,20 +106,20 @@
                     <x-icon name="calendar" />
                 </span>
                 <div class="min-w-0 flex-1">
-                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Volgende workout</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ __('Next workout') }}</p>
                     @if ($next)
                         <p class="truncate font-semibold">
                             {{ $next->workout->name }}
-                            <span class="font-normal text-slate-500 dark:text-slate-400">· {{ $next->scheduled_on->isToday() ? 'vandaag' : ($next->scheduled_on->isTomorrow() ? 'morgen' : $next->scheduled_on->translatedFormat('l j F')) }}</span>
+                            <span class="font-normal text-slate-500 dark:text-slate-400">· {{ $next->scheduled_on->isToday() ? __('today') : ($next->scheduled_on->isTomorrow() ? __('tomorrow') : $next->scheduled_on->translatedFormat('l j F')) }}</span>
                         </p>
                     @else
-                        <p class="text-slate-500 dark:text-slate-400">Niets gepland.</p>
+                        <p class="text-slate-500 dark:text-slate-400">{{ __('Nothing planned.') }}</p>
                     @endif
                 </div>
                 @if ($next?->scheduled_on->isToday() && ! $running)
-                    <x-button icon="play" :href="route('workouts.show', $next->workout)" wire:navigate>Bekijken en starten</x-button>
+                    <x-button icon="play" :href="route('workouts.show', $next->workout)" wire:navigate>{{ __('View and start') }}</x-button>
                 @endif
-                <x-button variant="secondary" icon="calendar" :href="route('calendar', $next ? ['day' => $next->scheduled_on->toDateString()] : [])" wire:navigate>Kalender</x-button>
+                <x-button variant="secondary" icon="calendar" :href="route('calendar', $next ? ['day' => $next->scheduled_on->toDateString()] : [])" wire:navigate>{{ __('Calendar (page)') }}</x-button>
             </div>
         </x-card>
 
@@ -130,8 +130,8 @@
                     <x-icon name="trophy" />
                 </span>
                 <div class="min-w-0 flex-1">
-                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Jouw doel</p>
-                    <p class="truncate font-semibold">{{ $goalProgress?->goal->label() ?? 'Nog geen doel gekozen' }}</p>
+                    <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ __('Your goal') }}</p>
+                    <p class="truncate font-semibold">{{ $goalProgress?->goal->label() ?? __('No goal chosen yet') }}</p>
                 </div>
                 @if ($goalProgress)
                     <a href="{{ $goalProgress->link['url'] }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ $goalProgress->link['label'] }}</a>
@@ -142,14 +142,14 @@
                 @if ($goalProgress->value !== null)
                     <p class="mt-4 font-display text-4xl font-extrabold tabular-nums">{{ $goalProgress->value }}<span class="text-lg text-slate-400 sm:text-2xl"> {{ $goalProgress->unit }}</span></p>
                     @if ($goalProgress->goal !== \App\Enums\FitnessGoal::LoseWeight)
-                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">in de laatste {{ \App\Support\GoalProgress::DAYS }} dagen</p>
+                        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ __('in the last :count days', ['count' => \App\Support\GoalProgress::DAYS]) }}</p>
                     @endif
                 @endif
                 @if ($goalProgress->detail)
                     <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ $goalProgress->detail }}</p>
                 @endif
                 @if ($goalProgress->percent !== null)
-                    <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10" role="progressbar" aria-valuenow="{{ $goalProgress->percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Streefgewicht">
+                    <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10" role="progressbar" aria-valuenow="{{ $goalProgress->percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ __('Target weight') }}">
                         <div class="h-full rounded-full bg-linear-to-r from-accent-400 to-fire-500" style="width: {{ $goalProgress->percent }}%"></div>
                     </div>
                 @endif
@@ -159,34 +159,34 @@
                 </p>
             @else
                 <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                    Kies wat je wilt bereiken, dan houdt het dashboard je voortgang bij.
-                    <a href="{{ route('profile.edit') }}#persoonlijk" wire:navigate class="font-semibold text-brand-700 hover:underline dark:text-brand-300">Doel kiezen</a>
+                    {{ __('Choose what you want to achieve, and the dashboard keeps track of your progress.') }}
+                    <a href="{{ route('profile.edit') }}#persoonlijk" wire:navigate class="font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ __('Choose goal') }}</a>
                 </p>
             @endif
         </x-card>
 
         {{-- Laatste 12 weken --}}
-        <x-card title="Laatste 12 weken" description="Trainingstijd per week" class="col-span-2">
+        <x-card :title="__('Last 12 weeks')" :description="__('Training time per week')" class="col-span-2">
             <x-chart.bars class="mt-2"
                 :goal="$user->weekly_goal_minutes"
-                :goal-label="$goal ? 'Doel '.TrainingStats::hours($goal) : null"
+                :goal-label="$goal ? __('Goal :time', ['time' => TrainingStats::hours($goal)]) : null"
                 :bars="$weeks->map(fn ($week) => [
-                    'label' => 'Week '.$week['start']->isoWeek().' · '.$week['start']->translatedFormat('j M'),
+                    'label' => __('Week :number', ['number' => $week['start']->isoWeek()]).' · '.$week['start']->translatedFormat('j M'),
                     'short' => $week['start']->isoWeek(),
                     'value' => round($week['seconds'] / 60),
-                    'tip' => TrainingStats::hours($week['seconds']).' · '.$week['count'].' '.($week['count'] === 1 ? 'training' : 'trainingen'),
+                    'tip' => TrainingStats::hours($week['seconds']).' · '.trans_choice(':count training|:count trainings', $week['count']),
                     'current' => $week['start']->isCurrentWeek(),
                 ])->all()" />
         </x-card>
 
         {{-- Laatste trainingen --}}
-        <x-card title="Laatste trainingen" :padding="false" class="col-span-2">
+        <x-card :title="__('Recent trainings')" :padding="false" class="col-span-2">
             <x-slot:actions>
-                <a href="{{ route('progress.index') }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Progress</a>
+                <a href="{{ route('progress.index') }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ __('Progress') }}</a>
             </x-slot:actions>
 
             @if ($recent->isEmpty())
-                <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">Nog geen trainingen afgerond. Start er een met Quickstart of vanuit een workout.</p>
+                <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">{{ __('No trainings completed yet. Start one with Quickstart or from a workout.') }}</p>
             @else
                 <ul class="mt-3 divide-y divide-slate-100 dark:divide-line-dark">
                     @foreach ($recent as $session)
@@ -195,7 +195,7 @@
                                 <span class="h-9 w-1.5 shrink-0 rounded-full bg-(--c)"></span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate font-semibold">{{ $session->name }}</span>
-                                    <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $session->started_at->translatedFormat('D j M, H:i') }} · {{ $session->exercises->count() }} oefeningen</span>
+                                    <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $session->started_at->translatedFormat('D j M, H:i') }} · {{ trans_choice(':count exercise|:count exercises', $session->exercises->count()) }}</span>
                                     @if ($session->notes)
                                         <span class="block truncate text-sm italic text-slate-500 dark:text-slate-400" title="{{ $session->notes }}">“{{ $session->notes }}”</span>
                                     @endif
@@ -209,13 +209,13 @@
         </x-card>
 
         {{-- Badges: de laatst behaalde --}}
-        <x-card title="Badges" :padding="false" class="col-span-2">
+        <x-card :title="__('Badges')" :padding="false" class="col-span-2">
             <x-slot:actions>
-                <a href="{{ route('badges') }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Alle badges</a>
+                <a href="{{ route('badges') }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ __('All badges') }}</a>
             </x-slot:actions>
 
             @if ($badges->isEmpty())
-                <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">Rond je eerste training af voor je eerste badge.</p>
+                <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">{{ __('Complete your first training for your first badge.') }}</p>
             @else
                 <ul class="mt-3 divide-y divide-slate-100 dark:divide-line-dark">
                     @foreach ($badges as $row)
@@ -223,7 +223,7 @@
                             <x-medal :badge="$row['badge']" :level="$row['level']" size="sm" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate font-semibold">{{ $row['badge']->labelFor($row['level']) }}</span>
-                                <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $row['badge']->name }} · {{ ucfirst($row['badge']->tier($row['level'])) }}</span>
+                                <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $row['badge']->name }} · {{ $row['badge']->tierLabel($row['level']) }}</span>
                             </span>
                             <span class="text-sm text-slate-500 dark:text-slate-400">{{ $row['at']->translatedFormat('j M') }}</span>
                         </li>
@@ -234,10 +234,10 @@
 
         {{-- Eigen oefeningen (alleen als je die hebt) --}}
         @if ($ownExercises->isNotEmpty())
-            <x-card title="Eigen oefeningen" :padding="false" class="col-span-2">
+            <x-card :title="__('Own exercises')" :padding="false" class="col-span-2">
                 <x-slot:actions>
                     <a href="{{ route('exercises.index', ['eigen' => 1]) }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
-                        {{ $ownExercisesCount > $ownExercises->count() ? 'Alle '.$ownExercisesCount : 'Bekijken' }}
+                        {{ $ownExercisesCount > $ownExercises->count() ? __('All :count', ['count' => $ownExercisesCount]) : __('View') }}
                     </a>
                 </x-slot:actions>
 

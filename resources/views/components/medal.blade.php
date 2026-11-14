@@ -12,7 +12,7 @@
     ];
 @endphp
 
-<span title="{{ $tier ? ucfirst($tier) : 'Nog niet behaald' }}" {{ $attributes->class([
+<span title="{{ $tier ? __(ucfirst($tier)) : __('Not earned yet') }}" {{ $attributes->class([
     'grid shrink-0 place-items-center rounded-2xl',
     'size-10' => $size === 'sm', 'size-14' => $size === 'md',
     'bg-linear-to-br shadow-sm '.($colors[$tier] ?? '') => $tier,

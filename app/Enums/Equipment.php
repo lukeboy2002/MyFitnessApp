@@ -19,17 +19,17 @@ enum Equipment: string
     public function label(): string
     {
         return match ($this) {
-            self::None => 'Geen (eigen gewicht)',
-            self::Machine => 'Machine',
-            self::Cable => 'Kabel',
-            self::Plate => 'Plate-loaded',
-            self::Barbell => 'Barbell',
-            self::Dumbbell => 'Dumbbell',
-            self::Kettlebell => 'Kettlebell',
-            self::Band => 'Weerstandsband',
-            self::Suspension => 'Suspension (TRX)',
-            self::CardioMachine => 'Cardio-apparaat',
-            self::Other => 'Overig',
+            self::None => __('None (bodyweight)'),
+            self::Machine => __('Machine'),
+            self::Cable => __('Cable'),
+            self::Plate => __(__('Plate-loaded')),
+            self::Barbell => __('Barbell'),
+            self::Dumbbell => __('Dumbbell'),
+            self::Kettlebell => __('Kettlebell'),
+            self::Band => __('Resistance band'),
+            self::Suspension => __(__('Suspension (TRX)')),
+            self::CardioMachine => __('Cardio machine'),
+            self::Other => __('Other equipment'),
         };
     }
 

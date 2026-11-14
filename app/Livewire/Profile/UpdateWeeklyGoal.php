@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use App\Models\WorkoutExercise;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -16,7 +17,7 @@ class UpdateWeeklyGoal extends Component
     {
         $user = Auth::user();
         $minutes = $user->weekly_goal_minutes;
-        $this->hours = $minutes ? str_replace('.', ',', (string) round($minutes / 60, 2)) : '';
+        $this->hours = $minutes ? WorkoutExercise::number(round($minutes / 60, 2)) : '';
         $this->sessions = (string) ($user->weekly_goal_sessions ?? '');
     }
 
@@ -28,14 +29,14 @@ class UpdateWeeklyGoal extends Component
         $this->validate([
             'hours' => ['nullable', 'numeric', 'min:0.25', 'max:40'],
             'sessions' => ['nullable', 'integer', 'between:1,14'],
-        ], attributes: ['hours' => 'weekdoel', 'sessions' => 'aantal trainingen']);
+        ], attributes: ['hours' => __('weekly goal'), 'sessions' => __('number of trainings')]);
 
         Auth::user()->update([
             'weekly_goal_minutes' => $this->hours === '' ? null : (int) round((float) $this->hours * 60),
             'weekly_goal_sessions' => $this->sessions === '' ? null : (int) $this->sessions,
         ]);
 
-        $this->hours = str_replace('.', ',', $this->hours);
+        $this->hours = $this->hours === '' ? '' : WorkoutExercise::number($this->hours);
         $this->dispatch('saved');
     }
 

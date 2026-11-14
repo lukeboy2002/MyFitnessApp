@@ -1,7 +1,7 @@
 {{-- pr: ruimte voor de letterstrook rechts --}}
 <div class="pr-7 md:pr-6 lg:pr-3">
-    <x-page-header title="Exercises" description="Alle oefeningen: de standaardlijst van je gym en je eigen oefeningen.">
-        <x-button icon="plus" :href="route('exercises.create')" wire:navigate>Oefening toevoegen</x-button>
+    <x-page-header :title="__('Exercises')" :description="__('All exercises: the standard list of your gym and your own exercises.')">
+        <x-button icon="plus" :href="route('exercises.create')" wire:navigate>{{ __('Add exercise') }}</x-button>
     </x-page-header>
 
     @if ($message)
@@ -14,11 +14,11 @@
     {{-- Filters --}}
     <div class="mb-5 flex flex-col gap-3">
         <div class="grid gap-3 sm:grid-cols-[1fr_16rem]">
-            <x-form.input wire:model.live.debounce.300ms="search" icon="search" placeholder="Zoek een oefening…" aria-label="Zoeken" />
-            <x-form.select wire:model.live="groupFilter" :options="$this->muscleGroups->pluck('name', 'id')" placeholder="Alle spiergroepen" aria-label="Spiergroep" />
+            <x-form.input wire:model.live.debounce.300ms="search" icon="search" :placeholder="__('Search an exercise…')" :aria-label="__('Search')" />
+            <x-form.select wire:model.live="groupFilter" :options="$this->muscleGroups->pluck('name', 'id')" :placeholder="__('All muscle groups')" :aria-label="__('Muscle group')" />
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            @foreach (['' => 'Alles'] + collect(\App\Enums\ExerciseType::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all() as $value => $label)
+            @foreach (['' => __('All')] + collect(\App\Enums\ExerciseType::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all() as $value => $label)
                 <button type="button" wire:click="$set('typeFilter', '{{ $value }}')" wire:key="t-{{ $value ?: 'all' }}"
                         @class(['rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition',
                                 'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $typeFilter === $value,
@@ -30,7 +30,7 @@
                         @class(['ml-auto inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition',
                                 'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $ownOnly,
                                 'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => ! $ownOnly])>
-                    <x-icon name="user" class="size-4" /> Eigen oefeningen
+                    <x-icon name="user" class="size-4" /> {{ __('Own exercises') }}
                 </button>
             @endif
             <button type="button" wire:click="$toggle('showArchived')"
@@ -38,7 +38,7 @@
                             'bg-slate-700 text-white ring-slate-700 dark:bg-white/20 dark:ring-white/20' => $showArchived,
                             'ml-auto' => ! $this->ownCount,
                             'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => ! $showArchived])>
-                <x-icon name="archive" class="size-4" /> Archief @if ($this->archivedCount) ({{ $this->archivedCount }}) @endif
+                <x-icon name="archive" class="size-4" /> {{ __('Archive (noun)') }} @if ($this->archivedCount) ({{ $this->archivedCount }}) @endif
             </button>
         </div>
     </div>
@@ -48,7 +48,7 @@
         op een telefoon kun je ook met je vinger langs de strook schuiven, de letter onder je vinger telt bij loslaten.
     --}}
     @php($available = $this->letters)
-    <nav aria-label="Kies een beginletter"
+    <nav aria-label="{{ __('Choose a first letter') }}"
          x-data="{
              scrub: null,
              at(event) {
@@ -64,7 +64,7 @@
             @php($has = in_array($l, $available, true))
             <button type="button" wire:click="pickLetter('{{ $l }}')" wire:key="l-{{ $l }}" @disabled(! $has && $letter !== $l)
                     @if ($has || $letter === $l) data-letter="{{ $l }}" @endif
-                    aria-pressed="{{ $letter === $l ? 'true' : 'false' }}" aria-label="Oefeningen met {{ $l === '#' ? 'een cijfer' : $l }}"
+                    aria-pressed="{{ $letter === $l ? 'true' : 'false' }}" aria-label="{{ $l === '#' ? __('Exercises starting with a number') : __('Exercises starting with :letter', ['letter' => $l]) }}"
                     @class(['mx-auto grid min-h-0 w-6 flex-1 place-items-center rounded-full text-[11px] font-bold leading-none transition md:w-7 md:text-xs',
                             'bg-brand-700 text-white dark:bg-brand-500' => $letter === $l,
                             'text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-white/10' => $letter !== $l && $has,
@@ -78,10 +78,10 @@
     </nav>
 
     <p class="mb-3 flex flex-wrap items-center gap-x-3 text-sm text-slate-500 dark:text-slate-400">
-        {{ $this->exercises->count() }} {{ $this->exercises->count() === 1 ? 'oefening' : 'oefeningen' }}{{ $letter !== '' ? ' met '.($letter === '#' ? 'een cijfer' : 'de '.$letter) : '' }}{{ $showArchived ? ' in het archief' : '' }}
+        {{ trans_choice(':count exercise|:count exercises', $this->exercises->count()) }}{{ $letter !== '' ? ' '.($letter === '#' ? __('starting with a number') : __('starting with :letter', ['letter' => $letter])) : '' }}{{ $showArchived ? ' '.__('in the archive') : '' }}
         @if ($letter !== '')
             <button type="button" wire:click="pickLetter('')" class="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300">
-                <x-icon name="x" class="size-3.5" /> Alle letters
+                <x-icon name="x" class="size-3.5" /> {{ __('All letters') }}
             </button>
         @endif
     </p>
@@ -111,7 +111,7 @@
                             <x-badge :hex="$primary->color">{{ $primary->name }}</x-badge>
                         @endif
                         @unless ($exercise->isStandard())
-                            <x-badge color="brand">Eigen</x-badge>
+                            <x-badge color="brand">{{ __('Own') }}</x-badge>
                         @endunless
                     </div>
                     <p class="text-sm text-slate-500 dark:text-slate-400">
@@ -121,35 +121,35 @@
 
                 {{-- Acties boven de klikbare kaart --}}
                 <div x-data="{ open: false }" class="relative z-10 self-start" x-on:click.outside="open = false">
-                    <button type="button" x-on:click="open = ! open" aria-label="Acties"
+                    <button type="button" x-on:click="open = ! open" aria-label="{{ __('Actions') }}"
                             class="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-ink dark:hover:bg-white/10 dark:hover:text-white">
                         <x-icon name="dots" />
                     </button>
                     <div x-show="open" x-cloak x-transition.origin.top.right
                          class="absolute right-0 top-10 w-48 overflow-hidden rounded-xl bg-white py-1 text-sm shadow-lg ring-1 ring-slate-200 dark:bg-panel-dark dark:ring-line-dark">
                         @can('update', $exercise)
-                            <a href="{{ route('exercises.edit', $exercise) }}" wire:navigate class="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-white/5">Bewerken</a>
+                            <a href="{{ route('exercises.edit', $exercise) }}" wire:navigate class="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-white/5">{{ __('Edit') }}</a>
                         @endcan
                         <button type="button" wire:click="duplicate({{ $exercise->id }})" class="block w-full px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-white/5">
-                            {{ $exercise->isStandard() ? 'Kopiëren naar eigen' : 'Dupliceren' }}
+                            {{ $exercise->isStandard() ? __('Copy to own') : __('Duplicate') }}
                         </button>
                         @can('update', $exercise)
                             @if ($exercise->isArchived())
-                                <button type="button" wire:click="restore({{ $exercise->id }})" class="block w-full px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-white/5">Terugzetten</button>
+                                <button type="button" wire:click="restore({{ $exercise->id }})" class="block w-full px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-white/5">{{ __('Restore') }}</button>
                             @else
-                                <button type="button" wire:click="archive({{ $exercise->id }})" class="block w-full px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-white/5">Archiveren</button>
+                                <button type="button" wire:click="archive({{ $exercise->id }})" class="block w-full px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-white/5">{{ __('Archive') }}</button>
                             @endif
                             <button type="button" wire:click="confirmDelete({{ $exercise->id }})" x-on:click="open = false"
-                                    class="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">Verwijderen</button>
+                                    class="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">{{ __('Delete') }}</button>
                         @endcan
                     </div>
                 </div>
             </article>
         @empty
             <div class="rounded-2xl bg-white p-8 text-center ring-1 ring-slate-200 sm:col-span-2 xl:col-span-3 dark:bg-panel-dark dark:ring-line-dark">
-                <p class="text-slate-500 dark:text-slate-400">{{ $showArchived ? 'Er staan geen oefeningen in het archief.' : 'Geen oefeningen gevonden.' }}</p>
+                <p class="text-slate-500 dark:text-slate-400">{{ $showArchived ? __('There are no exercises in the archive.') : __('No exercises found.') }}</p>
                 @if ($search !== '' || $typeFilter !== '' || $groupFilter || $ownOnly || $letter !== '')
-                    <x-button variant="secondary" size="sm" type="button" wire:click="resetFilters" class="mt-3">Filters wissen</x-button>
+                    <x-button variant="secondary" size="sm" type="button" wire:click="resetFilters" class="mt-3">{{ __('Clear filters') }}</x-button>
                 @endif
             </div>
         @endforelse

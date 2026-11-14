@@ -39,7 +39,7 @@ class UpdateProfileInformation extends Component
         ]);
 
         // Volledig herladen zodat naam en e-mail overal (sidebar, header) verversen
-        session()->flash('status', 'Profiel bijgewerkt.');
+        session()->flash('status', __('Profile updated.'));
         $this->redirectRoute('profile.edit', navigate: true);
     }
 

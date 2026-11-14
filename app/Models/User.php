@@ -5,8 +5,10 @@ namespace App\Models;
 use App\Enums\ExperienceLevel;
 use App\Enums\FitnessGoal;
 use App\Enums\Gender;
+use App\Support\Locale;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,10 +26,10 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
     'name', 'username', 'email', 'password', 'weekly_goal_minutes', 'weekly_goal_sessions', 'default_rest_seconds',
     'onboarded_at',
     'birth_date', 'gender', 'height_cm', 'target_weight_kg', 'goal', 'experience',
-    'max_heart_rate', 'resting_heart_rate',
+    'max_heart_rate', 'resting_heart_rate', 'locale',
 ])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -76,11 +78,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'experience' => null,
         'max_heart_rate' => null,
         'resting_heart_rate' => null,
+        'locale' => null,
         'weekly_goal_minutes' => null,
         'weekly_goal_sessions' => null,
         'default_rest_seconds' => null,
         'onboarded_at' => null,
     ];
+
+    /** Taal van de app en van mails aan deze gebruiker (null = taal van de browser) */
+    public function preferredLocale(): ?string
+    {
+        return Locale::isAvailable($this->locale) ? $this->locale : null;
+    }
 
     /** Admin: beheert de standaardlijsten (oefeningen, lichaamsdelen, spiergroepen, spieren) en de gebruikers */
     public function isAdmin(): bool

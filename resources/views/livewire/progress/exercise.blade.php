@@ -8,7 +8,7 @@
     $rows = $progress->rows;
     [$measure, $unit] = $progress->measure();
     $points = $progress->points();
-    $bests = collect($records->list())->except('Vorige keer');
+    $bests = collect($records->list())->except(__('Last time'));
 
     // Cardio: lege kolommen weglaten
     $has = fn (string $key) => $rows->contains(fn ($row) => filled($row[$key] ?? null) || filled($row['log']->{$key} ?? null));
@@ -19,20 +19,20 @@
 
 <div>
     <a href="{{ route('progress.index') }}" wire:navigate class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
-        <x-icon name="chevron-right" class="size-4 rotate-180" /> Progress
+        <x-icon name="chevron-right" class="size-4 rotate-180" /> {{ __('Progress') }}
     </a>
 
-    <x-page-header :title="$exercise->name" :description="$type->label().' · '.$rows->count().'× gedaan'">
-        <x-button variant="secondary" :href="route('exercises.show', $exercise)" wire:navigate>Oefening bekijken</x-button>
+    <x-page-header :title="$exercise->name" :description="$type->label().' · '.__(':count× done', ['count' => $rows->count()])">
+        <x-button variant="secondary" :href="route('exercises.show', $exercise)" wire:navigate>{{ __('View exercise') }}</x-button>
     </x-page-header>
 
     @if ($rows->isEmpty())
         <x-card>
-            <p class="text-slate-500 dark:text-slate-400">Je hebt deze oefening nog niet gedaan in een afgeronde training. Daarna zie je hier je voortgang.</p>
+            <p class="text-slate-500 dark:text-slate-400">{{ __('You have not done this exercise in a completed training yet. After that you will see your progress here.') }}</p>
         </x-card>
     @else
         <div class="mb-5 grid gap-4 lg:grid-cols-[18rem_1fr]">
-            <x-card title="Records">
+            <x-card :title="__('Records')">
                 <dl class="grid gap-3">
                     @foreach ($bests as $label => $value)
                         <div class="flex items-center gap-3">
@@ -48,51 +48,51 @@
                 </dl>
             </x-card>
 
-            <x-card :title="$measure" :description="'Per training, in '.$unit">
+            <x-card :title="$measure" :description="__('Per training, in :unit', ['unit' => $unit])">
                 @if ($points->count() > 1)
                     <x-chart.line class="mt-2" :points="$points" :unit="$unit" />
                 @else
-                    <p class="text-slate-500 dark:text-slate-400">Na je tweede keer zie je hier een grafiek.</p>
+                    <p class="text-slate-500 dark:text-slate-400">{{ __('After your second time you will see a chart here.') }}</p>
                 @endif
             </x-card>
         </div>
 
-        <x-card title="Alle keren" :padding="false" class="overflow-hidden">
+        <x-card :title="__('All times')" :padding="false" class="overflow-hidden">
             <div class="mt-3 overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="border-y border-slate-100 bg-slate-50 dark:border-line-dark dark:bg-white/[.03]">
                         <tr>
-                            <th class="{{ $th }}">Datum</th>
+                            <th class="{{ $th }}">{{ __('Date') }}</th>
                             @switch($type)
                                 @case(ExerciseType::Strength)
-                                    <th class="{{ $th }}">Sets</th>
-                                    <th class="{{ $th }}">Beste set</th>
-                                    <th class="{{ $th }} text-right">Volume</th>
+                                    <th class="{{ $th }}">{{ __('Sets') }}</th>
+                                    <th class="{{ $th }}">{{ __('Best set') }}</th>
+                                    <th class="{{ $th }} text-right">{{ __('Volume') }}</th>
                                     <th class="{{ $th }} text-right">1RM</th>
                                     @break
                                 @case(ExerciseType::Bodyweight)
-                                    <th class="{{ $th }}">Sets</th>
-                                    <th class="{{ $th }} text-right">Totaal reps</th>
-                                    <th class="{{ $th }} text-right">Meeste reps</th>
-                                    <th class="{{ $th }} text-right">Extra</th>
+                                    <th class="{{ $th }}">{{ __('Sets') }}</th>
+                                    <th class="{{ $th }} text-right">{{ __('Total reps') }}</th>
+                                    <th class="{{ $th }} text-right">{{ __('Most reps') }}</th>
+                                    <th class="{{ $th }} text-right">{{ __('Extra') }}</th>
                                     @break
                                 @case(ExerciseType::Duration)
-                                    <th class="{{ $th }}">Sets</th>
-                                    <th class="{{ $th }} text-right">Totale tijd</th>
-                                    <th class="{{ $th }} text-right">Langste set</th>
+                                    <th class="{{ $th }}">{{ __('Sets') }}</th>
+                                    <th class="{{ $th }} text-right">{{ __('Total time') }}</th>
+                                    <th class="{{ $th }} text-right">{{ __('Longest set') }}</th>
                                     @break
                                 @default
-                                    <th class="{{ $th }} text-right">Tijd</th>
-                                    <th class="{{ $th }}">Instelling</th>
-                                    <th class="{{ $th }} text-right">Afstand</th>
-                                    @if ($has('fastest_km')) <th class="{{ $th }} text-right">Snelste km</th> @endif
+                                    <th class="{{ $th }} text-right">{{ __('Time') }}</th>
+                                    <th class="{{ $th }}">{{ __('Setting') }}</th>
+                                    <th class="{{ $th }} text-right">{{ __('Distance') }}</th>
+                                    @if ($has('fastest_km')) <th class="{{ $th }} text-right">{{ __('Fastest km') }}</th> @endif
                                     @if ($has('avg_watts')) <th class="{{ $th }} text-right">Watts</th> @endif
                                     @if ($has('mets')) <th class="{{ $th }} text-right">METs</th> @endif
                                     @if ($has('active_kcal') || $has('total_kcal')) <th class="{{ $th }} text-right">kcal ACT/TTL</th> @endif
-                                    @if ($has('floors')) <th class="{{ $th }} text-right">Floors</th> @endif
-                                    @if ($has('avg_heart_rate')) <th class="{{ $th }} text-right">Hartslag</th> @endif
+                                    @if ($has('floors')) <th class="{{ $th }} text-right">{{ __('Floors') }}</th> @endif
+                                    @if ($has('avg_heart_rate')) <th class="{{ $th }} text-right">{{ __('Heart rate') }}</th> @endif
                             @endswitch
-                            <th class="{{ $th }} text-right">t.o.v. vorige</th>
+                            <th class="{{ $th }} text-right">{{ __('vs. previous') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-line-dark">
@@ -142,7 +142,7 @@
                                     @elseif ($row['delta'] < 0)
                                         <span class="font-semibold text-red-600 dark:text-red-400">▼ {{ $n(abs($row['delta'])) }} {{ $unit }}</span>
                                     @elseif ($row['delta'] === 0.0)
-                                        <span class="text-slate-500 dark:text-slate-400">gelijk</span>
+                                        <span class="text-slate-500 dark:text-slate-400">{{ __('equal') }}</span>
                                     @else
                                         <span class="text-slate-400">–</span>
                                     @endif

@@ -45,8 +45,8 @@ class PushSubscriptionController extends Controller
     public function test(Request $request): JsonResponse
     {
         $sent = WebPush::send($request->user(), [
-            'title' => 'Meldingen staan aan',
-            'body' => 'Zo krijg je een seintje als je rust voorbij is.',
+            'title' => __('Notifications are on'),
+            'body' => __('This is how you get a signal when your rest is over.'),
             'url' => route('profile.edit').'#weekdoel',
             'tag' => 'test',
         ]);

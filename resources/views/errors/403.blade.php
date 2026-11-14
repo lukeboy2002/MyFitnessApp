@@ -7,12 +7,12 @@
 
     // Verlopen of aangepaste link (bv. de bevestigingsmail, die 60 minuten geldig is)
     if ($exception instanceof \Illuminate\Routing\Exceptions\InvalidSignatureException) {
-        $reason = 'Deze link is verlopen of klopt niet meer. Log in, dan kun je een nieuwe link laten sturen.';
+        $reason = __('This link has expired or is no longer valid. Log in, then you can have a new link sent.');
     }
 @endphp
 
 @section('code', '403')
-@section('title', 'Geen toegang')
+@section('title', __('No access'))
 @section('message')
-{{ $reason ?? 'Je hebt geen toegang tot deze pagina. Misschien hoort hij bij een ander account, of is hij alleen voor beheerders.' }}
+{{ $reason ?? __('You do not have access to this page. Maybe it belongs to another account, or it is only for administrators.') }}
 @endsection

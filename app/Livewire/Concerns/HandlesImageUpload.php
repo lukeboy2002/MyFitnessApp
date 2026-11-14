@@ -27,7 +27,7 @@ trait HandlesImageUpload
     public function updatedImage(): void
     {
         try {
-            $this->validateOnly('image', $this->imageRules(), attributes: ['image' => 'plaatje']);
+            $this->validateOnly('image', $this->imageRules(), attributes: ['image' => __('image')]);
         } catch (ValidationException $e) {
             $this->reset('image');
 

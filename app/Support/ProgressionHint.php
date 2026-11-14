@@ -50,14 +50,18 @@ final class ProgressionHint
 
         $reps = $top->pluck('reps');
         $last = ($reps->unique()->count() === 1 ? $top->count().'×'.$reps->first() : $reps->implode(', '))
-            .($weight ? ' met '.$n($weight).' kg' : '');
+            .($weight ? ' '.__('with :weight kg', ['weight' => $n($weight)]) : '');
 
         // Alle sets op het hoogste aantal: zwaarder. Zonder gewicht (lichaamsgewicht) gewoon meer herhalingen.
         if ($fewest >= $high && $weight !== null) {
             $heavier = round($weight + self::WEIGHT_STEP, 1);
 
             return new self(
-                "Vorige keer {$last} gehaald. Probeer {$n($heavier)} kg".($type === ExerciseType::Bodyweight && $heavier < 0 ? ' (minder hulp)' : '')." en weer {$low} herhalingen.",
+                __('Last time you did :last. Try :weight and :reps reps again.', [
+                    'last' => $last,
+                    'weight' => $n($heavier).' kg'.($type === ExerciseType::Bodyweight && $heavier < 0 ? ' '.__('(less assistance)') : ''),
+                    'reps' => $low,
+                ]),
                 $heavier,
                 $low,
             );
@@ -66,7 +70,9 @@ final class ProgressionHint
         $goal = max($fewest + 1, $low);
 
         return new self(
-            "Vorige keer {$last}. Probeer {$goal} herhalingen".($weight !== null ? ' met '.$n($weight).' kg' : '').' in elke set.',
+            $weight !== null
+                ? __('Last time :last. Try :reps reps with :weight kg in every set.', ['last' => $last, 'reps' => $goal, 'weight' => $n($weight)])
+                : __('Last time :last. Try :reps reps in every set.', ['last' => $last, 'reps' => $goal]),
             $weight,
             $goal,
         );

@@ -43,7 +43,7 @@ class Welcome extends Component
 
         $workout = $this->starter->createFor(Auth::user());
 
-        session()->flash('status', 'Je eerste workout staat klaar. Start hem als je in de sportschool bent.');
+        session()->flash('status', __('Your first workout is ready. Start it when you are at the gym.'));
 
         return $this->redirectRoute('workouts.show', $workout, navigate: true);
     }
@@ -71,6 +71,6 @@ class Welcome extends Component
 
     public function render()
     {
-        return view('livewire.welcome')->title('Welkom');
+        return view('livewire.welcome')->title(__('Welcome'));
     }
 }

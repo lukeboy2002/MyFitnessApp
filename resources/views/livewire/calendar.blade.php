@@ -8,7 +8,7 @@
 @endphp
 
 <div>
-    <x-page-header title="Kalender" description="Je trainingen per dag. Plan vooruit welke workout je wanneer doet." />
+    <x-page-header :title="__('Calendar (page)')" :description="__('Your trainings per day. Plan ahead which workout you do when.')" />
 
     <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         {{-- Maand --}}
@@ -16,21 +16,21 @@
             <div class="flex items-center gap-2 px-4 py-4 sm:px-5">
                 <h2 class="min-w-0 flex-1 font-display text-2xl font-bold uppercase">{{ ucfirst($month->translatedFormat('F Y')) }}</h2>
                 @unless ($month->isSameMonth(today()) && $selected->isToday())
-                    <x-button variant="secondary" size="sm" type="button" wire:click="goToday">Vandaag</x-button>
+                    <x-button variant="secondary" size="sm" type="button" wire:click="goToday">{{ __('Today') }}</x-button>
                 @endunless
-                <button type="button" wire:click="previousMonth" aria-label="Vorige maand"
+                <button type="button" wire:click="previousMonth" aria-label="{{ __('Previous month') }}"
                         class="grid size-9 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-ink dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">
                     <x-icon name="chevron-right" class="size-5 rotate-180" />
                 </button>
-                <button type="button" wire:click="nextMonth" aria-label="Volgende maand"
+                <button type="button" wire:click="nextMonth" aria-label="{{ __('Next month') }}"
                         class="grid size-9 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-ink dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">
                     <x-icon name="chevron-right" class="size-5" />
                 </button>
             </div>
 
             <div class="grid grid-cols-7 border-y border-slate-100 bg-slate-50 dark:border-line-dark dark:bg-white/[.03]">
-                @foreach (['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'] as $weekday)
-                    <div class="py-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $weekday }}</div>
+                @foreach (range(0, 6) as $i)
+                    <div class="py-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ today()->startOfWeek()->addDays($i)->isoFormat('dd') }}</div>
                 @endforeach
             </div>
 
@@ -43,7 +43,7 @@
                         $isSelected = $date->isSameDay($selected);
                     @endphp
                     <button type="button" wire:key="d-{{ $key }}" wire:click="select('{{ $key }}')"
-                            aria-label="{{ $date->translatedFormat('l j F') }}: {{ $done->count() }} trainingen, {{ $open->count() }} gepland"
+                            aria-label="{{ $date->translatedFormat('l j F') }}: {{ __(':done trainings, :planned planned', ['done' => $done->count(), 'planned' => $open->count()]) }}"
                             @class(['relative flex min-h-16 flex-col items-center gap-1 border-b border-r border-slate-100 p-1 text-left transition sm:min-h-24 sm:items-stretch sm:p-1.5 dark:border-line-dark',
                                     '[&:nth-child(7n)]:border-r-0',
                                     'bg-brand-50 dark:bg-brand-500/10' => $isSelected,
@@ -83,16 +83,16 @@
             </div>
 
             <div class="flex flex-wrap gap-4 px-4 py-3 text-xs font-semibold text-slate-500 sm:px-5 dark:text-slate-400">
-                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-brand-600"></span> Gedaan</span>
-                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full border-2 border-brand-600"></span> Gepland</span>
-                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full border-2 border-slate-400"></span> Gemist</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-brand-600"></span> {{ __('Done (finished)') }}</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full border-2 border-brand-600"></span> {{ __('Planned') }}</span>
+                <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-full border-2 border-slate-400"></span> {{ __('Missed') }}</span>
             </div>
         </x-card>
 
         {{-- Gekozen dag --}}
-        <x-card :title="ucfirst($selected->translatedFormat('l j F'))" :description="match (true) { $selected->isToday() => 'Vandaag', $selected->isTomorrow() => 'Morgen', $selected->isFuture() => 'Over '.(int) today()->diffInDays($selected).' dagen', default => null }">
+        <x-card :title="ucfirst($selected->translatedFormat('l j F'))" :description="match (true) { $selected->isToday() => __('Today'), $selected->isTomorrow() => __('Tomorrow'), $selected->isFuture() => __('In :count days', ['count' => (int) today()->diffInDays($selected)]), default => null }">
             @if ($daySessions->isEmpty() && $dayPlanned->isEmpty())
-                <p class="text-slate-500 dark:text-slate-400">{{ $selected->isBefore(today()) ? 'Geen training op deze dag.' : 'Nog niets gepland.' }}</p>
+                <p class="text-slate-500 dark:text-slate-400">{{ $selected->isBefore(today()) ? __('No training on this day.') : __('Nothing planned yet.') }}</p>
             @endif
 
             <ul class="grid gap-2.5">
@@ -107,7 +107,7 @@
                                 <span class="block truncate font-semibold">{{ $session->name }}</span>
                                 <span class="block text-sm text-slate-500 dark:text-slate-400">
                                     {{ $session->started_at->format('H:i') }} ·
-                                    {{ $session->isRunning() ? 'bezig' : WorkoutSession::clock($session->duration_seconds ?? 0).' · '.$session->exercises_count.' oefeningen' }}
+                                    {{ $session->isRunning() ? __('in progress') : WorkoutSession::clock($session->duration_seconds ?? 0).' · '.trans_choice(':count exercise|:count exercises', $session->exercises_count) }}
                                 </span>
                                 @if ($session->notes)
                                     <span class="block truncate text-sm italic text-slate-500 dark:text-slate-400" title="{{ $session->notes }}">“{{ $session->notes }}”</span>
@@ -126,12 +126,12 @@
                         </span>
                         <span class="min-w-0 flex-1">
                             <a href="{{ route('workouts.show', $item->workout) }}" wire:navigate class="block truncate font-semibold hover:underline">{{ $item->workout->name }}</a>
-                            <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $item->isMissed() ? 'Gemist' : 'Gepland' }}{{ $item->notes ? ' · '.$item->notes : '' }}</span>
+                            <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $item->isMissed() ? __('Missed') : __('Planned') }}{{ $item->notes ? ' · '.$item->notes : '' }}</span>
                         </span>
                         @if ($item->scheduled_on->isToday() && ! $item->workout->isArchived())
-                            <x-button size="sm" icon="play" type="button" wire:click="start({{ $item->id }})" loading="start({{ $item->id }})">Start</x-button>
+                            <x-button size="sm" icon="play" type="button" wire:click="start({{ $item->id }})" loading="start({{ $item->id }})">{{ __('Start') }}</x-button>
                         @endif
-                        <button type="button" wire:click="confirmDelete({{ $item->id }})" aria-label="Planning verwijderen"
+                        <button type="button" wire:click="confirmDelete({{ $item->id }})" aria-label="{{ __('Delete plan') }}"
                                 class="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400">
                             <x-icon name="x" class="size-4.5" />
                         </button>
@@ -141,32 +141,32 @@
 
             @unless ($selected->isBefore(today()))
                 <x-slot:footer>
-                    <x-button variant="secondary" icon="plus" type="button" wire:click="openPlanning" :block="true">Workout plannen</x-button>
+                    <x-button variant="secondary" icon="plus" type="button" wire:click="openPlanning" :block="true">{{ __('Plan workout') }}</x-button>
                 </x-slot:footer>
             @endunless
         </x-card>
     </div>
 
     {{-- Plannen --}}
-    <x-modal wire:model="planning" title="Workout plannen" maxWidth="md">
+    <x-modal wire:model="planning" :title="__('Plan workout')" maxWidth="md">
         @if ($this->workouts->isEmpty())
-            <p class="text-slate-500 dark:text-slate-400">Je hebt nog geen actieve workouts. <a href="{{ route('workouts.create') }}" wire:navigate class="font-semibold text-brand-700 underline dark:text-brand-300">Maak er eerst een</a>.</p>
+            <p class="text-slate-500 dark:text-slate-400">{{ __('You have no active workouts yet.') }} <a href="{{ route('workouts.create') }}" wire:navigate class="font-semibold text-brand-700 underline dark:text-brand-300">{{ __('Create one first') }}</a>.</p>
         @else
             <form wire:submit="plan" id="plan-form" class="grid gap-4">
-                <p class="text-sm text-slate-500 dark:text-slate-400">Op {{ $selected->translatedFormat('l j F') }}</p>
-                <x-form.select label="Workout" wire:model="workout_id" :options="$this->workouts->pluck('name', 'id')" required />
-                <x-form.select label="Elke week herhalen" wire:model="repeat" :options="Calendar::REPEAT" hint="Op dezelfde dag van de week" />
-                <x-form.input label="Notitie" wire:model="notes" placeholder="Optioneel" />
+                <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('On :date', ['date' => $selected->translatedFormat('l j F')]) }}</p>
+                <x-form.select :label="__('Workout')" wire:model="workout_id" :options="$this->workouts->pluck('name', 'id')" required />
+                <x-form.select :label="__('Repeat every week')" wire:model="repeat" :options="array_map(fn ($label) => __($label), Calendar::REPEAT)" :hint="__('On the same day of the week')" />
+                <x-form.input :label="__('Note')" wire:model="notes" :placeholder="__('Optional')" />
             </form>
         @endif
 
         <x-slot:footer>
-            <x-button variant="ghost" type="button" x-on:click="show = false">Annuleren</x-button>
+            <x-button variant="ghost" type="button" x-on:click="show = false">{{ __('Cancel') }}</x-button>
             @if ($this->workouts->isNotEmpty())
-                <x-button form="plan-form" icon="calendar" loading="plan">Plannen</x-button>
+                <x-button form="plan-form" icon="calendar" loading="plan">{{ __('Plan') }}</x-button>
             @endif
         </x-slot:footer>
     </x-modal>
 
-    <x-confirm-delete :name="$deletingName" title="Planning verwijderen?">Je trainingen blijven gewoon staan.</x-confirm-delete>
+    <x-confirm-delete :name="$deletingName" :title="__('Delete plan?')">{{ __('Your trainings simply stay.') }}</x-confirm-delete>
 </div>

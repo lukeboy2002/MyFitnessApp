@@ -1,8 +1,8 @@
 <div>
-<x-card title="Passkeys" description="Inloggen met Face ID, Touch ID of je toegangscode, zonder wachtwoord.">
+<x-card :title="__('Passkeys')" :description="__('Log in with Face ID, Touch ID or your passcode, without a password.')">
     <div class="flex flex-col gap-5">
         @if ($this->passkeys->isEmpty())
-            <p class="text-sm text-slate-600 dark:text-slate-300">Je hebt nog geen passkeys.</p>
+            <p class="text-sm text-slate-600 dark:text-slate-300">{{ __('You have no passkeys yet.') }}</p>
         @else
             <ul class="flex flex-col divide-y divide-slate-200 dark:divide-line-dark">
                 @foreach ($this->passkeys as $passkey)
@@ -13,13 +13,13 @@
                         <div class="min-w-0 flex-1">
                             <p class="truncate font-semibold">{{ $passkey->name }}</p>
                             <p class="truncate text-sm text-slate-500 dark:text-slate-400">
-                                {{ $passkey->authenticator ?? 'Passkey' }} ·
-                                {{ $passkey->last_used_at ? 'laatst gebruikt '.$passkey->last_used_at->diffForHumans() : 'nog niet gebruikt' }}
+                                {{ $passkey->authenticator ?? __('Passkey') }} ·
+                                {{ $passkey->last_used_at ? __('last used :time', ['time' => $passkey->last_used_at->diffForHumans()]) : __('not used yet') }}
                             </p>
                         </div>
                         <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="delete({{ $passkey->id }})"
-                                  wire:confirm="Passkey '{{ $passkey->name }}' verwijderen?" aria-label="Verwijderen">
-                            <span class="sr-only sm:not-sr-only">Verwijderen</span>
+                                  wire:confirm="{{ __('Delete passkey :name?', ['name' => $passkey->name]) }}" :aria-label="__('Remove')">
+                            <span class="sr-only sm:not-sr-only">{{ __('Remove') }}</span>
                         </x-button>
                     </li>
                 @endforeach
@@ -27,18 +27,18 @@
         @endif
 
         <div x-data="{ supported: !! window.PublicKeyCredential }">
-            <x-alert type="warning" x-show="! supported" x-cloak>Deze browser ondersteunt geen passkeys.</x-alert>
+            <x-alert type="warning" x-show="! supported" x-cloak>{{ __('This browser does not support passkeys.') }}</x-alert>
 
             <form wire:submit="startRegistration" x-show="supported" class="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <x-form.input label="Naam voor de nieuwe passkey" wire:model="passkeyName" icon="key" class="sm:flex-1" />
-                <x-button icon="plus" loading="startRegistration">Passkey toevoegen</x-button>
+                <x-form.input :label="__('Name for the new passkey')" wire:model="passkeyName" icon="key" class="sm:flex-1" />
+                <x-button icon="plus" loading="startRegistration">{{ __('Add passkey') }}</x-button>
             </form>
         </div>
 
         @if ($failure)
             <x-alert type="danger">{{ $failure }}</x-alert>
         @endif
-        <x-action-message on="saved">Passkey toegevoegd.</x-action-message>
+        <x-action-message on="saved">{{ __('Passkey added.') }}</x-action-message>
     </div>
 </x-card>
 
@@ -54,9 +54,9 @@
             console.error(error);
 
             if (error instanceof window.UserCancelledError) {
-                $wire.registrationFailed('Toevoegen geannuleerd.');
+                $wire.registrationFailed(@js(__('Adding was cancelled.')));
             } else if (error instanceof window.PasskeyExistsError) {
-                $wire.registrationFailed('Deze passkey is al aan je account gekoppeld.');
+                $wire.registrationFailed(@js(__('This passkey is already linked to your account.')));
             } else {
                 $wire.registrationFailed(null);
             }

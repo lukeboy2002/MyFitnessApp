@@ -7,7 +7,7 @@
 @endphp
 
 <div>
-    <x-page-header title="Progress" description="Je trainingen in cijfers, en per oefening hoe je vooruitgaat." />
+    <x-page-header :title="__('Progress')" :description="__('Your trainings in numbers, and per exercise how you are progressing.')" />
 
     {{-- Periode --}}
     <div class="mb-5 inline-flex rounded-full bg-white p-1 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-line-dark">
@@ -16,17 +16,17 @@
                     @class(['rounded-full px-4 py-2 text-sm font-semibold transition',
                             'bg-brand-700 text-white dark:bg-brand-500' => $period === $key,
                             'text-slate-600 hover:text-ink dark:text-slate-300 dark:hover:text-white' => $period !== $key])>
-                {{ $label }}
+                {{ __($label) }}
             </button>
         @endforeach
     </div>
 
     <div class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         @foreach ([
-            'Trainingstijd' => TrainingStats::hours($totals['seconds']),
-            'Trainingen' => $totals['count'],
-            'Sets' => $totals['sets'],
-            'Volume kracht' => TrainingStats::kilos($totals['volume']).' kg',
+            __('Training time') => TrainingStats::hours($totals['seconds']),
+            __('Trainings') => $totals['count'],
+            __('Sets') => $totals['sets'],
+            __('Strength volume') => TrainingStats::kilos($totals['volume']).' kg',
         ] as $label => $value)
             <x-card>
                 <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ $label }}</p>
@@ -36,9 +36,9 @@
     </div>
 
     <div class="mb-5 grid gap-4 lg:grid-cols-2">
-        <x-card title="Per spiergroep" description="Afgevinkte sets (cardio: afgeronde oefeningen)">
+        <x-card :title="__('Per muscle group')" :description="__('Ticked-off sets (cardio: completed exercises)')">
             @if ($groups->isEmpty())
-                <p class="text-slate-500 dark:text-slate-400">Nog niets getraind in deze periode.</p>
+                <p class="text-slate-500 dark:text-slate-400">{{ __('Nothing trained in this period yet.') }}</p>
             @else
                 <ul class="grid gap-2.5">
                     @foreach ($groups as $group)
@@ -54,24 +54,24 @@
             @endif
         </x-card>
 
-        <x-card title="Laatste 12 maanden" description="Trainingstijd per maand">
+        <x-card :title="__('Last 12 months')" :description="__('Training time per month')">
             <x-chart.bars class="mt-2" :bars="$months->map(fn ($month) => [
                 'label' => ucfirst($month['start']->translatedFormat('F Y')),
                 'short' => $month['start']->translatedFormat('M'),
                 'value' => round($month['seconds'] / 60),
-                'tip' => TrainingStats::hours($month['seconds']).' · '.$month['count'].' '.($month['count'] === 1 ? 'training' : 'trainingen'),
+                'tip' => TrainingStats::hours($month['seconds']).' · '.trans_choice(':count training|:count trainings', $month['count']),
                 'current' => $month['start']->isCurrentMonth(),
             ])->all()" />
         </x-card>
     </div>
 
-    <x-card class="mb-5" title="Gewicht" description="Het afgelopen jaar. Je weegt jezelf in op je profiel.">
+    <x-card class="mb-5" :title="__('Weight')" :description="__('The past year. You log your weight on your profile.')">
         <x-slot:actions>
-            <x-button :href="route('profile.edit').'#gewicht'" variant="secondary" icon="plus">Weging</x-button>
+            <x-button :href="route('profile.edit').'#gewicht'" variant="secondary" icon="plus">{{ __('Weigh-in') }}</x-button>
         </x-slot:actions>
 
         @if ($weights->isEmpty())
-            <p class="text-slate-500 dark:text-slate-400">Nog geen wegingen. Vul je gewicht in op je profiel, dan zie je hier het verloop.</p>
+            <p class="text-slate-500 dark:text-slate-400">{{ __('No weigh-ins yet. Fill in your weight on your profile, then you will see the trend here.') }}</p>
         @else
             @php
                 $latest = $weights->last();
@@ -82,11 +82,11 @@
                 @if ($change !== null)
                     <p class="text-sm tabular-nums text-slate-600 dark:text-slate-300">
                         <span @class(['font-semibold', 'text-emerald-600 dark:text-emerald-400' => $change < 0, 'text-amber-600 dark:text-amber-400' => $change > 0])>{{ $change > 0 ? '+' : '' }}{{ $n($change) }} kg</span>
-                        sinds {{ $weights->first()->measured_on->translatedFormat('j M Y') }}
+                        {{ __('since :date', ['date' => $weights->first()->measured_on->translatedFormat('j M Y')]) }}
                     </p>
                 @endif
                 @if ($targetWeight)
-                    <p class="text-sm tabular-nums text-slate-600 dark:text-slate-300">Streefgewicht <span class="font-semibold">{{ $n($targetWeight) }} kg</span></p>
+                    <p class="text-sm tabular-nums text-slate-600 dark:text-slate-300">{{ __('Target weight') }} <span class="font-semibold">{{ $n($targetWeight) }} kg</span></p>
                 @endif
             </div>
             @if ($weights->count() > 1)
@@ -97,14 +97,14 @@
 
     {{-- Oefeningen --}}
     <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <h2 class="font-display text-2xl font-bold uppercase">Per oefening</h2>
-        <x-form.input wire:model.live.debounce.300ms="search" icon="search" placeholder="Zoek een oefening…" aria-label="Zoeken" class="sm:w-72" />
+        <h2 class="font-display text-2xl font-bold uppercase">{{ __('Per exercise') }}</h2>
+        <x-form.input wire:model.live.debounce.300ms="search" icon="search" :placeholder="__('Search an exercise…')" :aria-label="__('Search')" class="sm:w-72" />
     </div>
 
     <x-card :padding="false" class="overflow-hidden">
         @if ($this->exercises->isEmpty())
             <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">
-                {{ $search ? 'Geen oefening gevonden.' : 'Nog geen oefeningen gedaan. Na je eerste training zie je hier je voortgang.' }}
+                {{ $search ? __('No exercise found.') : __('No exercises done yet. After your first training you will see your progress here.') }}
             </p>
         @else
             <ul class="divide-y divide-slate-100 dark:divide-line-dark">
@@ -117,7 +117,7 @@
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate font-semibold">{{ $exercise->name }}</span>
                                 <span class="block text-sm text-slate-500 dark:text-slate-400">
-                                    {{ $exercise->times }}× gedaan · laatst {{ $exercise->last_at->translatedFormat('j M Y') }}
+                                    {{ __(':count× done', ['count' => $exercise->times]) }} · {{ __('last :date', ['date' => $exercise->last_at->translatedFormat('j M Y')]) }}
                                 </span>
                             </span>
                             <x-badge :color="$exercise->type->color()" class="hidden sm:inline-flex">{{ $exercise->type->label() }}</x-badge>

@@ -157,10 +157,10 @@ class Form extends Component
             'cardio_fields' => ['array'],
             'cardio_fields.*' => [Rule::enum(CardioField::class)],
         ], attributes: [
-            'name' => 'naam', 'equipment' => 'materiaal', 'description' => 'omschrijving', 'instructions' => 'uitvoering',
-            'primary_muscle_group_id' => 'primaire spiergroep', 'secondary_muscle_group_ids' => 'secundaire spiergroepen',
-            'image' => 'plaatje', 'default_sets' => 'sets', 'default_reps' => 'herhalingen', 'default_weight' => 'gewicht',
-            'default_seconds' => 'tijd', 'default_minutes' => 'tijd', 'default_metric' => 'instelling', 'default_metric_value' => 'waarde',
+            'name' => __('name'), 'equipment' => __('equipment'), 'description' => __('description'), 'instructions' => __('instructions'),
+            'primary_muscle_group_id' => __('primary muscle group'), 'secondary_muscle_group_ids' => __('secondary muscle groups'),
+            'image' => __('image'), 'default_sets' => __('sets'), 'default_reps' => __('reps'), 'default_weight' => __('weight'),
+            'default_seconds' => __('time'), 'default_minutes' => __('time'), 'default_metric' => __('setting'), 'default_metric_value' => __('value'),
         ]);
 
         $type = ExerciseType::from($data['type']);
@@ -194,7 +194,7 @@ class Form extends Component
         $exercise->save();
         $exercise->syncMuscleGroups($data['primary_muscle_group_id'], $data['secondary_muscle_group_ids']);
 
-        session()->flash('status', "{$exercise->name} is opgeslagen.");
+        session()->flash('status', __(':name is saved.', ['name' => $exercise->name]));
 
         return $this->redirectRoute('exercises.show', $exercise, navigate: true);
     }
@@ -209,7 +209,7 @@ class Form extends Component
     {
         return view('livewire.exercises.form', [
             'exerciseType' => ExerciseType::tryFrom($this->type) ?? ExerciseType::Strength,
-        ])->title($this->exercise ? 'Oefening bewerken' : 'Nieuwe oefening');
+        ])->title($this->exercise ? __('Edit exercise') : __('New exercise'));
     }
 
     /** Tekstvak met één item per regel naar een array (of null als het leeg is) */
