@@ -130,7 +130,7 @@ test('sending encrypts for every device and removes nothing on a network error',
 
 test('the profile shows the setting and the page carries the public key', function () {
     $this->actingAs($this->user)->get(route('profile.edit'))->assertOk()
-        ->assertSee('Melding na je rust')
+        ->assertSee('Pushmeldingen')->assertSee('Rust voorbij')
         ->assertSee('<meta name="vapid-public-key" content="'.config('services.webpush.public_key').'">', false);
 });
 

@@ -31,6 +31,7 @@
         $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => __('Users'), 'badge' => auth()->user()->newUsersCount()];
         $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => __('Settings')];
         $nav[] = ['route' => 'admin.badges', 'active' => 'admin.badges', 'icon' => 'medal', 'label' => __('Badge management')];
+        $nav[] = ['route' => 'admin.push', 'active' => 'admin.push', 'icon' => 'bell', 'label' => __('Push notifications')];
     }
 
     // Mobiele menubalk (altijd onderaan)

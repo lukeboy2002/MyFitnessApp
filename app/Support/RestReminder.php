@@ -15,7 +15,7 @@ class RestReminder
 {
     public static function schedule(User $user, int $seconds, string $body, string $url): void
     {
-        if (! WebPush::configured() || ! $user->pushSubscriptions()->exists()) {
+        if (! WebPush::configured() || ! $user->push_rest || ! $user->pushSubscriptions()->exists()) {
             return;
         }
 

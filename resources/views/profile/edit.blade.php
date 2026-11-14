@@ -5,6 +5,7 @@
         'account' => ['label' => __('Account'), 'icon' => 'user'],
         'persoonlijk' => ['label' => __('Personal details'), 'short' => __('Personal'), 'icon' => 'heart'],
         'weekdoel' => ['label' => __('Training'), 'icon' => 'dumbbell'],
+        'meldingen' => ['label' => __('Notifications'), 'icon' => 'bell'],
         'gewicht' => ['label' => __('Weight and measurements'), 'short' => __('Weight'), 'icon' => 'chart'],
         'beveiliging' => ['label' => __('Security'), 'icon' => 'shield'],
     ];
@@ -100,6 +101,9 @@
         <div x-show="tab === 'weekdoel'" x-cloak role="tabpanel" class="grid max-w-3xl gap-5">
             <livewire:profile.update-weekly-goal/>
             <livewire:profile.update-rest-time/>
+        </div>
+
+        <div x-show="tab === 'meldingen'" x-cloak role="tabpanel" class="grid max-w-3xl gap-5">
             <x-push-settings/>
         </div>
 

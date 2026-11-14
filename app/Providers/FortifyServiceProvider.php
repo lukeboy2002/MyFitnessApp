@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 
@@ -45,6 +46,11 @@ class FortifyServiceProvider extends ServiceProvider
             $user = User::where($column, $login)->first();
 
             if ($user && Hash::check((string) $request->input('password'), $user->password)) {
+                // Geblokkeerd: wel zeggen waarom, niet inloggen
+                if ($user->isBanned()) {
+                    throw ValidationException::withMessages([Fortify::username() => $user->banMessage()]);
+                }
+
                 return $user;
             }
 

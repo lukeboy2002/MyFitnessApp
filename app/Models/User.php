@@ -58,6 +58,11 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'push_rest' => 'boolean',
+            'push_admin' => 'boolean',
+            'seen_by_admin_at' => 'datetime',
+            'banned_at' => 'datetime',
+            'banned_until' => 'datetime',
             'birth_date' => 'date',
             'gender' => Gender::class,
             'target_weight_kg' => 'decimal:1',
@@ -70,6 +75,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     /** Nieuwe accounts zijn geen admin en hebben nog geen persoonlijke gegevens (ook vóór ze opnieuw uit de database zijn geladen) */
     protected $attributes = [
         'is_admin' => false,
+        'seen_by_admin_at' => null,
+        'banned_at' => null,
+        'banned_until' => null,
+        'push_rest' => true,
+        'push_admin' => true,
+        'ban_reason' => null,
         'birth_date' => null,
         'gender' => null,
         'height_cm' => null,
@@ -97,15 +108,29 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->is_admin;
     }
 
-    /** Zo lang telt een account als nieuw (badge in het menu en label op de gebruikerslijst) */
-    public const NEW_USER_DAYS = 7;
-
-    public function isNew(): bool
+    /** Door een admin geblokkeerd (een tijdelijke blokkade vervalt vanzelf) */
+    public function isBanned(): bool
     {
-        return $this->created_at?->gte(now()->subDays(self::NEW_USER_DAYS)) ?? false;
+        return $this->banned_at !== null && ($this->banned_until === null || $this->banned_until->isFuture());
     }
 
-    /** Admin: accounts van de afgelopen 7 dagen (behalve je eigen) */
+    /** Melding voor de gebruiker zelf, bv. "Je account is geblokkeerd tot 21 nov. 2026, 19:00. Reden: …" */
+    public function banMessage(): string
+    {
+        $message = $this->banned_until
+            ? __('Your account has been blocked until :date.', ['date' => $this->banned_until->translatedFormat('j M Y, H:i')])
+            : __('Your account has been blocked indefinitely.');
+
+        return $this->ban_reason ? $message.' '.__('Reason: :reason', ['reason' => $this->ban_reason]) : $message;
+    }
+
+    /** Nieuw tot een admin het account in de gebruikerslijst heeft aangeklikt (label "Nieuw" en teller in het menu) */
+    public function isNew(): bool
+    {
+        return $this->seen_by_admin_at === null;
+    }
+
+    /** Admin: accounts die nog geen admin heeft aangeklikt (behalve je eigen) */
     public function newUsersCount(): int
     {
         if (! $this->isAdmin()) {
@@ -114,7 +139,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
 
         return self::query()
             ->whereKeyNot($this->getKey())
-            ->where('created_at', '>=', now()->subDays(self::NEW_USER_DAYS))
+            ->whereNull('seen_by_admin_at')
             ->count();
     }
 

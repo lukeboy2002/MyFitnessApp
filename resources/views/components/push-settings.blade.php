@@ -1,5 +1,5 @@
-{{-- Profiel > Training: pushmeldingen als je rust voorbij is, per apparaat aan/uit (resources/js/push.js) --}}
-<x-card :title="__('Notification after your rest')" :description="__('A signal when your rest is over, even when your screen is off. Applies to this device.')">
+{{-- Profiel > Meldingen: pushmeldingen per apparaat aan/uit (resources/js/push.js) en per soort (Profile\PushPreferences) --}}
+<x-card :title="__('Push notifications')" :description="__('Notifications on your phone, even when your screen is off. Turning them on applies to this device.')">
     <div x-data="{
             state: 'loading',
             busy: false,
@@ -19,7 +19,7 @@
             </span>
             <p class="min-w-0 flex-1 text-sm text-slate-600 dark:text-slate-300">
                 <span x-show="state === 'loading'">{{ __('Checking…') }}</span>
-                <span x-show="state === 'on'" x-cloak><strong class="text-ink dark:text-white">{{ __('On for this device.') }}</strong> {{ __('You will get a notification when your rest is over. Your phone then vibrates according to your own settings.') }}</span>
+                <span x-show="state === 'on'" x-cloak><strong class="text-ink dark:text-white">{{ __('On for this device.') }}</strong> {{ __('Below you choose which notifications you get. Your phone vibrates according to your own settings.') }}</span>
                 <span x-show="state === 'off'" x-cloak>{{ __('Off. Turn it on and your phone will ask whether notifications are allowed.') }}</span>
                 <span x-show="state === 'denied'" x-cloak>{{ __('You have blocked notifications for this app. Turn them on in the settings of your phone or browser and then come back.') }}</span>
                 <span x-show="state === 'install'" x-cloak>{!! __('On an iPhone this only works from the app on your home screen. In Safari, tap <strong>Share</strong> and then <strong>Add to Home Screen</strong>, open the app there and turn it on here.') !!}</span>
@@ -35,4 +35,6 @@
             <span class="text-sm text-slate-500 dark:text-slate-400" x-text="note"></span>
         </div>
     </div>
+
+    <livewire:profile.push-preferences />
 </x-card>
