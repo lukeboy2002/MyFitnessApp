@@ -16,6 +16,7 @@ use App\Livewire\Dashboard;
 use App\Livewire\Exercises\Form as ExerciseForm;
 use App\Livewire\Exercises\Index as ExercisesIndex;
 use App\Livewire\Exercises\Show as ExerciseShow;
+use App\Livewire\Messages;
 use App\Livewire\MuscleGroups\Index as MuscleGroupsIndex;
 use App\Livewire\Muscles\Index as MusclesIndex;
 use App\Livewire\Progress\Exercise as ProgressExercise;
@@ -83,6 +84,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Badges
     Route::get('badges', Badges::class)->name('badges');
+
+    // Berichten van de admin
+    Route::get('messages', Messages::class)->name('messages');
 
     // Beheer (alleen admins)
     Route::middleware('can:admin')->prefix('admin')->name('admin.')->group(function () {

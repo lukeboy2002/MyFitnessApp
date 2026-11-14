@@ -148,6 +148,17 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->hasMany(Workout::class);
     }
 
+    /** Berichten van de admin (pagina Berichten) */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(UserMessage::class);
+    }
+
+    public function unreadMessagesCount(): int
+    {
+        return once(fn () => $this->messages()->whereNull('read_at')->count());
+    }
+
     /** Apparaten waarop pushmeldingen aan staan (rust voorbij) */
     public function pushSubscriptions(): HasMany
     {

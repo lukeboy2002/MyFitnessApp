@@ -47,6 +47,10 @@
     $more = collect($nav)->whereNotIn('route', ['dashboard', 'workouts.index', 'progress.index']);
 
     $is = fn (string $pattern) => request()->routeIs(...explode('|', $pattern));
+
+    // Ongelezen berichten van de admin (belletje); de pagina Berichten werkt de teller live bij
+    $unread = auth()->user()?->unreadMessagesCount() ?? 0;
+    $unreadData = "{ unread: {$unread} }";
     // Tijdens en na een training de naam van de training (Quickstart-knop blijft wel actief)
     $current = $is('sessions.*') && $title
         ? $title
@@ -83,6 +87,11 @@
     </a>
 
     <div class="mt-auto flex flex-col gap-1 border-t border-white/10 pt-3">
+        <div x-data="{{ $unreadData }}" x-on:messages-changed.window="unread = $event.detail.unread" class="relative">
+            <x-nav.sidebar-link :href="$link('messages')" icon="bell" :active="$is('messages')">{{ __('Messages') }}</x-nav.sidebar-link>
+            <span x-show="unread" x-text="unread" @if (! $unread) x-cloak @endif
+                  class="pointer-events-none absolute right-1.5 top-1 min-w-5 rounded-full bg-fire-500 px-1.5 text-center text-xs font-bold leading-5 text-white tabular-nums lg:right-3 lg:top-1/2 lg:-translate-y-1/2">{{ $unread }}</span>
+        </div>
         <x-nav.sidebar-link :href="$link('profile.edit')" icon="user" :active="$is('profile.*')">{{ __('Profile') }}</x-nav.sidebar-link>
         <x-theme-toggle variant="sidebar"/>
         <form method="POST" action="{{ $link('logout') }}">
@@ -120,6 +129,13 @@
         {{--            </button>--}}
         {{--        </form>--}}
         {{--        <x-theme-toggle/>--}}
+        <a href="{{ $link('messages') }}" wire:navigate aria-label="{{ __('Messages') }}"
+           x-data="{{ $unreadData }}" x-on:messages-changed.window="unread = $event.detail.unread"
+           @class(['relative grid size-11 place-items-center rounded-xl transition hover:bg-white/15', 'bg-white/15' => $is('messages')])>
+            <x-icon name="bell" class="size-6"/>
+            <span x-show="unread" x-text="unread" @if (! $unread) x-cloak @endif
+                  class="absolute right-0.5 top-0.5 min-w-5 rounded-full bg-fire-500 px-1.5 text-center text-xs font-bold leading-5 text-white tabular-nums ring-2 ring-brand-700 dark:ring-brand-950">{{ $unread }}</span>
+        </a>
         <button type="button" x-on:click="more = ! more" :aria-expanded="more" aria-label="{{ __('More') }}"
                 class="relative grid size-11 place-items-center rounded-xl transition hover:bg-white/15">
             <x-icon name="dots" class="size-6"/>

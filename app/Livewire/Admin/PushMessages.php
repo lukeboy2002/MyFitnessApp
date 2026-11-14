@@ -13,7 +13,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-/** Admin: zelf een pushmelding maken en direct versturen aan iedereen of aan één gebruiker, met geschiedenis */
+/** Admin: een bericht direct versturen aan iedereen of aan één gebruiker (in Berichten + als pushmelding), met geschiedenis */
 #[Layout('layouts.app')]
 class PushMessages extends Component
 {
@@ -32,40 +32,46 @@ class PushMessages extends Component
         Gate::authorize('admin');
     }
 
-    /** Gebruikers met pushmeldingen aan, om er één uit te kiezen */
+    /** Wie het bericht kan krijgen (id => naam): iedereen behalve geblokkeerden */
     #[Computed]
     public function recipients()
     {
-        return PushBroadcast::audience()->orderBy('name')->pluck('name', 'id');
+        return PushBroadcast::recipients()->orderBy('name')->pluck('name', 'id');
     }
 
-    /** Alle gebruikers voor de keuzelijst; wie niets kan ontvangen staat erbij met de reden */
+    /** Ids van wie het ook als pushmelding krijgt */
+    #[Computed]
+    public function pushIds()
+    {
+        return PushBroadcast::audience()->pluck('id')->flip();
+    }
+
+    /** Keuzelijst; wie geen pushmelding krijgt, ziet het alleen in Berichten */
     #[Computed]
     public function userOptions()
     {
-        return User::query()->withExists('pushSubscriptions')->orderBy('name')->get()
-            ->mapWithKeys(fn ($user) => [$user->id => match (true) {
-                $this->recipients->has($user->id) => $user->name,
-                ! $user->push_subscriptions_exists => $user->name.' ('.__('push off').')',
-                ! $user->push_admin => $user->name.' ('.__('messages off').')',
-                default => $user->name.' ('.__('Blocked').')',
-            }]);
+        return $this->recipients->map(fn ($name, $id) => $this->pushIds->has($id) ? $name : $name.' ('.__('only in Messages').')');
     }
 
+    /** [aantal ontvangers, waarvan met pushmelding] */
     #[Computed]
-    public function reach(): int
+    public function reach(): array
     {
         if ($this->audience === 'user') {
-            return $this->recipient_id && $this->recipients->has((int) $this->recipient_id) ? 1 : 0;
+            $id = (int) $this->recipient_id;
+
+            return $this->recipients->has($id) ? [1, (int) $this->pushIds->has($id)] : [0, 0];
         }
 
-        return $this->recipients->count();
+        return [$this->recipients->count(), $this->pushIds->count()];
     }
 
     #[Computed]
     public function history()
     {
-        return PushBroadcast::with('recipient:id,name')->latest('id')->limit(30)->get();
+        return PushBroadcast::with('recipient:id,name')
+            ->withCount(['messages as read_count' => fn ($q) => $q->whereNotNull('read_at')])
+            ->latest('id')->limit(30)->get();
     }
 
     public function send(): void
@@ -78,8 +84,6 @@ class PushMessages extends Component
             'title' => ['required', 'string', 'max:80'],
             'body' => ['required', 'string', 'max:300'],
             'link' => ['nullable', Rule::in(array_keys(PushBroadcast::LINKS))],
-        ], [
-            'recipient_id.in' => __('This user does not receive messages from the admin.'),
         ]);
 
         $toEveryone = $this->audience === 'everyone';
@@ -99,7 +103,7 @@ class PushMessages extends Component
 
         $this->reset('title', 'body', 'link');
         unset($this->history);
-        session()->flash('status', __('The push notification is being sent.'));
+        session()->flash('status', __('The message is being sent.'));
         $this->redirectRoute('admin.push', navigate: true);
     }
 

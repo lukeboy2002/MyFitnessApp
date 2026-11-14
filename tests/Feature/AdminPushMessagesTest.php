@@ -39,7 +39,7 @@ test('the admin sends a push notification to everyone', function () {
     Queue::fake();
 
     Livewire::actingAs($this->admin)->test(PushMessages::class)
-        ->assertSee('Bereikt 2 gebruikers')
+        ->assertSee('Bereikt 4 gebruikers · 2 met pushmelding')
         ->set('title', 'Nieuwe badges')
         ->set('body', 'Kijk eens bij Badges!')
         ->set('link', 'badges')
@@ -62,16 +62,17 @@ test('the admin sends a push notification to one user with push turned on', func
 
     Livewire::actingAs($this->admin)->test(PushMessages::class)
         ->set('audience', 'user')
-        ->assertSee('Jan')->assertSee('Zonder push (push uit)')
+        ->assertSee('Jan')->assertSee('Zonder push (alleen in Berichten)')
         ->set('title', 'Hoi')->set('body', 'Goed bezig')
         ->call('send')
         ->assertHasErrors(['recipient_id' => 'required_if'])
-        ->set('recipient_id', (string) $this->without->id)
+        ->set('recipient_id', '99999')
         ->call('send')
         ->assertHasErrors('recipient_id')
-        ->assertSee('Bereikt 0 gebruikers')
+        ->set('recipient_id', (string) $this->without->id)
+        ->assertSee('Bereikt 1 gebruiker · 0 met pushmelding')
         ->set('recipient_id', (string) $this->jan->id)
-        ->assertSee('Bereikt 1 gebruiker')
+        ->assertSee('Bereikt 1 gebruiker · 1 met pushmelding')
         ->call('send')
         ->assertHasNoErrors();
 
@@ -88,12 +89,14 @@ test('the job sends to the right users and keeps the result', function () {
     $all = PushBroadcast::create(['user_id' => $this->admin->id, 'title' => 'A', 'body' => 'B']);
     (new SendPushBroadcast($all->id))->handle();
 
-    // Geen echte pushdienst in de test: wel geteld, niets afgeleverd
-    expect($all->fresh())->users_count->toBe(1)->delivered_count->toBe(0)->sent_at->not->toBeNull();
+    // Admin, Jan en Zonder push krijgen het in Berichten (Piet is geblokkeerd); geen echte pushdienst in de test: niets afgeleverd
+    expect($all->fresh())->users_count->toBe(3)->delivered_count->toBe(0)->sent_at->not->toBeNull()
+        ->and($this->piet->messages()->count())->toBe(0);
 
     $one = PushBroadcast::create(['user_id' => $this->admin->id, 'to_everyone' => false, 'recipient_id' => $this->without->id, 'title' => 'A', 'body' => 'B']);
     (new SendPushBroadcast($one->id))->handle();
-    expect($one->fresh()->users_count)->toBe(0);
+    expect($one->fresh()->users_count)->toBe(1)
+        ->and($this->without->messages()->count())->toBe(2);
 
     $sentAt = $all->fresh()->sent_at;
     (new SendPushBroadcast($all->id))->handle(); // nooit twee keer

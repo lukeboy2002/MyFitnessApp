@@ -1,8 +1,8 @@
 <div>
-    <x-page-header :title="__('Push notifications')" :description="__('Send a push notification to everyone or to one user. Only users who turned on push notifications and messages from the admin in their profile receive it.')" />
+    <x-page-header :title="__('Push notifications')" :description="__('Send a message to everyone or to one user. It appears in their Messages, and as a push notification for users who turned that on in their profile.')" />
 
     @unless ($configured)
-        <x-alert type="warning" :dismissible="false" class="mb-5">{{ __('Push notifications are not set up on this server (VAPID keys missing in .env).') }}</x-alert>
+        <x-alert type="warning" :dismissible="false" class="mb-5">{{ __('Push notifications are not set up on this server (VAPID keys missing in .env). Messages only appear in Messages.') }}</x-alert>
     @endunless
 
     <div class="grid items-start gap-5 lg:grid-cols-2">
@@ -15,7 +15,7 @@
 
                 @if ($audience === 'user')
                     <x-form.select :label="__('User')" wire:model.live="recipient_id" :options="$this->userOptions" :placeholder="__('Choose a user…')" required
-                                   :hint="__('Only users who turned on push notifications and messages from the admin in their profile can receive it.')" />
+                                   :hint="__('Users without push notifications only see it in their Messages.')" />
                 @endif
 
                 <x-form.input :label="__('Title')" wire:model="title" maxlength="80" required :placeholder="__('e.g. :example', ['example' => __('New badges!')])" />
@@ -24,8 +24,10 @@
             </form>
 
             <x-slot:footer>
-                <p class="mr-auto text-sm text-slate-500 dark:text-slate-400">{{ trans_choice('Reaches :count user|Reaches :count users', $this->reach) }}</p>
-                <x-button form="push-form" icon="bell" loading="send" :disabled="! $configured || $this->reach === 0">{{ __('Send') }}</x-button>
+                <p class="mr-auto text-sm text-slate-500 dark:text-slate-400">
+                    {{ trans_choice('Reaches :count user|Reaches :count users', $this->reach[0]) }} · {{ __(':count with push', ['count' => $this->reach[1]]) }}
+                </p>
+                <x-button form="push-form" icon="bell" loading="send" :disabled="$this->reach[0] === 0">{{ __('Send') }}</x-button>
             </x-slot:footer>
         </x-card>
 
@@ -42,7 +44,9 @@
                                 {{ $broadcast->to_everyone ? __('Everyone') : ($broadcast->recipient?->name ?? $broadcast->recipient_name ?? '–') }}
                                 · {{ $broadcast->created_at->translatedFormat('j M Y, H:i') }}
                                 · @if ($broadcast->sent_at)
-                                    {{ trans_choice(':count device reached|:count devices reached', $broadcast->delivered_count) }}
+                                    {{ trans_choice(':count user|:count users', $broadcast->users_count) }}
+                                    · {{ trans_choice(':count device reached|:count devices reached', $broadcast->delivered_count) }}
+                                    · {{ __(':count read', ['count' => $broadcast->read_count]) }}
                                 @else
                                     {{ __('Being sent…') }}
                                 @endif

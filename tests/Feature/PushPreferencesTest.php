@@ -58,17 +58,14 @@ test('no admin message when that kind is off', function () {
     $this->user->forceFill(['push_admin' => false])->save();
 
     Livewire::actingAs($admin)->test(PushMessages::class)
-        ->assertSee('Bereikt 0 gebruikers')
+        ->assertSee('Bereikt 2 gebruikers · 0 met pushmelding')
         ->set('audience', 'user')
-        ->assertSee('Jan (berichten uit)')
-        ->set('recipient_id', (string) $this->user->id)
-        ->set('title', 'Hoi')->set('body', 'Test')
-        ->call('send')
-        ->assertHasErrors('recipient_id');
+        ->assertSee('Jan (alleen in Berichten)');
 
     $broadcast = PushBroadcast::create(['user_id' => $admin->id, 'title' => 'A', 'body' => 'B']);
     (new SendPushBroadcast($broadcast->id))->handle();
-    expect($broadcast->fresh()->users_count)->toBe(0);
+    expect($broadcast->fresh())->users_count->toBe(2)->delivered_count->toBe(0)
+        ->and($this->user->messages()->count())->toBe(1); // wel in Berichten
 });
 
 test('the migration adds and removes the columns', function () {
