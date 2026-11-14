@@ -191,6 +191,33 @@ Dat zet de site even in onderhoud, haalt de code op, installeert pakketten, bouw
 
 **Let op:** op de server nooit `migrate:fresh` draaien, dan ben je alles kwijt.
 
+## Planner (geplande taken)
+
+Laravel ruimt elke nacht zelf op (zie `routes/console.php`):
+- mislukte jobs ouder dan een week
+- verlopen links van "wachtwoord vergeten"
+- gelezen berichten ouder dan 6 maanden
+
+Daarvoor is één cronregel nodig, naast die van de back-up (`crontab -e`):
+
+```cron
+* * * * * cd /var/www/myfitnessapp && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Controleren: `php artisan schedule:list` toont de taken en wanneer ze weer draaien.
+
+## Beveiligingsheaders
+
+`deploy/nginx.conf` zet ook `Referrer-Policy`, `Permissions-Policy` en `Strict-Transport-Security` (HSTS). Heb je nginx al ingesteld, voeg dan deze regels toe aan `/etc/nginx/sites-available/myfitnessapp`, in **het `server`-blok met `listen 443`** (dat heeft certbot gemaakt), naast de bestaande `add_header`-regels:
+
+```nginx
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+```
+
+Daarna `sudo nginx -t && sudo systemctl reload nginx`. Controleren: `curl -sI https://fitness.la-online.nl | grep -iE "strict|referrer|permissions"`.
+
 ## Back-up
 
 Je lokale database is om te testen; de echte trainingen staan alleen online. `deploy/backup.sh` maakt een kopie van de online database (en van de plaatjes in `storage/app/public`) in `~/backups/myfitnessapp` en ruimt kopieën ouder dan 14 dagen op. De inloggegevens leest het script uit `.env`.
@@ -207,6 +234,17 @@ Dan elke nacht om 3:00 via `crontab -e` (als dezelfde gebruiker, die `.env` moet
 ```cron
 0 3 * * * cd /var/www/myfitnessapp && bash deploy/backup.sh >> ~/backups/myfitnessapp/backup.log 2>&1
 ```
+
+**Controleren of de back-up werkt:**
+
+```bash
+crontab -l                                         # staat de regel van 3:00 erin?
+ls -lh ~/backups/myfitnessapp | tail -n 5          # recente db-*.sql.gz van meer dan een paar kB
+tail -n 20 ~/backups/myfitnessapp/backup.log       # eindigt met "✓ Back-up klaar"
+zcat "$(ls -t ~/backups/myfitnessapp/db-*.sql.gz | head -1)" | grep -c "CREATE TABLE"   # aantal tabellen (~30)
+```
+
+Het script controleert zelf of de dump tabellen bevat en compleet is. Zo niet, dan stopt het met een foutmelding en blijft er een `.tmp`-bestand staan om te bekijken.
 
 `deploy.sh` maakt bovendien vóór elke `migrate` een extra database-back-up. Gaat er bij een deploy iets mis, dan heb je de stand van vlak ervoor.
 
