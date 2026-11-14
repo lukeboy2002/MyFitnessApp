@@ -26,12 +26,16 @@ chmod 700 "$BACKUP_DIR"
 CREDENTIALS="$(mktemp)"
 trap 'rm -f "$CREDENTIALS"' EXIT
 chmod 600 "$CREDENTIALS"
+# Wachtwoord tussen aanhalingstekens: zonder wordt alles na een # als commentaar gezien (fout 1045 Access denied)
+PASSWORD="$(env_value DB_PASSWORD)"
+PASSWORD="${PASSWORD//\\/\\\\}"
+PASSWORD="${PASSWORD//\"/\\\"}"
 cat > "$CREDENTIALS" <<CNF
 [client]
-host=$(env_value DB_HOST)
+host="$(env_value DB_HOST)"
 port=$(env_value DB_PORT)
-user=$(env_value DB_USERNAME)
-password=$(env_value DB_PASSWORD)
+user="$(env_value DB_USERNAME)"
+password="$PASSWORD"
 CNF
 
 DATABASE="$(env_value DB_DATABASE)"
@@ -39,6 +43,12 @@ DUMP="$BACKUP_DIR/db-$STAMP.sql.gz"
 
 echo "→ Database $DATABASE"
 mysqldump --defaults-extra-file="$CREDENTIALS" --single-transaction --quick --no-tablespaces "$DATABASE" | gzip > "$DUMP.tmp"
+
+# Controle: een geldige dump bevat tabellen en eindigt met "Dump completed"
+if ! zgrep -q "CREATE TABLE" "$DUMP.tmp" || ! zcat "$DUMP.tmp" | tail -n 1 | grep -q "Dump completed"; then
+    echo "✗ Database-back-up is leeg of onvolledig, $DUMP.tmp blijft staan om te bekijken" >&2
+    exit 1
+fi
 mv "$DUMP.tmp" "$DUMP"
 echo "  $DUMP ($(du -h "$DUMP" | cut -f1))"
 
