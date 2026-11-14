@@ -15,20 +15,20 @@ enum ExerciseType: string
     public function label(): string
     {
         return match ($this) {
-            self::Strength => 'Kracht',
-            self::Bodyweight => 'Lichaamsgewicht',
-            self::Duration => 'Tijd',
-            self::Cardio => 'Cardio',
+            self::Strength => __('Strength'),
+            self::Bodyweight => __('Bodyweight'),
+            self::Duration => __('Time'),
+            self::Cardio => __('Cardio'),
         };
     }
 
     public function description(): string
     {
         return match ($this) {
-            self::Strength => 'Sets, herhalingen en gewicht',
-            self::Bodyweight => 'Herhalingen, eventueel met extra of assisted gewicht',
-            self::Duration => 'Sets op tijd, bv. plank',
-            self::Cardio => 'Tijd en weerstand, niveau of snelheid',
+            self::Strength => __('Sets, reps and weight'),
+            self::Bodyweight => __('Reps, optionally with extra or assisted weight'),
+            self::Duration => __('Timed sets, e.g. plank'),
+            self::Cardio => __('Time and resistance, level or speed'),
         };
     }
 

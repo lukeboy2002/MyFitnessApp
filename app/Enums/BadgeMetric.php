@@ -28,22 +28,22 @@ enum BadgeMetric: string
     public function label(): string
     {
         return match ($this) {
-            self::Sessions => 'Aantal trainingen',
-            self::Hours => 'Trainingstijd totaal',
-            self::Volume => 'Volume totaal (reps × kg)',
-            self::Distance => 'Cardio-afstand totaal',
-            self::Records => 'Verbeterde records',
-            self::Streak => 'Weken op rij met 2+ trainingen',
-            self::FullWeek => 'Trainingen in één week',
-            self::SessionVolume => 'Volume in één training',
-            self::SessionDistance => 'Cardio-afstand in één training',
-            self::LongSessions => 'Trainingen van 1,5 uur of langer',
-            self::Early => 'Trainingen vóór 7:00',
-            self::Late => 'Trainingen na 21:00',
-            self::Weekend => 'Trainingen in het weekend',
-            self::ExerciseCount => 'Keer een oefening gedaan',
-            self::ExerciseWeight => 'Zwaarste gewicht bij een oefening',
-            self::ExerciseDistance => 'Afstand totaal bij een cardio-oefening',
+            self::Sessions => __('Number of trainings'),
+            self::Hours => __('Total training time'),
+            self::Volume => __('Total volume (reps × kg)'),
+            self::Distance => __('Total cardio distance'),
+            self::Records => __('Improved records'),
+            self::Streak => __('Weeks in a row with 2+ trainings'),
+            self::FullWeek => __('Trainings in one week'),
+            self::SessionVolume => __('Volume in one training'),
+            self::SessionDistance => __('Cardio distance in one training'),
+            self::LongSessions => __('Trainings of 1.5 hours or longer'),
+            self::Early => __('Trainings before 7:00'),
+            self::Late => __('Trainings after 21:00'),
+            self::Weekend => __('Trainings at the weekend'),
+            self::ExerciseCount => __('Times an exercise was done'),
+            self::ExerciseWeight => __('Heaviest weight on an exercise'),
+            self::ExerciseDistance => __('Total distance on a cardio exercise'),
         };
     }
 
@@ -51,13 +51,13 @@ enum BadgeMetric: string
     public function unit(): string
     {
         return match ($this) {
-            self::Hours => 'uur',
+            self::Hours => __('hours'),
             self::Volume, self::SessionVolume, self::ExerciseWeight => 'kg',
             self::Distance, self::SessionDistance, self::ExerciseDistance => 'km',
-            self::Records => 'records',
-            self::Streak => 'weken op rij',
-            self::ExerciseCount => 'keer',
-            default => 'trainingen',
+            self::Records => __('records'),
+            self::Streak => __('weeks in a row'),
+            self::ExerciseCount => __('times'),
+            default => __('trainings'),
         };
     }
 

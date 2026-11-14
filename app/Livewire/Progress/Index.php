@@ -17,7 +17,7 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Index extends Component
 {
-    public const PERIODS = ['week' => 'Deze week', 'month' => 'Deze maand', 'year' => 'Dit jaar'];
+    public const PERIODS = ['week' => 'This week', 'month' => 'This month', 'year' => 'This year'];
 
     #[Url]
     public string $period = 'week';
@@ -80,6 +80,6 @@ class Index extends Component
             // Gewicht van het afgelopen jaar, oudste eerst (bijhouden op de profielpagina)
             'weights' => Auth::user()->bodyWeights()->where('measured_on', '>=', today()->subYear())->orderBy('measured_on')->get(),
             'targetWeight' => Auth::user()->target_weight_kg,
-        ])->title('Progress');
+        ])->title(__('Progress'));
     }
 }

@@ -1,6 +1,6 @@
 {{--
     Layout voor gasten (login, registreren, wachtwoord vergeten, e-mail verifiëren, 2FA).
-    Gebruik: <x-layouts.guest title="Inloggen" subtitle="Welkom terug"> ... <x-slot:footer>...</x-slot:footer></x-layouts.guest>
+    Gebruik: <x-layouts.guest :title="__('Log in')" :subtitle="__('Welcome back')"> ... <x-slot:footer>...</x-slot:footer></x-layouts.guest>
 --}}
 @props(['title' => null, 'subtitle' => null])
 
@@ -19,10 +19,7 @@
     <div class="absolute -left-20 top-32 size-64 rounded-full bg-fire-500/20 blur-3xl"></div>
 </div>
 
-<div class="absolute right-[max(1rem,env(safe-area-inset-right))] top-[calc(env(safe-area-inset-top)+1rem)] text-white">
-    <x-theme-toggle/>
-</div>
-
+{{-- Geen taalkeuze hier: gasten krijgen de taal van hun telefoon/computer, die bij registreren in het profiel wordt bewaard --}}
 <main
     class="relative flex min-h-dvh flex-col items-center px-[max(1rem,env(safe-area-inset-left))] pb-[calc(env(safe-area-inset-bottom)+2.5rem)] pt-[calc(env(safe-area-inset-top)+2.5rem)] sm:justify-center">
     <a href="{{ url('/') }}" class="mb-6 flex flex-col items-center text-white">

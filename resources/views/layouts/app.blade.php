@@ -14,32 +14,32 @@
 
     // Hoofdmenu (sidebar). 'active' = patroon voor request()->routeIs()
     $nav = [
-        ['route' => 'dashboard',           'active' => 'dashboard',        'icon' => 'home',     'label' => 'Dashboard'],
-        ['route' => 'workouts.index',      'active' => 'workouts.*',       'icon' => 'dumbbell', 'label' => 'Workouts'],
-        ['route' => 'exercises.index',     'active' => 'exercises.*',      'icon' => 'bolt',     'label' => 'Exercises'],
-        ['route' => 'body-parts.index',    'active' => 'body-parts.*',     'icon' => 'body',     'label' => 'BodyParts'],
-        ['route' => 'muscle-groups.index', 'active' => 'muscle-groups.*',  'icon' => 'arm',      'label' => 'MuscleGroups'],
-        ['route' => 'muscles.index',       'active' => 'muscles.*',        'icon' => 'fiber',    'label' => 'Muscles'],
-        ['route' => 'calendar',            'active' => 'calendar',         'icon' => 'calendar', 'label' => 'Calendar'],
-        ['route' => 'progress.index',      'active' => 'progress.*',       'icon' => 'chart',    'label' => 'Progress'],
-        ['route' => 'badges',              'active' => 'badges',           'icon' => 'medal',    'label' => 'Badges'],
+        ['route' => 'dashboard',           'active' => 'dashboard',        'icon' => 'home',     'label' => __('Dashboard')],
+        ['route' => 'workouts.index',      'active' => 'workouts.*',       'icon' => 'dumbbell', 'label' => __('Workouts')],
+        ['route' => 'exercises.index',     'active' => 'exercises.*',      'icon' => 'bolt',     'label' => __('Exercises')],
+        ['route' => 'body-parts.index',    'active' => 'body-parts.*',     'icon' => 'body',     'label' => __('BodyParts')],
+        ['route' => 'muscle-groups.index', 'active' => 'muscle-groups.*',  'icon' => 'arm',      'label' => __('MuscleGroups')],
+        ['route' => 'muscles.index',       'active' => 'muscles.*',        'icon' => 'fiber',    'label' => __('Muscles')],
+        ['route' => 'calendar',            'active' => 'calendar',         'icon' => 'calendar', 'label' => __('Calendar')],
+        ['route' => 'progress.index',      'active' => 'progress.*',       'icon' => 'chart',    'label' => __('Progress')],
+        ['route' => 'badges',              'active' => 'badges',           'icon' => 'medal',    'label' => __('Badges')],
     ];
 
     // Alleen voor admins
     if (auth()->user()?->isAdmin()) {
         // Teller: nieuwe accounts van de afgelopen 7 dagen
-        $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => 'Gebruikers', 'badge' => auth()->user()->newUsersCount()];
-        $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => 'Instellingen'];
-        $nav[] = ['route' => 'admin.badges', 'active' => 'admin.badges', 'icon' => 'medal', 'label' => 'Badgebeheer'];
+        $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => __('Users'), 'badge' => auth()->user()->newUsersCount()];
+        $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => __('Settings')];
+        $nav[] = ['route' => 'admin.badges', 'active' => 'admin.badges', 'icon' => 'medal', 'label' => __('Badge management')];
     }
 
     // Mobiele menubalk (altijd onderaan)
     $mobile = [
-        ['route' => 'dashboard',      'active' => 'dashboard',               'icon' => 'home',     'label' => 'Dashboard'],
-        ['route' => 'workouts.index', 'active' => 'workouts.*',              'icon' => 'dumbbell', 'label' => 'Workouts'],
-        ['route' => 'quickstart',     'active' => 'quickstart|sessions.*',   'icon' => 'play',     'label' => 'Quickstart', 'highlight' => true],
-        ['route' => 'progress.index', 'active' => 'progress.*',              'icon' => 'chart',    'label' => 'Progress'],
-        ['route' => 'profile.edit',   'active' => 'profile.*',               'icon' => 'user',     'label' => 'Profile'],
+        ['route' => 'dashboard',      'active' => 'dashboard',               'icon' => 'home',     'label' => __('Dashboard')],
+        ['route' => 'workouts.index', 'active' => 'workouts.*',              'icon' => 'dumbbell', 'label' => __('Workouts')],
+        ['route' => 'quickstart',     'active' => 'quickstart|sessions.*',   'icon' => 'play',     'label' => __('Quickstart'), 'highlight' => true],
+        ['route' => 'progress.index', 'active' => 'progress.*',              'icon' => 'chart',    'label' => __('Progress')],
+        ['route' => 'profile.edit',   'active' => 'profile.*',               'icon' => 'user',     'label' => __('Profile')],
     ];
 
     // Op mobiel onder de drie puntjes rechtsboven
@@ -67,7 +67,7 @@
         <x-app-logo class="hidden lg:flex"/>
     </a>
 
-    <nav class="flex flex-col gap-1" aria-label="Hoofdmenu">
+    <nav class="flex flex-col gap-1" aria-label="{{ __('Main menu') }}">
         @foreach ($nav as $item)
             <x-nav.sidebar-link :href="$link($item['route'])" :icon="$item['icon']" :active="$is($item['active'])" :badge="$item['badge'] ?? 0">
                 {{ $item['label'] }}
@@ -75,22 +75,21 @@
         @endforeach
     </nav>
 
-    <a href="{{ $link('quickstart') }}" wire:navigate title="Quickstart"
+    <a href="{{ $link('quickstart') }}" wire:navigate title="{{ __('Quickstart') }}"
        class="my-3 flex items-center justify-center gap-3 rounded-2xl bg-linear-to-br from-accent-400 to-fire-500 px-3 py-3 font-bold text-white shadow-lg shadow-black/20 transition hover:brightness-105 lg:justify-start lg:px-3.5">
         <x-icon name="play" class="size-5.5"/>
-        <span class="hidden lg:inline">Quickstart</span>
+        <span class="hidden lg:inline">{{ __('Quickstart') }}</span>
     </a>
 
     <div class="mt-auto flex flex-col gap-1 border-t border-white/10 pt-3">
-        <x-nav.sidebar-link :href="$link('profile.edit')" icon="user" :active="$is('profile.*')">Profiel
-        </x-nav.sidebar-link>
+        <x-nav.sidebar-link :href="$link('profile.edit')" icon="user" :active="$is('profile.*')">{{ __('Profile') }}</x-nav.sidebar-link>
         <x-theme-toggle variant="sidebar"/>
         <form method="POST" action="{{ $link('logout') }}">
             @csrf
-            <button type="submit" title="Uitloggen"
+            <button type="submit" title="{{ __('Log out') }}"
                     class="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-brand-200 transition hover:bg-white/10 hover:text-white lg:justify-start lg:px-3.5">
                 <x-icon name="logout" class="size-5.5"/>
-                <span class="hidden lg:inline">Uitloggen</span>
+                <span class="hidden lg:inline">{{ __('Log out') }}</span>
             </button>
         </form>
         <div class="mt-2 hidden items-center gap-3 rounded-xl bg-white/5 p-2.5 lg:flex">
@@ -120,7 +119,7 @@
         {{--            </button>--}}
         {{--        </form>--}}
         {{--        <x-theme-toggle/>--}}
-        <button type="button" x-on:click="more = ! more" :aria-expanded="more" aria-label="Meer"
+        <button type="button" x-on:click="more = ! more" :aria-expanded="more" aria-label="{{ __('More') }}"
                 class="relative grid size-11 place-items-center rounded-xl transition hover:bg-white/15">
             <x-icon name="dots" class="size-6"/>
             @if ($more->sum('badge'))
@@ -146,7 +145,7 @@
                 <button
                     class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10">
                     <x-icon name="logout"/>
-                    Uitloggen
+                    {{ __('Log out') }}
                 </button>
             </form>
         </div>
@@ -158,7 +157,7 @@
         <div class="mx-auto max-w-6xl">
             {{-- Mededeling van de admin (Instellingen) --}}
             @if (\App\Support\Offline::isOn())
-                <x-alert type="danger" :dismissible="false" class="mb-5">De site staat offline: alleen admins kunnen erin. <a href="{{ route('admin.settings') }}" wire:navigate class="underline">Weer online zetten</a></x-alert>
+                <x-alert type="danger" :dismissible="false" class="mb-5">{{ __('The site is offline: only admins can get in.') }} <a href="{{ route('admin.settings') }}" wire:navigate class="underline">{{ __('Put it back online') }}</a></x-alert>
             @endif
             @if ($announcement = \App\Models\Setting::get('announcement'))
                 <x-alert :type="\App\Models\Setting::get('announcement_type', 'info')" :timeout="0" class="mb-5">{!! nl2br(e($announcement)) !!}</x-alert>
@@ -172,7 +171,7 @@
 </div>
 
 {{-- Mobiele menubalk: altijd zichtbaar onderaan --}}
-<nav aria-label="Menu"
+<nav aria-label="{{ __('Menu') }}"
      class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 items-end border-t border-slate-200 bg-white/95 px-1 pt-1.5 pb-[calc(env(safe-area-inset-bottom)+.25rem)] backdrop-blur md:hidden dark:border-line-dark dark:bg-panel-dark/95">
     @foreach ($mobile as $item)
         <x-nav.bottom-link :href="$link($item['route'])" :icon="$item['icon']" :active="$is($item['active'])"

@@ -1,8 +1,8 @@
 @extends('errors.layout')
 
 @section('code', '419')
-@section('title', 'Sessie verlopen')
+@section('title', __('Session expired'))
 @section('message')
-Je was even weg, daardoor is de pagina verlopen. Ga terug, vernieuw de pagina en probeer het opnieuw.
+{{ __('You were away for a while, so the page expired. Go back, refresh the page and try again.') }}
 @endsection
 

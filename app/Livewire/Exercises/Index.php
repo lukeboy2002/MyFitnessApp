@@ -11,12 +11,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('Exercises')]
 class Index extends Component
 {
     use ConfirmsDeletion;
@@ -56,7 +54,7 @@ class Index extends Component
 
         $copy = $exercise->replicate(['archived_at']);
         $copy->user_id = Auth::id();
-        $copy->name = $exercise->isStandard() ? $exercise->name : $exercise->name.' (kopie)';
+        $copy->name = $exercise->isStandard() ? $exercise->name : __(':name (copy)', ['name' => $exercise->name]);
         $copy->slug = Exercise::uniqueSlug($copy->name, Auth::id());
 
         if ($exercise->image_path) {
@@ -70,7 +68,7 @@ class Index extends Component
             $copy->syncMuscleGroups($primary->id, $exercise->secondaryMuscleGroups()->pluck('id')->all());
         }
 
-        session()->flash('status', "Kopie van {$exercise->name} gemaakt. Pas hem hier aan.");
+        session()->flash('status', __('Copy of :name created. Adjust it here.', ['name' => $exercise->name]));
 
         return $this->redirectRoute('exercises.edit', $copy, navigate: true);
     }
@@ -81,7 +79,7 @@ class Index extends Component
         $this->authorize('update', $exercise);
 
         $exercise->update(['archived_at' => now()]);
-        $this->message = "{$exercise->name} is gearchiveerd.";
+        $this->message = __(':name is archived.', ['name' => $exercise->name]);
         unset($this->filtered, $this->exercises, $this->letters);
     }
 
@@ -91,7 +89,7 @@ class Index extends Component
         $this->authorize('update', $exercise);
 
         $exercise->update(['archived_at' => null]);
-        $this->message = "{$exercise->name} staat weer in je lijst.";
+        $this->message = __(':name is back in your list.', ['name' => $exercise->name]);
         unset($this->filtered, $this->exercises, $this->letters);
     }
 
@@ -107,14 +105,14 @@ class Index extends Component
 
         if ($exercise->session_exercises_count > 0) {
             $this->message = null;
-            $this->error = "{$exercise->name} heb je al eens getraind; verwijderen zou je historie wissen. Archiveer hem liever.";
+            $this->error = __('You have trained :name before; deleting it would erase your history. Archive it instead.', ['name' => $exercise->name]);
 
             return;
         }
 
         if ($exercise->workout_exercises_count > 0) {
             $this->message = null;
-            $this->error = "{$exercise->name} zit nog in {$exercise->workout_exercises_count} workout(s). Haal hem daar eerst weg, of archiveer hem.";
+            $this->error = trans_choice(':name is still in :count workout. Take it out there first, or archive it.|:name is still in :count workouts. Take it out there first, or archive it.', $exercise->workout_exercises_count, ['name' => $exercise->name]);
 
             return;
         }
@@ -125,7 +123,7 @@ class Index extends Component
 
         $exercise->delete();
         $this->error = null;
-        $this->message = "{$exercise->name} is verwijderd.";
+        $this->message = __(':name is deleted.', ['name' => $exercise->name]);
         unset($this->filtered, $this->exercises, $this->letters);
     }
 
@@ -197,6 +195,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.exercises.index');
+        return view('livewire.exercises.index')->title(__('Exercises'));
     }
 }

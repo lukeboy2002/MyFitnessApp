@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\BlockWhenOffline;
+use App\Http\Middleware\SetLocale;
+use App\Support\Locale;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,11 +17,19 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Offline-melding vóór de inlogcheck, zodat gasten de melding zien in plaats van het inlogscherm
-        $middleware->web(append: [BlockWhenOffline::class]);
+        // Taal eerst, zodat ook de offline-pagina in je eigen taal is
+        $middleware->web(append: [SetLocale::class, BlockWhenOffline::class]);
         $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: BlockWhenOffline::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Fout vóór de web-middleware (bv. 404 op een onbekende url): geen sessie, dus taal van de browser
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if (! $request->hasSession()) {
+                Locale::apply(Locale::resolve($request));
+            }
+        });
     })->create();

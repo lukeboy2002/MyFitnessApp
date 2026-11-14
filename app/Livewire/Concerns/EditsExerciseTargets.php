@@ -34,9 +34,9 @@ trait EditsExerciseTargets
     protected function targetAttributes(string $prefix): array
     {
         return [
-            "{$prefix}.sets" => 'sets', "{$prefix}.reps" => 'herhalingen', "{$prefix}.weight" => 'gewicht', "{$prefix}.rest" => 'rust',
-            "{$prefix}.seconds" => 'tijd', "{$prefix}.minutes" => 'tijd', "{$prefix}.metric" => 'instelling',
-            "{$prefix}.metric_value" => 'waarde', "{$prefix}.notes" => 'notitie',
+            "{$prefix}.sets" => __('sets'), "{$prefix}.reps" => __('reps'), "{$prefix}.weight" => __('weight'), "{$prefix}.rest" => __('rest'),
+            "{$prefix}.seconds" => __('time'), "{$prefix}.minutes" => __('time'), "{$prefix}.metric" => __('setting'),
+            "{$prefix}.metric_value" => __('value'), "{$prefix}.notes" => __('note'),
         ];
     }
 

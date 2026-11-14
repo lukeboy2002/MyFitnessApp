@@ -8,11 +8,11 @@
 
 <div class="flex flex-col gap-3">
     <div class="grid gap-3 sm:grid-cols-[1fr_13rem]">
-        <x-form.input wire:model.live.debounce.250ms="pickerSearch" icon="search" placeholder="Zoek een oefening…" aria-label="Zoeken" />
-        <x-form.select wire:model.live="pickerGroup" :options="$groups->pluck('name', 'id')" placeholder="Alle spiergroepen" aria-label="Spiergroep" />
+        <x-form.input wire:model.live.debounce.250ms="pickerSearch" icon="search" :placeholder="__('Search an exercise…')" :aria-label="__('Search')" />
+        <x-form.select wire:model.live="pickerGroup" :options="$groups->pluck('name', 'id')" :placeholder="__('All muscle groups')" :aria-label="__('Muscle group')" />
     </div>
     <div class="flex flex-wrap gap-2">
-        @foreach (['' => 'Alles'] + collect(\App\Enums\ExerciseType::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all() as $value => $label)
+        @foreach (['' => __('All')] + collect(\App\Enums\ExerciseType::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all() as $value => $label)
             <button type="button" wire:click="$set('pickerType', '{{ $value }}')" wire:key="pt-{{ $value ?: 'all' }}"
                     @class(['rounded-full px-3.5 py-1.5 text-sm font-semibold ring-1 ring-inset transition',
                             'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $type === $value,
@@ -23,7 +23,7 @@
                     @class(['ml-auto inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold ring-1 ring-inset transition',
                             'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => $own,
                             'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => ! $own])>
-                <x-icon name="user" class="size-4" /> Eigen oefeningen
+                <x-icon name="user" class="size-4" /> {{ __('Own exercises') }}
             </button>
         @endif
     </div>
@@ -43,17 +43,17 @@
                     </span>
                     <span class="min-w-0 flex-1">
                         <span class="block truncate font-semibold">{{ $option->name }}</span>
-                        <span class="block text-xs text-slate-500 dark:text-slate-400">{{ $option->type->label() }}@if ($primary) · {{ $primary->name }}@endif @unless ($option->isStandard()) · Eigen @endunless</span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400">{{ $option->type->label() }}@if ($primary) · {{ $primary->name }}@endif @unless ($option->isStandard()) · {{ __('Own') }} @endunless</span>
                     </span>
                     @if ($count = $added[$option->id] ?? 0)
-                        <x-badge color="success" icon="check">{{ $count > 1 ? $count.'×' : 'Toegevoegd' }}</x-badge>
+                        <x-badge color="success" icon="check">{{ $count > 1 ? $count.'×' : __('Added') }}</x-badge>
                     @else
                         <x-icon name="plus" class="size-5 text-brand-700 dark:text-brand-300" />
                     @endif
                 </button>
             </li>
         @empty
-            <li class="px-2 py-6 text-center text-slate-500 dark:text-slate-400">Geen oefeningen gevonden.</li>
+            <li class="px-2 py-6 text-center text-slate-500 dark:text-slate-400">{{ __('No exercises found.') }}</li>
         @endforelse
     </ul>
 </div>

@@ -24,7 +24,7 @@ class DeleteUser extends Component
         $this->validate([
             'password' => ['required', 'string', 'current_password:web'],
         ], [
-            'password.current_password' => 'Dit wachtwoord klopt niet.',
+            'password.current_password' => __('This password is incorrect.'),
         ]);
 
         $user = Auth::user();

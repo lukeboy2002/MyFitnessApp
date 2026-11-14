@@ -43,29 +43,29 @@ class GoalProgress
                 FitnessGoal::BuildMuscle,
                 $stats->totals($from)['volume'],
                 $stats->totals($from->subDays(self::DAYS), $from)['volume'],
-                fn ($kilos) => TrainingStats::kilos($kilos), 'kg volume',
-                'Train elke spiergroep twee keer per week en verhoog steeds je herhalingen of gewicht.',
+                fn ($kilos) => TrainingStats::kilos($kilos), __('kg volume'),
+                __('Train every muscle group twice a week and keep increasing your reps or weight.'),
             ),
             FitnessGoal::Strength => self::compare(
                 FitnessGoal::Strength,
                 self::recordsBetween($user, $from, $now),
                 self::recordsBetween($user, $from->subDays(self::DAYS), $from),
-                fn ($count) => (string) $count, 'records',
-                'Zware sets van 3 tot 6 herhalingen met 2 tot 3 minuten rust maken je het sterkst.',
+                fn ($count) => (string) $count, __('records'),
+                __('Heavy sets of 3 to 6 reps with 2 to 3 minutes of rest make you strongest.'),
             ),
             FitnessGoal::Endurance => self::compare(
                 FitnessGoal::Endurance,
                 $stats->totals($from)['distance_m'] / 1000,
                 $stats->totals($from->subDays(self::DAYS), $from)['distance_m'] / 1000,
-                fn ($km) => WorkoutExercise::number(round($km, 1)), 'km cardio',
-                self::zoneTip($user, 2, 'Doe het meeste rustig in zone 2{zone} en één keer per week een intervaltraining.'),
+                fn ($km) => WorkoutExercise::number(round($km, 1)), __('km cardio'),
+                self::zoneTip($user, 2, 'Do most of it easy in zone 2:zone and an interval training once a week.'),
             ),
             FitnessGoal::StayFit => self::compare(
                 FitnessGoal::StayFit,
                 $stats->totals($from)['count'],
                 $stats->totals($from->subDays(self::DAYS), $from)['count'],
-                fn ($count) => (string) $count, 'trainingen',
-                'Een paar keer per week bewegen is belangrijker dan af en toe heel hard trainen.',
+                fn ($count) => (string) $count, __('trainings'),
+                __('Moving a few times a week matters more than training very hard now and then.'),
             ),
         };
     }
@@ -74,11 +74,11 @@ class GoalProgress
     private static function loseWeight(User $user, CarbonImmutable $from): self
     {
         $weights = $user->bodyWeights()->orderBy('measured_on')->get();
-        $tip = self::zoneTip($user, 2, 'Combineer kracht met rustige cardio in zone 2{zone}: zo verbrand je vet en houd je je spieren.');
-        $link = ['label' => 'Weging invullen', 'url' => route('profile.edit').'#gewicht'];
+        $tip = self::zoneTip($user, 2, 'Combine strength with easy cardio in zone 2:zone: that way you burn fat and keep your muscles.');
+        $link = ['label' => __('Log weight'), 'url' => route('profile.edit').'#gewicht'];
 
         if ($weights->isEmpty()) {
-            return new self(FitnessGoal::LoseWeight, null, null, 'Weeg jezelf om je voortgang te zien.', null, $tip, $link);
+            return new self(FitnessGoal::LoseWeight, null, null, __('Weigh yourself to see your progress.'), null, $tip, $link);
         }
 
         $latest = $weights->last();
@@ -88,13 +88,13 @@ class GoalProgress
 
         $detail = [];
         if ($latest->isNot($before)) {
-            $detail[] = ($change > 0 ? '+' : '').$n($change).' kg sinds '.$before->measured_on->translatedFormat('j M');
+            $detail[] = __(':change kg since :date', ['change' => ($change > 0 ? '+' : '').$n($change), 'date' => $before->measured_on->translatedFormat('j M')]);
         }
 
         $percent = null;
         if ($target = $user->target_weight_kg) {
             $toGo = round($latest->weight_kg - $target, 1);
-            $detail[] = $toGo > 0 ? 'nog '.$n($toGo).' kg tot '.$n($target).' kg' : 'streefgewicht bereikt';
+            $detail[] = $toGo > 0 ? __(':amount kg to go until :target kg', ['amount' => $n($toGo), 'target' => $n($target)]) : __('target weight reached');
 
             $start = (float) $weights->first()->weight_kg;
             $percent = $start > $target ? (int) max(0, min(100, round(($start - $latest->weight_kg) / ($start - $target) * 100))) : ($toGo > 0 ? 0 : 100);
@@ -107,12 +107,12 @@ class GoalProgress
     private static function compare(FitnessGoal $goal, float|int $now, float|int $before, callable $format, string $unit, string $tip): self
     {
         $detail = match (true) {
-            $before > 0 => (($difference = (int) round(($now - $before) / $before * 100)) >= 0 ? '+' : '').$difference.'% t.o.v. de 30 dagen ervoor ('.$format($before).')',
-            $now > 0 => 'De 30 dagen ervoor: nog niets',
-            default => 'Nog niets in de laatste 30 dagen',
+            $before > 0 => __(':difference% compared to the 30 days before (:before)', ['difference' => (($difference = (int) round(($now - $before) / $before * 100)) >= 0 ? '+' : '').$difference, 'before' => $format($before)]),
+            $now > 0 => __('The 30 days before: nothing yet'),
+            default => __('Nothing yet in the last 30 days'),
         };
 
-        return new self($goal, $format($now), $unit, $detail, null, $tip, ['label' => 'Progress', 'url' => route('progress.index')]);
+        return new self($goal, $format($now), $unit, $detail, null, $tip, ['label' => __('Progress'), 'url' => route('progress.index')]);
     }
 
     /** Tip met de hartslag van een zone erin, als die bekend is */
@@ -120,7 +120,7 @@ class GoalProgress
     {
         $zone = HeartRateZones::forUser($user)?->all()[$number - 1];
 
-        return str_replace('{zone}', $zone ? ' ('.$zone['from'].' tot '.$zone['to'].' bpm)' : '', $tip);
+        return __($tip, ['zone' => $zone ? ' '.__('(:from to :to bpm)', ['from' => $zone['from'], 'to' => $zone['to']]) : '']);
     }
 
     /** Aantal records (zoals op het trainingsscherm) in afgeronde trainingen tussen $from en $until */

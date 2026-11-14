@@ -25,6 +25,6 @@ class SendRestOverPush implements ShouldQueue
             return; // intussen een nieuwe rust, overgeslagen of training afgerond
         }
 
-        WebPush::send($user, ['title' => 'Rust voorbij', 'body' => $this->body, 'url' => $this->url, 'tag' => 'rest']);
+        WebPush::send($user, ['title' => __('Rest is over', [], $user->preferredLocale()), 'body' => $this->body, 'url' => $this->url, 'tag' => 'rest']);
     }
 }

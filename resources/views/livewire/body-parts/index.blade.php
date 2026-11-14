@@ -1,13 +1,13 @@
 <div>
-    <x-page-header title="BodyParts" description="Lichaamsdelen waar de spiergroepen onder vallen.">
-        <x-button icon="plus" type="button" wire:click="create">Lichaamsdeel toevoegen</x-button>
+    <x-page-header :title="__('BodyParts')" :description="__('Body parts that the muscle groups belong to.')">
+        <x-button icon="plus" type="button" wire:click="create">{{ __('Add body part') }}</x-button>
     </x-page-header>
 
     @include('livewire.partials.master-data-messages')
 
     @if ($this->bodyParts->isEmpty())
         <x-card>
-            <p class="py-6 text-center text-slate-500">Nog geen lichaamsdelen. Draai <code>php artisan db:seed --class=BodyPartSeeder</code> voor de standaardlijst.</p>
+            <p class="py-6 text-center text-slate-500">{{ __('No body parts yet. Run') }} <code>php artisan db:seed --class=BodyPartSeeder</code> {{ __('for the standard list.') }}</p>
         </x-card>
     @else
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -29,19 +29,19 @@
                                 <x-icon :name="$bodyPart->icon ?? 'body'" class="size-5" />
                             </span>
                             <h2 class="grow self-center font-display text-lg sm:text-xl font-bold uppercase tracking-wide">{{ $bodyPart->name }}</h2>
-                            <x-badge :color="$bodyPart->isStandard() ? 'gray' : 'brand'">{{ $bodyPart->isStandard() ? 'Standaard' : 'Eigen' }}</x-badge>
+                            <x-badge :color="$bodyPart->isStandard() ? 'gray' : 'brand'">{{ $bodyPart->isStandard() ? __('Standard') : __('Own') }}</x-badge>
                         </div>
                         <div class="flex flex-wrap gap-1.5">
                             @forelse ($bodyPart->muscleGroups as $group)
                                 <x-badge :hex="$group->color">{{ $group->name }}</x-badge>
                             @empty
-                                <span class="text-sm text-slate-500 dark:text-slate-400">Nog geen spiergroepen</span>
+                                <span class="text-sm text-slate-500 dark:text-slate-400">{{ __('No muscle groups yet') }}</span>
                             @endforelse
                         </div>
                         @can('update', $bodyPart)
                             <div class="mt-auto flex justify-end gap-1 pt-1">
-                                <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $bodyPart->id }})">Bewerken</x-button>
-                                <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="confirmDelete({{ $bodyPart->id }})" aria-label="Verwijderen" />
+                                <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $bodyPart->id }})">{{ __('Edit') }}</x-button>
+                                <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="confirmDelete({{ $bodyPart->id }})" :aria-label="__('Delete')" />
                             </div>
                         @endcan
                     </div>
@@ -50,22 +50,22 @@
         </div>
     @endif
 
-    <x-modal wire:model="showForm" :title="$editingId ? 'Lichaamsdeel bewerken' : 'Nieuw lichaamsdeel'" max-width="md">
+    <x-modal wire:model="showForm" :title="$editingId ? __('Edit body part') : __('New body part')" max-width="md">
         <form wire:submit="save" id="body-part-form" class="grid gap-4 sm:grid-cols-3">
-            <x-form.input label="Naam" wire:model="name" required class="sm:col-span-2" placeholder="Bijv. Bovenlichaam" />
-            <x-form.input label="Volgorde" type="number" wire:model="sort_order" inputmode="numeric" min="0" />
-            <x-form.select label="Icoon" wire:model.live="icon" :options="\App\Livewire\BodyParts\Index::ICONS" class="sm:col-span-2" />
+            <x-form.input :label="__('Name')" wire:model="name" required class="sm:col-span-2" :placeholder="__('e.g. :example', ['example' => __('Upper body')])" />
+            <x-form.input :label="__('Order')" type="number" wire:model="sort_order" inputmode="numeric" min="0" />
+            <x-form.select :label="__('Icon')" wire:model.live="icon" :options="array_map(fn ($label) => __($label), \App\Livewire\BodyParts\Index::ICONS)" class="sm:col-span-2" />
             <div class="flex items-end">
                 <span class="grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
                     <x-icon :name="$icon ?: 'body'" class="size-6" />
                 </span>
             </div>
-            <x-form.image-upload label="Plaatje" wire:model="image" class="sm:col-span-3" hint="PNG met transparante achtergrond werkt het mooist · max 2 MB"
+            <x-form.image-upload :label="__('Image')" wire:model="image" class="sm:col-span-3" :hint="__('PNG with a transparent background looks best · up to :size MB', ['size' => 2])"
                                  :preview="$image?->temporaryUrl() ?? $currentImage" remove="deleteImage" />
         </form>
         <x-slot:footer>
-            <x-button variant="ghost" type="button" wire:click="closeForm">Annuleren</x-button>
-            <x-button form="body-part-form" icon="check" loading="save">Opslaan</x-button>
+            <x-button variant="ghost" type="button" wire:click="closeForm">{{ __('Cancel') }}</x-button>
+            <x-button form="body-part-form" icon="check" loading="save">{{ __('Save') }}</x-button>
         </x-slot:footer>
     </x-modal>
 

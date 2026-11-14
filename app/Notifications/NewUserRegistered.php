@@ -23,13 +23,13 @@ class NewUserRegistered extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Nieuwe gebruiker: '.$this->user->name)
-            ->greeting('Hallo '.$notifiable->name.',')
-            ->line('Er heeft zich een nieuwe gebruiker geregistreerd:')
+            ->subject(__('New user: :name', ['name' => $this->user->name]))
+            ->greeting(__('Hello :name,', ['name' => $notifiable->name]))
+            ->line(__('A new user has registered:'))
             ->line('**'.$this->user->name.'** ('.$this->user->username.')')
             ->line($this->user->email)
-            ->line('Geregistreerd op '.$this->user->created_at->translatedFormat('j F Y \o\m H:i').'.')
-            ->action('Bekijk de gebruikers', route('admin.users'))
-            ->salutation('Groet, '.config('app.name'));
+            ->line(__('Registered on :date at :time.', ['date' => $this->user->created_at->translatedFormat('j F Y'), 'time' => $this->user->created_at->format('H:i')]))
+            ->action(__('View the users'), route('admin.users'))
+            ->salutation(__('Regards, :app', ['app' => config('app.name')]));
     }
 }

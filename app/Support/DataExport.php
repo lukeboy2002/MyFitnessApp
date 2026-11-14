@@ -36,14 +36,16 @@ class DataExport
     {
         return match ($type) {
             'trainingen' => [
-                'Datum', 'Starttijd', 'Training', 'Duur training (min)', 'Oefening', 'Type',
-                'Set', 'Herhalingen', 'Gewicht (kg)', 'Tijd', 'Afgerond',
-                'Afstand (km)', 'Cardiotijd', 'Instelling', 'Waarde',
-                ...array_column(CardioLog::FIELDS, 0),
-                'Notitie',
+                ...array_map(fn (string $label) => __($label), [
+                    'Date', 'Start time', 'Training', 'Training duration (min)', 'Exercise', 'Type',
+                    'Set', 'Reps', 'Weight (kg)', 'Time', 'Completed',
+                    'Distance (km)', 'Cardio time', 'Setting', 'Value',
+                ]),
+                ...array_map(fn (string $label) => __($label), array_column(CardioLog::FIELDS, 0)),
+                __('Note'),
             ],
-            'wegingen' => ['Datum', 'Gewicht (kg)', 'Vetpercentage (%)'],
-            'maten' => ['Datum', ...array_map(fn (string $label) => "{$label} (cm)", BodyMeasurement::FIELDS)],
+            'wegingen' => [__('Date'), __('Weight (kg)'), __('Body fat (%)')],
+            'maten' => [__('Date'), ...array_map(fn (string $label) => "{$label} (cm)", BodyMeasurement::labels())],
         };
     }
 
@@ -97,7 +99,7 @@ class DataExport
 
             if ($cardio) {
                 yield [
-                    '', '', '', '', $item->completed_at ? 'ja' : 'nee',
+                    '', '', '', '', $item->completed_at ? __('yes') : __('no'),
                     self::number($cardio->distance_m === null ? null : $cardio->distance_m / 1000, 2),
                     self::duration($cardio->duration_seconds),
                     $cardio->metric?->label() ?? '',
@@ -115,7 +117,7 @@ class DataExport
                 $set->reps ?? '',
                 $item->exercise->type->usesWeight() || $set->weight !== null ? self::number($set->weight, 2) : '',
                 self::duration($set->duration_seconds),
-                $set->is_completed ? 'ja' : 'nee',
+                $set->is_completed ? __('yes') : __('no'),
                 ...$noCardio,
             ];
         }

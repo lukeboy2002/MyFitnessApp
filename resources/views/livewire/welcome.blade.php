@@ -7,9 +7,9 @@
 @endphp
 
 <div class="mx-auto max-w-3xl">
-    <x-page-header title="Welkom {{ str(auth()->user()->name)->before(' ') }}" description="Fijn dat je er bent. Vertel wat je wilt bereiken, dan zet ik een eerste workout voor je klaar." />
+    <x-page-header :title="__('Welcome :name', ['name' => str(auth()->user()->name)->before(' ')])" :description="__('Great to have you here. Tell me what you want to achieve, and I will set up a first workout for you.')" />
 
-    <x-card class="mb-5" title="Waar train je voor?">
+    <x-card class="mb-5" :title="__('What are you training for?')">
         <div class="grid gap-2 sm:grid-cols-2">
             @foreach (FitnessGoal::cases() as $option)
                 <label wire:key="goal-{{ $option->value }}" @class(['flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3 ring-1 transition',
@@ -22,7 +22,7 @@
         </div>
 
         <div class="mt-5">
-            <p class="mb-2 text-sm font-semibold">Hoe lang train je al?</p>
+            <p class="mb-2 text-sm font-semibold">{{ __('How long have you been training?') }}</p>
             <div class="inline-flex flex-wrap gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-white/5">
                 @foreach (ExperienceLevel::cases() as $option)
                     <button type="button" wire:click="$set('experience', '{{ $option->value }}')"
@@ -40,14 +40,14 @@
         <div class="flex items-start gap-3 px-5 pt-5 sm:px-6">
             <span class="mt-1 h-10 w-1.5 shrink-0 rounded-full bg-(--c)"></span>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Jouw eerste workout</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ __('Your first workout') }}</p>
                 <h2 class="font-display text-2xl font-bold uppercase">{{ $starter->name }}</h2>
                 <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">{{ $starter->description }}</p>
             </div>
         </div>
 
         @if ($starter->items->isEmpty())
-            <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">De standaardoefeningen voor deze workout ontbreken. Maak zelf een workout via Workouts.</p>
+            <p class="px-5 py-5 text-slate-500 sm:px-6 dark:text-slate-400">{{ __('The standard exercises for this workout are missing. Create a workout yourself via Workouts.') }}</p>
         @else
             <ul class="mt-4 divide-y divide-slate-100 dark:divide-line-dark">
                 @foreach ($starter->items as $item)
@@ -68,23 +68,23 @@
             </ul>
             <p class="flex gap-2 border-t border-slate-100 px-5 py-4 text-sm text-slate-600 sm:px-6 dark:border-line-dark dark:text-slate-300">
                 <x-icon name="info" class="mt-0.5 size-4 shrink-0 text-brand-600 dark:text-brand-300" />
-                Rust {{ $rest % 60 ? $rest.' seconden' : ($rest / 60).' '.($rest === 60 ? 'minuut' : 'minuten') }} tussen sets. Kies een gewicht waarmee de laatste herhalingen zwaar zijn; je vult het in tijdens de training.
+                {{ __('Rest :time between sets.', ['time' => $rest % 60 ? trans_choice(':count second|:count seconds', $rest) : trans_choice(':count minute|:count minutes', $rest / 60)]) }} {{ __('Choose a weight with which the last reps are hard; you fill it in during the training.') }}
             </p>
         @endif
     </x-card>
 
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <x-button variant="ghost" wire:click="skip" loading="skip">Overslaan</x-button>
+        <x-button variant="ghost" wire:click="skip" loading="skip">{{ __('Skip') }}</x-button>
         @if ($starter->items->isNotEmpty())
-            <x-button icon="check" wire:click="create" loading="create">Workout aanmaken</x-button>
+            <x-button icon="check" wire:click="create" loading="create">{{ __('Create workout') }}</x-button>
         @endif
     </div>
 
     <div class="mt-8 grid gap-3 sm:grid-cols-3">
         @foreach ([
-            ['play', 'Quickstart', 'Begin direct een training en voeg oefeningen toe terwijl je bezig bent.'],
-            ['calendar', 'Kalender', 'Plan je workouts in, dan zie je op het dashboard wat er vandaag op het menu staat.'],
-            ['medal', 'Records en badges', 'Elke training telt mee voor je records, badges en je weekdoel.'],
+            ['play', __('Quickstart'), __('Start a training right away and add exercises as you go.')],
+            ['calendar', __('Calendar (page)'), __('Plan your workouts, then the dashboard shows what is on the menu today.')],
+            ['medal', __('Records and badges'), __('Every training counts towards your records, badges and weekly goal.')],
         ] as [$icon, $title, $text])
             <div class="rounded-2xl bg-white p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-line-dark">
                 <x-icon :name="$icon" class="size-5 text-fire-500" />

@@ -13,6 +13,6 @@
         'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300' => $zone['number'] === 4,
         'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' => $zone['number'] === 5,
     ]) }} title="{{ $zone['percent'] }}% {{ $zones->basis() }}">
-        <x-icon name="heart" class="size-3.5" /> Zone {{ $zone['number'] }} · {{ $zone['name'] }} · {{ $zone['percent'] }}%
+        <x-icon name="heart" class="size-3.5" /> {{ __('Zone :number', ['number' => $zone['number']]) }} · {{ $zone['name'] }} · {{ $zone['percent'] }}%
     </span>
 @endif

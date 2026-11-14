@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Support\Locale;
+
 /** De instelling op een cardio-apparaat waar je op traint, naast de tijd */
 enum CardioMetric: string
 {
@@ -12,9 +14,9 @@ enum CardioMetric: string
     public function label(): string
     {
         return match ($this) {
-            self::Resistance => 'Weerstand',
-            self::Level => 'Niveau',
-            self::Speed => 'Snelheid',
+            self::Resistance => __('Resistance'),
+            self::Level => __('Level'),
+            self::Speed => __('Speed'),
         };
     }
 
@@ -26,9 +28,9 @@ enum CardioMetric: string
     /** Waarde met label, bv. "weerstand 8", "niveau 12" of "10,5 km/h" */
     public function format(float|string $value): string
     {
-        $number = str_replace('.', ',', rtrim(rtrim(number_format((float) $value, 1, '.', ''), '0'), '.'));
+        $number = str_replace('.', Locale::decimalSeparator(), rtrim(rtrim(number_format((float) $value, 1, '.', ''), '0'), '.'));
 
-        return $this === self::Speed ? "{$number} km/h" : mb_strtolower($this->label()).' '.$number;
+        return $this === self::Speed ? "{$number} km/h" : (app()->getLocale() === 'de' ? $this->label() : mb_strtolower($this->label())).' '.$number;
     }
 
     /** ['resistance' => 'Weerstand', ...] voor <x-form.select> */

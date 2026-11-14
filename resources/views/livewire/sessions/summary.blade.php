@@ -2,15 +2,15 @@
 
 <div style="--c: {{ $session->color ?? '#1d63c5' }}">
     <div class="mb-6 overflow-hidden rounded-3xl bg-(--c) p-5 text-white shadow-lg sm:p-7">
-        <p class="text-sm font-semibold uppercase tracking-wide text-white/80">Training afgerond · {{ $session->started_at->translatedFormat('l j F, H:i') }}</p>
+        <p class="text-sm font-semibold uppercase tracking-wide text-white/80">{{ __('Training completed') }} · {{ $session->started_at->translatedFormat('l j F, H:i') }}</p>
         <h1 class="mt-1 font-display text-[34px] leading-none font-extrabold uppercase">{{ $session->name }}</h1>
 
         <dl class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             @foreach ([
-                'Tijd' => \App\Models\WorkoutSession::clock($session->elapsedSeconds()),
-                'Sets' => $setsDone.($setsTotal && $setsDone < $setsTotal ? ' / '.$setsTotal : ''),
-                'Volume' => $n($session->volume()).' kg',
-                'Oefeningen' => $session->exercises->filter->isDone()->count().' / '.$session->exercises->count(),
+                __('Time') => \App\Models\WorkoutSession::clock($session->elapsedSeconds()),
+                __('Sets') => $setsDone.($setsTotal && $setsDone < $setsTotal ? ' / '.$setsTotal : ''),
+                __('Volume') => $n($session->volume()).' kg',
+                __('Number of exercises') => $session->exercises->filter->isDone()->count().' / '.$session->exercises->count(),
             ] as $label => $value)
                 <div class="rounded-2xl bg-white/15 p-3 backdrop-blur">
                     <dt class="text-xs font-semibold uppercase tracking-wide text-white/75">{{ $label }}</dt>
@@ -25,26 +25,26 @@
         : 0))
     @if ($newRecords)
         <p x-init="setTimeout(() => window.confetti?.(), 300)" class="mb-5 flex items-center gap-2 rounded-2xl bg-accent-300/30 px-4 py-3 font-semibold text-brand-950 dark:bg-accent-400/15 dark:text-accent-300">
-            <x-icon name="trophy" class="size-5 text-accent-500" /> {{ $newRecords }} {{ $newRecords === 1 ? 'nieuw record' : 'nieuwe records' }}!
+            <x-icon name="trophy" class="size-5 text-accent-500" /> {{ trans_choice(':count new record!|:count new records!', $newRecords) }}
         </p>
     @endif
 
     @if ($newBadges->isNotEmpty())
         <div @unless ($newRecords) x-init="setTimeout(() => window.confetti?.(), 300)" @endunless
              class="mb-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5 dark:bg-panel-dark dark:ring-line-dark">
-            <p class="mb-3 flex items-center gap-2 font-semibold"><x-icon name="medal" class="size-5 text-accent-500" /> {{ $newBadges->count() === 1 ? 'Nieuwe badge!' : $newBadges->count().' nieuwe badges!' }}</p>
+            <p class="mb-3 flex items-center gap-2 font-semibold"><x-icon name="medal" class="size-5 text-accent-500" /> {{ trans_choice('New badge!|:count new badges!', $newBadges->count()) }}</p>
             <ul class="grid gap-3 sm:grid-cols-2">
                 @foreach ($newBadges as $row)
                     <li class="flex items-center gap-3">
                         <x-medal :badge="$row['badge']" :level="$row['level']" size="sm" />
                         <span class="min-w-0">
                             <span class="block truncate font-semibold">{{ $row['badge']->labelFor($row['level']) }}</span>
-                            <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $row['badge']->name }} · {{ ucfirst($row['badge']->tier($row['level'])) }}</span>
+                            <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $row['badge']->name }} · {{ $row['badge']->tierLabel($row['level']) }}</span>
                         </span>
                     </li>
                 @endforeach
             </ul>
-            <a href="{{ route('badges') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Alle badges bekijken</a>
+            <a href="{{ route('badges') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ __('View all badges') }}</a>
         </div>
     @endif
 
@@ -52,16 +52,16 @@
     <div class="mb-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5 dark:bg-panel-dark dark:ring-line-dark">
         @if (filled($session->notes))
             <p class="mb-1 flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                Notitie <x-icon name="lock" class="size-3.5 text-slate-400" title="Ligt vast" />
+                {{ __('Note') }} <x-icon name="lock" class="size-3.5 text-slate-400" :title="__('Fixed')" />
             </p>
             <p class="whitespace-pre-line italic">“{{ $session->notes }}”</p>
         @else
             <form wire:submit="saveNotes" class="flex flex-col gap-2">
-                <x-form.textarea label="Notitie" wire:model="notes" rows="2" maxlength="1000"
-                                 placeholder="Bijv. knie voelde stijf, drukke sportschool, slecht geslapen"
-                                 hint="Na het opslaan kun je de notitie niet meer wijzigen." />
+                <x-form.textarea :label="__('Note')" wire:model="notes" rows="2" maxlength="1000"
+                                 :placeholder="__('e.g. knee felt stiff, busy gym, slept badly')"
+                                 :hint="__('After saving you can no longer change the note.')" />
                 <div class="flex justify-end">
-                    <x-button size="sm" icon="check" loading="saveNotes">Opslaan</x-button>
+                    <x-button size="sm" icon="check" loading="saveNotes">{{ __('Save') }}</x-button>
                 </div>
             </form>
         @endif
@@ -82,7 +82,7 @@
                         <p class="font-semibold">{{ $item->exercise->name }}</p>
                         @if ($type->usesSets())
                             @if ($done->isEmpty())
-                                <p class="text-sm text-slate-500 dark:text-slate-400">Niet gedaan</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('Not done') }}</p>
                             @else
                                 <div class="mt-1 flex flex-wrap gap-1.5">
                                     @foreach ($done as $set)
@@ -106,19 +106,19 @@
                                 {{ collect([
                                     $log->duration_seconds ? \App\Models\WorkoutSession::clock($log->duration_seconds).' min' : null,
                                     $log->distance_m ? $n($log->distance_m / 1000).' km' : null,
-                                    $log->averageSpeed() ? $log->averageSpeed().' km/h gem.' : null,
+                                    $log->averageSpeed() ? __(':speed km/h avg.', ['speed' => $log->averageSpeed()]) : null,
                                     $log->metric && filled($log->metric_value) ? $log->metric->format($log->metric_value) : null,
                                     $log->pace_seconds ? 'pace '.\App\Models\CardioLog::pace($log->pace_seconds) : null,
                                     filled($log->stroke_rate) ? $log->stroke_rate.' spm' : null,
-                                    filled($log->rotations) ? $n($log->rotations).' rotaties' : null,
-                                    filled($log->floors) ? $log->floors.' floors' : null,
-                                    ...collect(\App\Models\CardioLog::FIELDS)->map(fn ($f, $key) => filled($log->{$key}) ? $n($log->{$key}).($f[1] ? ' '.$f[1] : '').' '.mb_strtolower(str_replace('Gem. ', 'gem. ', $f[0])) : null)->all(),
-                                ])->filter()->implode(' · ') ?: 'Geen gegevens ingevuld' }}
+                                    filled($log->rotations) ? __(':count rotations', ['count' => $n($log->rotations)]) : null,
+                                    filled($log->floors) ? __(':count floors', ['count' => $log->floors]) : null,
+                                    ...collect(\App\Models\CardioLog::FIELDS)->map(fn ($f, $key) => filled($log->{$key}) ? $n($log->{$key}).($f[1] ? ' '.$f[1] : '').' '.\App\Support\Locale::lower(__($f[0])) : null)->all(),
+                                ])->filter()->implode(' · ') ?: __('No data filled in') }}
                             </p>
                             <x-heart-rate-zone class="mt-1" :bpm="$log->avg_heart_rate" :zones="$hrZones" />
                             @if ($new = isset($records[$item->exercise_id]) ? $records[$item->exercise_id]->cardioRecords($log) : [])
                                 <p class="mt-1 flex items-center gap-1.5 text-sm font-semibold text-accent-500">
-                                    <x-icon name="trophy" class="size-4" /> Nieuw record: {{ mb_strtolower(implode(', ', $new)) }}
+                                    <x-icon name="trophy" class="size-4" /> {{ __('New record: :records', ['records' => \App\Support\Locale::lower(implode(', ', $new))]) }}
                                 </p>
                             @endif
                             @if ($kmTimes = array_filter($log->kmTimes()))
@@ -128,7 +128,7 @@
                                         <span @class(['rounded-lg px-2 py-0.5 text-sm tabular-nums',
                                                       'bg-emerald-100 font-semibold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300' => $seconds === $fastest,
                                                       'bg-slate-100 dark:bg-white/10' => $seconds !== $fastest])
-                                              title="{{ $seconds === $fastest ? 'Snelste km' : '' }}">
+                                              title="{{ $seconds === $fastest ? __('Fastest km') : '' }}">
                                             km {{ $km }} · {{ \App\Models\CardioLog::pace($seconds) }}
                                         </span>
                                     @endforeach
@@ -143,8 +143,8 @@
 
     <div class="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         @if ($session->workout)
-            <x-button variant="secondary" :href="route('workouts.show', $session->workout)" wire:navigate>Naar de workout</x-button>
+            <x-button variant="secondary" :href="route('workouts.show', $session->workout)" wire:navigate>{{ __('To the workout') }}</x-button>
         @endif
-        <x-button :href="route('dashboard')" wire:navigate icon="check">Klaar</x-button>
+        <x-button :href="route('dashboard')" wire:navigate icon="check">{{ __('Done') }}</x-button>
     </div>
 </div>

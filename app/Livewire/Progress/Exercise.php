@@ -26,6 +26,6 @@ class Exercise extends Component
         return view('livewire.progress.exercise', [
             'progress' => ExerciseProgress::for(Auth::user(), $this->exercise),
             'records' => ExerciseRecords::forUser(Auth::user(), $this->exercise),
-        ])->title($this->exercise->name.' · Progress');
+        ])->title($this->exercise->name.' · '.__('Progress'));
     }
 }

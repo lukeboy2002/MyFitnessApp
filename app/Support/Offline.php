@@ -10,7 +10,7 @@ use App\Models\Setting;
  */
 class Offline
 {
-    public const DEFAULT_MESSAGE = 'We zijn even offline voor onderhoud. Probeer het straks opnieuw.';
+    public const DEFAULT_MESSAGE = 'We are offline for maintenance for a moment. Please try again later.';
 
     public static function isOn(): bool
     {
@@ -24,6 +24,6 @@ class Offline
 
     public static function message(): string
     {
-        return Setting::get('offline_message') ?: self::DEFAULT_MESSAGE;
+        return Setting::get('offline_message') ?: __(self::DEFAULT_MESSAGE);
     }
 }

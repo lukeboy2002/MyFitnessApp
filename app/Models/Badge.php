@@ -13,8 +13,8 @@ class Badge extends Model
 {
     /** Iconen om uit te kiezen */
     public const ICONS = [
-        'medal' => 'Medaille', 'trophy' => 'Trofee', 'dumbbell' => 'Dumbbell', 'bolt' => 'Kracht', 'run' => 'Hardlopen',
-        'clock' => 'Klok', 'calendar' => 'Kalender', 'check' => 'Vinkje', 'heart' => 'Hart', 'sun' => 'Zon', 'moon' => 'Maan',
+        'medal' => 'Medal', 'trophy' => 'Trophy', 'dumbbell' => 'Dumbbell', 'bolt' => 'Strength', 'run' => 'Running',
+        'clock' => 'Clock', 'calendar' => 'Calendar (page)', 'check' => 'Tick', 'heart' => 'Heart', 'sun' => 'Sun', 'moon' => 'Moon',
     ];
 
     protected function casts(): array
@@ -37,10 +37,16 @@ class Badge extends Model
     public function labelFor(int $level): string
     {
         if ($level === 0 && filled($this->first_label)) {
-            return $this->first_label;
+            return __($this->first_label);
         }
 
-        return str_replace('{n}', $this->metric->format($this->thresholds[$level] ?? 0), $this->label);
+        return str_replace('{n}', $this->metric->format($this->thresholds[$level] ?? 0), __($this->label));
+    }
+
+    /** Naam in de taal van de gebruiker: de standaardbadges hebben een vertaling, eigen namen blijven zoals ze zijn */
+    public function displayName(): string
+    {
+        return __($this->name);
     }
 
     /** Wat de badge meet, bv. "Aantal trainingen" of "Zwaarste gewicht bij een oefening: Leg Press" */

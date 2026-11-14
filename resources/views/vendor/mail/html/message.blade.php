@@ -21,7 +21,7 @@
 {{-- Footer --}}
 <x-slot:footer>
 <x-mail::footer>
-Je krijgt deze mail van [{{ config('app.name') }}]({{ config('app.url') }}).<br>
+{{ __('You get this mail from') }} [{{ config('app.name') }}]({{ config('app.url') }}).<br>
 © {{ date('Y') }} {{ config('app.name') }}
 </x-mail::footer>
 </x-slot:footer>

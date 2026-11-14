@@ -15,16 +15,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class CardioLog extends Model
 {
-    /** Velden op het formulier: kolom => [label, eenheid] */
+    /** Velden op het formulier: kolom => [label (Engels, via __()), eenheid] */
     public const FIELDS = [
-        'avg_watts' => ['Gem. watts', 'W'],
+        'avg_watts' => ['Avg. watts', 'W'],
         'mets' => ['METs', null],
         'active_kcal' => ['ACT', 'kcal'],
         'total_kcal' => ['TTL', 'kcal'],
         'avg_act_hr' => ['AVG ACT/HR', 'kcal'],
-        'avg_heart_rate' => ['Gem. hartslag', 'bpm'],
-        'cadence' => ['Cadans', 'rpm'],
-        'incline' => ['Helling', '%'],
+        'avg_heart_rate' => ['Avg. heart rate', 'bpm'],
+        'cadence' => ['Cadence', 'rpm'],
+        'incline' => ['Incline', '%'],
     ];
 
     protected function casts(): array

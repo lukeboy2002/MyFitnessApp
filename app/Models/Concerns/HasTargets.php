@@ -3,6 +3,7 @@
 namespace App\Models\Concerns;
 
 use App\Enums\CardioMetric;
+use App\Support\Locale;
 
 /**
  * Doelkolommen (target_sets, target_reps, target_weight, rest_seconds, target_duration_seconds,
@@ -49,12 +50,12 @@ trait HasTargets
     /** 90 → "1:30 min", 120 → "2 min", 45 → "45 sec" */
     public static function duration(int $seconds): string
     {
-        return $seconds % 60 === 0 ? ($seconds / 60).' min' : ($seconds >= 60 ? intdiv($seconds, 60).':'.str_pad($seconds % 60, 2, '0', STR_PAD_LEFT).' min' : $seconds.' sec');
+        return $seconds % 60 === 0 ? ($seconds / 60).' min' : ($seconds >= 60 ? intdiv($seconds, 60).':'.str_pad($seconds % 60, 2, '0', STR_PAD_LEFT).' min' : $seconds.' '.__('sec'));
     }
 
-    /** 42.50 → "42,5" */
+    /** 42.50 → "42,5" (nl/de) of "42.5" (en) */
     public static function number(float|string|null $value): string
     {
-        return str_replace('.', ',', rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.'));
+        return str_replace('.', Locale::decimalSeparator(), rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.'));
     }
 }

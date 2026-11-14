@@ -8,8 +8,8 @@
      x-on:exercise-added.window="$nextTick(() => document.getElementById(`se-${$event.detail.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))"
      class="pb-20 md:pb-24" style="--c: {{ $session->color ?? '#1d63c5' }}">
     <x-page-header :title="$session->name"
-                   :description="($session->isQuickstart() ? \App\Models\WorkoutSession::QUICKSTART_DESCRIPTION.' ' : '').'Gestart om '.$session->started_at->format('H:i').'.'">
-        <x-button variant="ghost" size="sm" type="button" wire:click="$set('confirmingCancel', true)">Stoppen zonder opslaan</x-button>
+                   :description="($session->isQuickstart() ? __(\App\Models\WorkoutSession::QUICKSTART_DESCRIPTION).' ' : '').__('Started at :time.', ['time' => $session->started_at->format('H:i')])">
+        <x-button variant="ghost" size="sm" type="button" wire:click="$set('confirmingCancel', true)">{{ __('Stop without saving') }}</x-button>
     </x-page-header>
 
     {{-- Verslepen via het grip-icoon, of "Later" om een oefening achteraan te zetten als de machine bezet is --}}
@@ -24,7 +24,7 @@
                              'ring-emerald-300 dark:ring-emerald-500/40' => $done,
                              'ring-slate-200 dark:ring-line-dark' => ! $done])>
                 <header class="flex items-center gap-3 p-3 pl-1.5 sm:p-4 sm:pl-2">
-                    <button type="button" wire:sort:handle aria-label="Verslepen"
+                    <button type="button" wire:sort:handle aria-label="{{ __('Drag') }}"
                             class="-mr-1.5 grid h-10 w-7 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-ink active:cursor-grabbing dark:hover:bg-white/10 dark:hover:text-white">
                         <x-icon name="grip" class="size-5" />
                     </button>
@@ -42,19 +42,19 @@
                     <div class="min-w-0 flex-1">
                         <h2 class="truncate font-semibold">{{ $exercise->name }}</h2>
                         <p class="text-sm text-slate-500 dark:text-slate-400">
-                            Doel: {{ $item->targetSummary() ?? '–' }}@if ($item->rest_seconds && $type->usesSets()) · rust {{ \App\Models\WorkoutExercise::duration($item->rest_seconds) }}@endif
+                            {{ __('Target:') }} {{ $item->targetSummary() ?? '–' }}@if ($item->rest_seconds && $type->usesSets()) · {{ __('rest :time', ['time' => \App\Models\WorkoutExercise::duration($item->rest_seconds)]) }}@endif
                         </p>
                         @if ($item->notes)
                             <p class="text-sm text-slate-500 italic dark:text-slate-400">{{ $item->notes }}</p>
                         @endif
                     </div>
                     @unless ($done || $loop->last)
-                        <button type="button" wire:click="moveToEnd({{ $item->id }})" title="Machine bezet? Zet deze oefening achteraan"
+                        <button type="button" wire:click="moveToEnd({{ $item->id }})" title="{{ __('Machine taken? Move this exercise to the end') }}"
                                 class="flex shrink-0 items-center gap-1 self-start rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-ink dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">
-                            Later <x-icon name="chevron-down" class="size-3.5" />
+                            {{ __('Later') }} <x-icon name="chevron-down" class="size-3.5" />
                         </button>
                     @endunless
-                    <button type="button" wire:click="confirmDelete({{ $item->id }})" aria-label="{{ $exercise->name }} uit deze training halen" title="Uit deze training halen"
+                    <button type="button" wire:click="confirmDelete({{ $item->id }})" aria-label="{{ __(':name out of this training', ['name' => $exercise->name]) }}" title="{{ __('Take out of this training') }}"
                             class="grid size-8 shrink-0 place-items-center self-start rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400">
                         <x-icon name="trash" class="size-4.5" />
                     </button>
@@ -66,7 +66,7 @@
                     <div class="-mt-1 flex flex-wrap items-center gap-1.5 px-3 pb-3 text-xs sm:px-4">
                         <x-icon name="trophy" class="size-4 shrink-0 text-accent-500" />
                         {{-- Kracht: de vorige keer staat per set bij de regels hieronder --}}
-                        @foreach (collect($record->list())->except($type->usesSets() ? 'Vorige keer' : []) as $label => $value)
+                        @foreach (collect($record->list())->except($type->usesSets() ? __('Last time') : []) as $label => $value)
                             <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-white/10">
                                 <span class="text-slate-500 dark:text-slate-400">{{ $label }}</span>
                                 <span class="font-semibold tabular-nums">{{ $value }}</span>
@@ -75,7 +75,7 @@
                     </div>
                 @elseif ($record)
                     <p class="-mt-1 flex items-center gap-1.5 px-3 pb-3 text-xs text-slate-500 sm:px-4 dark:text-slate-400">
-                        <x-icon name="trophy" class="size-4 shrink-0" /> Eerste keer: na deze training staan hier je records.
+                        <x-icon name="trophy" class="size-4 shrink-0" /> {{ __('First time: after this training your records will be here.') }}
                     </p>
                 @endif
 
@@ -89,7 +89,7 @@
                         @if ($open->contains(fn ($set) => (int) $set->reps !== $hint->reps || ($hint->weight !== null && (float) $set->weight !== $hint->weight)))
                             <button type="button" wire:click="applyHint({{ $item->id }})"
                                     class="-my-0.5 shrink-0 rounded-lg px-2 py-0.5 font-semibold text-brand-700 transition hover:bg-brand-100 dark:text-brand-300 dark:hover:bg-brand-500/20">
-                                Overnemen
+                                {{ __('Apply') }}
                             </button>
                         @endif
                     </div>
@@ -106,13 +106,13 @@
                     })
                     <div class="max-w-xl px-3 pb-3 sm:px-4 sm:pb-4">
                         <div class="grid {{ $columns }} items-center gap-2 px-1 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                            <span>Set</span>
-                            @if ($previous) <span>Vorige</span> @endif
+                            <span>{{ __('Set') }}</span>
+                            @if ($previous) <span>{{ __('Previous (set)') }}</span> @endif
                             @if ($type->usesReps())
-                                <span class="text-center">{{ $type->usesExtraWeight() ? 'Extra kg' : 'kg' }}</span>
-                                <span class="text-center">Reps</span>
+                                <span class="text-center">{{ $type->usesExtraWeight() ? __('Extra kg') : 'kg' }}</span>
+                                <span class="text-center">{{ __('Reps (short)') }}</span>
                             @else
-                                <span class="text-center">Seconden</span>
+                                <span class="text-center">{{ __('Seconds') }}</span>
                             @endif
                             <span></span>
                         </div>
@@ -124,24 +124,24 @@
                                     <span class="relative text-center font-display text-lg font-bold text-slate-500 dark:text-slate-400">
                                         {{ $set->set_number }}
                                         @if ($record?->isRecordSet($set))
-                                            <x-icon name="trophy" class="absolute -top-1 right-0 size-4 text-accent-500" title="Nieuw record" />
+                                            <x-icon name="trophy" class="absolute -top-1 right-0 size-4 text-accent-500" title="{{ __('New record') }}" />
                                         @endif
                                     </span>
                                     @if ($previous)
-                                        <span class="truncate text-sm tabular-nums text-slate-500 dark:text-slate-400" title="Vorige keer set {{ $set->set_number }}">
+                                        <span class="truncate text-sm tabular-nums text-slate-500 dark:text-slate-400" title="{{ __('Last time set :number', ['number' => $set->set_number]) }}">
                                             {{ isset($previous[$set->set_number]) ? $record->describeSet($previous[$set->set_number]) : '–' }}
                                         </span>
                                     @endif
                                     @if ($type->usesReps())
-                                        <input type="text" inputmode="decimal" wire:model.blur.live="values.{{ $set->id }}.weight" aria-label="Gewicht set {{ $set->set_number }}"
+                                        <input type="text" inputmode="decimal" wire:model.blur.live="values.{{ $set->id }}.weight" aria-label="{{ __('Weight set :number', ['number' => $set->set_number]) }}"
                                                placeholder="{{ $type->usesExtraWeight() ? '0' : '–' }}" @class([$input, 'ring-red-500!' => $errors->has("values.{$set->id}.weight")])>
-                                        <input type="number" inputmode="numeric" wire:model.blur.live="values.{{ $set->id }}.reps" aria-label="Herhalingen set {{ $set->set_number }}"
+                                        <input type="number" inputmode="numeric" wire:model.blur.live="values.{{ $set->id }}.reps" aria-label="{{ __('Reps set :number', ['number' => $set->set_number]) }}"
                                                placeholder="{{ $set->target_reps ?? '–' }}" @class([$input, 'ring-red-500!' => $errors->has("values.{$set->id}.reps")])>
                                     @else
-                                        <input type="number" inputmode="numeric" wire:model.blur.live="values.{{ $set->id }}.seconds" aria-label="Seconden set {{ $set->set_number }}"
+                                        <input type="number" inputmode="numeric" wire:model.blur.live="values.{{ $set->id }}.seconds" aria-label="{{ __('Seconds set :number', ['number' => $set->set_number]) }}"
                                                placeholder="{{ $set->target_duration_seconds ?? '–' }}" @class([$input, 'ring-red-500!' => $errors->has("values.{$set->id}.seconds")])>
                                     @endif
-                                    <button type="button" wire:click="toggleSet({{ $set->id }})" aria-label="Set {{ $set->set_number }} {{ $set->is_completed ? 'niet ' : '' }}gedaan"
+                                    <button type="button" wire:click="toggleSet({{ $set->id }})" aria-label="{{ $set->is_completed ? __('Set :number not done', ['number' => $set->set_number]) : __('Set :number done', ['number' => $set->set_number]) }}"
                                             @class(['grid h-10 place-items-center rounded-xl transition',
                                                     'bg-emerald-500 text-white hover:bg-emerald-600' => $set->is_completed,
                                                     'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-ink dark:bg-white/10 dark:hover:bg-white/15 dark:hover:text-white' => ! $set->is_completed])>
@@ -151,9 +151,9 @@
                             @endforeach
                         </div>
                         <div class="mt-2 flex gap-2">
-                            <x-button variant="ghost" size="sm" type="button" icon="plus" wire:click="addSet({{ $item->id }})">Set</x-button>
+                            <x-button variant="ghost" size="sm" type="button" icon="plus" wire:click="addSet({{ $item->id }})">{{ __('Set') }}</x-button>
                             @if ($item->sets->count() > 1)
-                                <x-button variant="ghost" size="sm" type="button" icon="minus" wire:click="removeSet({{ $item->id }})">Set</x-button>
+                                <x-button variant="ghost" size="sm" type="button" icon="minus" wire:click="removeSet({{ $item->id }})">{{ __('Set') }}</x-button>
                             @endif
                         </div>
                     </div>
@@ -163,9 +163,9 @@
                     @php($metric = \App\Enums\CardioMetric::tryFrom((string) ($cardio[$item->id]['metric'] ?? '')))
                     <div class="px-3 pb-3 sm:px-4 sm:pb-4">
                         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            <x-form.input label="Tijd" wire:model.blur.live="cardio.{{ $item->id }}.time" placeholder="mm:ss" inputmode="decimal" hint="Bijv. 20 of 20.30" />
-                            <x-form.input label="Afstand" wire:model.blur.live="cardio.{{ $item->id }}.distance" inputmode="decimal" suffix="km" />
-                            <x-form.select label="Instelling" wire:model.live="cardio.{{ $item->id }}.metric" placeholder="Geen" :options="\App\Enums\CardioMetric::options()" />
+                            <x-form.input :label="__('Time')" wire:model.blur.live="cardio.{{ $item->id }}.time" placeholder="mm:ss" inputmode="decimal" :hint="__('e.g. 20 or 20.30')" />
+                            <x-form.input :label="__('Distance')" wire:model.blur.live="cardio.{{ $item->id }}.distance" inputmode="decimal" suffix="km" />
+                            <x-form.select :label="__('Setting')" wire:model.live="cardio.{{ $item->id }}.metric" :placeholder="__('None')" :options="\App\Enums\CardioMetric::options()" />
                             @if ($metric)
                                 <x-form.input :label="$metric->label()" wire:model.blur.live="cardio.{{ $item->id }}.metric_value" inputmode="decimal" :suffix="$metric->unit()" />
                             @else
@@ -173,7 +173,7 @@
                             @endif
                             {{-- Overal nodig: watts/METs en ACT/TTL --}}
                             @foreach (['avg_watts', 'mets', 'active_kcal', 'total_kcal'] as $field)
-                                <x-form.input :label="\App\Models\CardioLog::FIELDS[$field][0]" wire:model.blur.live="cardio.{{ $item->id }}.{{ $field }}" inputmode="decimal" :suffix="\App\Models\CardioLog::FIELDS[$field][1]" />
+                                <x-form.input :label="__(\App\Models\CardioLog::FIELDS[$field][0])" wire:model.blur.live="cardio.{{ $item->id }}.{{ $field }}" inputmode="decimal" :suffix="\App\Models\CardioLog::FIELDS[$field][1]" />
                             @endforeach
                             {{-- Daarna de velden van dit apparaat (in te stellen bij de oefening) en AVG ACT/HR --}}
                             @foreach ($exercise->cardioFields() as $extra)
@@ -182,18 +182,18 @@
                                               :inputmode="in_array($extra, [\App\Enums\CardioField::Incline, \App\Enums\CardioField::Pace]) ? 'decimal' : 'numeric'"
                                               :suffix="$extra->unit()" :placeholder="$extra === \App\Enums\CardioField::Pace ? 'mm:ss' : null" />
                             @endforeach
-                            <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_act_hr'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_act_hr" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_act_hr'][1]" />
-                            <x-form.input :label="\App\Models\CardioLog::FIELDS['avg_heart_rate'][0]" wire:model.blur.live="cardio.{{ $item->id }}.avg_heart_rate" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_heart_rate'][1]" />
+                            <x-form.input :label="__(\App\Models\CardioLog::FIELDS['avg_act_hr'][0])" wire:model.blur.live="cardio.{{ $item->id }}.avg_act_hr" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_act_hr'][1]" />
+                            <x-form.input :label="__(\App\Models\CardioLog::FIELDS['avg_heart_rate'][0])" wire:model.blur.live="cardio.{{ $item->id }}.avg_heart_rate" inputmode="numeric" :suffix="\App\Models\CardioLog::FIELDS['avg_heart_rate'][1]" />
                         </div>
                         <x-heart-rate-zone class="mt-3" :bpm="$item->cardio?->avg_heart_rate" :zones="$hrZones" />
                         @if ($speed = $item->cardio?->averageSpeed())
                             <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
-                                Gem. snelheid <span class="font-semibold tabular-nums text-ink dark:text-white">{{ $speed }} km/h</span>
+                                {{ __('Avg. speed') }} <span class="font-semibold tabular-nums text-ink dark:text-white">{{ $speed }} km/h</span>
                             </p>
                         @endif
                         @if ($new = $record?->cardioRecords($item->cardio))
                             <p class="mt-3 flex items-center gap-1.5 text-sm font-semibold text-accent-500">
-                                <x-icon name="trophy" class="size-4" /> Nieuw record: {{ mb_strtolower(implode(', ', $new)) }}
+                                <x-icon name="trophy" class="size-4" /> {{ __('New record: :records', ['records' => \App\Support\Locale::lower(implode(', ', $new))]) }}
                             </p>
                         @endif
                         {{-- Tussentijden: na elke km op "Volgende km" en de tijd van die km invullen --}}
@@ -205,9 +205,9 @@
                              class="mt-4 rounded-xl bg-slate-50 p-3 dark:bg-white/[.03]">
                             <button type="button" x-on:click="open = ! open" class="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold">
                                 <span>
-                                    Tussentijden per km
+                                    {{ __('Split times per km') }}
                                     @if ($kmTimes)
-                                        <span class="font-normal text-slate-500 dark:text-slate-400">· {{ count($kmTimes) }} km in {{ \App\Models\WorkoutSession::clock(array_sum($kmTimes)) }}</span>
+                                        <span class="font-normal text-slate-500 dark:text-slate-400">· {{ __(':km km in :time', ['km' => count($kmTimes), 'time' => \App\Models\WorkoutSession::clock(array_sum($kmTimes))]) }}</span>
                                     @endif
                                 </span>
                                 <x-icon name="chevron-down" class="size-4 transition" ::class="open && 'rotate-180'" />
@@ -219,13 +219,13 @@
                                             <div wire:key="split-{{ $item->id }}-{{ $number }}">
                                                 <div class="mb-0.5 flex items-center justify-between">
                                                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Km {{ $number }}</span>
-                                                    <button type="button" wire:click="removeSplit({{ $item->id }}, {{ $number }})" aria-label="Km {{ $number }} verwijderen"
+                                                    <button type="button" wire:click="removeSplit({{ $item->id }}, {{ $number }})" aria-label="{{ __('Delete km :number', ['number' => $number]) }}"
                                                             class="rounded p-0.5 text-slate-400 hover:bg-slate-200 hover:text-red-600 dark:hover:bg-white/10">
                                                         <x-icon name="x" class="size-3.5" />
                                                     </button>
                                                 </div>
                                                 <input type="text" inputmode="decimal" wire:model.blur.live="splits.{{ $item->id }}.{{ $number }}" placeholder="mm:ss"
-                                                       aria-label="Tussentijd km {{ $number }}" @class([$input, 'ring-red-500!' => $errors->has("splits.{$item->id}.{$number}")])>
+                                                       aria-label="{{ __('Split time km :number', ['number' => $number]) }}" @class([$input, 'ring-red-500!' => $errors->has("splits.{$item->id}.{$number}")])>
                                                 <span class="mt-0.5 block h-4 text-center text-xs tabular-nums text-slate-500 dark:text-slate-400">
                                                     @if ($speed = \App\Models\CardioLog::speed($kmTimes[$number] ?? null)) {{ $speed }} km/h @endif
                                                 </span>
@@ -234,7 +234,7 @@
                                     </div>
                                 @endif
                                 <x-button variant="secondary" size="sm" type="button" icon="plus" wire:click="addSplit({{ $item->id }})" @class(['mt-2' => $times])>
-                                    {{ $times ? 'Volgende km' : 'Km 1' }}
+                                    {{ $times ? __('Next km') : 'Km 1' }}
                                 </x-button>
                             </div>
                         </div>
@@ -242,7 +242,7 @@
 
                         <div class="mt-3 flex justify-end">
                             <x-button type="button" size="sm" :variant="$done ? 'secondary' : 'primary'" icon="check" wire:click="toggleCardio({{ $item->id }})">
-                                {{ $done ? 'Gedaan' : 'Afronden' }}
+                                {{ $done ? __('Done (finished)') : __('Finish') }}
                             </x-button>
                         </div>
                     </div>
@@ -254,19 +254,19 @@
     {{-- Oefening toevoegen: bij een vrije training begin je hier, bij een workout kun je er eentje bij doen --}}
     @if ($session->exercises->isEmpty())
         <div class="rounded-2xl border-2 border-dashed border-slate-300 px-4 py-8 text-center dark:border-line-dark">
-            <p class="font-semibold">Nog geen oefeningen</p>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Voeg je eerste oefening toe en vul je doel in.</p>
-            <x-button type="button" icon="plus" wire:click="openAdding" class="mt-4">Oefening toevoegen</x-button>
+            <p class="font-semibold">{{ __('No exercises yet') }}</p>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ __('Add your first exercise and fill in your target.') }}</p>
+            <x-button type="button" icon="plus" wire:click="openAdding" class="mt-4">{{ __('Add exercise') }}</x-button>
         </div>
     @else
         <button type="button" wire:click="openAdding"
                 class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 py-4 font-semibold text-slate-500 transition hover:border-brand-400 hover:text-brand-700 dark:border-line-dark dark:text-slate-400 dark:hover:border-brand-400 dark:hover:text-brand-300">
-            <x-icon name="plus" class="size-5" /> Oefening toevoegen
+            <x-icon name="plus" class="size-5" /> {{ __('Add exercise') }}
         </button>
     @endif
 
     {{-- Kiezen, daarna het doel invullen (zoals bij een workout) --}}
-    <x-modal wire:model="showPicker" :title="$adding ? 'Doel invullen' : 'Oefening toevoegen'" maxWidth="2xl">
+    <x-modal wire:model="showPicker" :title="$adding ? __('Fill in target') : __('Add exercise')" maxWidth="2xl">
         @if ($adding)
             @php($chosen = \App\Models\Exercise::find($adding['exercise_id']))
             <div class="mb-4 flex items-center gap-3">
@@ -289,10 +289,10 @@
         @endif
         <x-slot:footer>
             @if ($adding)
-                <x-button variant="ghost" type="button" wire:click="$set('adding', null)">Andere oefening</x-button>
-                <x-button type="button" icon="plus" wire:click="addExercise" loading="addExercise">Toevoegen</x-button>
+                <x-button variant="ghost" type="button" wire:click="$set('adding', null)">{{ __('Other exercise') }}</x-button>
+                <x-button type="button" icon="plus" wire:click="addExercise" loading="addExercise">{{ __('Add') }}</x-button>
             @else
-                <x-button variant="ghost" type="button" x-on:click="show = false">Annuleren</x-button>
+                <x-button variant="ghost" type="button" x-on:click="show = false">{{ __('Cancel') }}</x-button>
             @endif
         </x-slot:footer>
     </x-modal>
@@ -357,57 +357,57 @@
             <div class="min-w-0">
                 <p class="font-display text-2xl leading-none font-extrabold tabular-nums sm:text-[28px]" x-text="clock(elapsed)">{{ \App\Models\WorkoutSession::clock($session->elapsedSeconds()) }}</p>
                 <p class="text-xs text-brand-200">
-                    @if ($session->isPaused()) Gepauzeerd @else {{ $setsDone }}/{{ $setsTotal }} sets @endif
+                    @if ($session->isPaused()) {{ __('Paused') }} @else {{ __(':done/:total sets', ['done' => $setsDone, 'total' => $setsTotal]) }} @endif
                 </p>
             </div>
 
             {{-- Rusttimer --}}
-            <button type="button" x-show="rest > 0" x-cloak x-on:click="restUntil = null; $wire.skipRest()" title="Rust overslaan" aria-label="Rust overslaan"
+            <button type="button" x-show="rest > 0" x-cloak x-on:click="restUntil = null; $wire.skipRest()" title="{{ __('Skip rest') }}" aria-label="{{ __('Skip rest') }}"
                     class="relative mx-auto shrink-0 overflow-hidden rounded-xl bg-accent-400 px-3 pt-1 pb-1.5 text-center text-brand-950">
-                <span class="block text-[10px] font-bold uppercase tracking-wider">Rust</span>
+                <span class="block text-[10px] font-bold uppercase tracking-wider">{{ __('Rest') }}</span>
                 <span class="block font-display text-xl leading-none font-bold tabular-nums" x-text="clock(rest)"></span>
                 <span class="absolute bottom-0 left-0 h-1 bg-brand-950/30 transition-[width] duration-300" :style="`width: ${restTotal ? rest / restTotal * 100 : 0}%`"></span>
             </button>
 
             <span x-show="restDone && rest === 0" x-cloak x-transition.opacity
-                  class="mx-auto shrink-0 rounded-xl bg-accent-400 px-3 py-2 font-display text-lg leading-none font-extrabold uppercase text-brand-950">Rust voorbij</span>
+                  class="mx-auto shrink-0 rounded-xl bg-accent-400 px-3 py-2 font-display text-lg leading-none font-extrabold uppercase text-brand-950">{{ __('Rest is over') }}</span>
 
             <div class="ml-auto flex shrink-0 items-center gap-2" :class="(rest > 0 || restDone) && 'ml-0!'">
                 @if ($session->isPaused())
-                    <button type="button" wire:click="resume" aria-label="Hervatten" class="grid size-11 place-items-center rounded-xl bg-white/15 hover:bg-white/25">
+                    <button type="button" wire:click="resume" aria-label="{{ __('Resume') }}" class="grid size-11 place-items-center rounded-xl bg-white/15 hover:bg-white/25">
                         <x-icon name="play" />
                     </button>
                 @else
-                    <button type="button" wire:click="pause" aria-label="Pauze" class="grid size-11 place-items-center rounded-xl bg-white/15 hover:bg-white/25">
+                    <button type="button" wire:click="pause" aria-label="{{ __('Pause') }}" class="grid size-11 place-items-center rounded-xl bg-white/15 hover:bg-white/25">
                         <x-icon name="pause" />
                     </button>
                 @endif
-                <x-button variant="fire" type="button" wire:click="$set('confirmingFinish', true)" class="h-11 px-3! sm:px-4!">Afronden</x-button>
+                <x-button variant="fire" type="button" wire:click="$set('confirmingFinish', true)" class="h-11 px-3! sm:px-4!">{{ __('Finish') }}</x-button>
             </div>
         </div>
     </div>
 
-    <x-confirm-delete :name="$deletingName" title="Oefening verwijderen?">Ook de sets en cardiogegevens van deze training verdwijnen. Je workout zelf blijft zoals hij is.</x-confirm-delete>
+    <x-confirm-delete :name="$deletingName" :title="__('Delete exercise?')">{{ __('The sets and cardio data of this training disappear too. Your workout itself stays as it is.') }}</x-confirm-delete>
 
-    <x-modal wire:model="confirmingFinish" title="Training afronden?" maxWidth="md">
+    <x-modal wire:model="confirmingFinish" :title="__('Finish training?')" maxWidth="md">
         <p>
             @if ($setsDone < $setsTotal)
-                Je hebt <strong>{{ $setsDone }} van de {{ $setsTotal }}</strong> sets afgevinkt. Wat niet is afgevinkt, telt niet mee.
+                {!! __('You have ticked off <strong>:done of the :total</strong> sets. What is not ticked off does not count.', ['done' => $setsDone, 'total' => $setsTotal]) !!}
             @else
-                Goed bezig! Alle sets zijn afgevinkt.
+                {{ __('Well done! All sets are ticked off.') }}
             @endif
         </p>
         <x-slot:footer>
-            <x-button variant="ghost" type="button" x-on:click="show = false">Verder trainen</x-button>
-            <x-button variant="fire" type="button" icon="check" wire:click="finish" loading="finish">Afronden</x-button>
+            <x-button variant="ghost" type="button" x-on:click="show = false">{{ __('Keep training') }}</x-button>
+            <x-button variant="fire" type="button" icon="check" wire:click="finish" loading="finish">{{ __('Finish') }}</x-button>
         </x-slot:footer>
     </x-modal>
 
-    <x-modal wire:model="confirmingCancel" title="Stoppen zonder opslaan?" maxWidth="md">
-        <p>De training en alles wat je hebt ingevuld worden verwijderd. Dit kan niet ongedaan worden gemaakt.</p>
+    <x-modal wire:model="confirmingCancel" :title="__('Stop without saving?')" maxWidth="md">
+        <p>{{ __('The training and everything you filled in will be deleted. This cannot be undone.') }}</p>
         <x-slot:footer>
-            <x-button variant="ghost" type="button" x-on:click="show = false">Verder trainen</x-button>
-            <x-button variant="danger" type="button" wire:click="cancel" loading="cancel">Stoppen</x-button>
+            <x-button variant="ghost" type="button" x-on:click="show = false">{{ __('Keep training') }}</x-button>
+            <x-button variant="danger" type="button" wire:click="cancel" loading="cancel">{{ __('Stop') }}</x-button>
         </x-slot:footer>
     </x-modal>
 </div>

@@ -1,12 +1,12 @@
-{{-- Opmaak van alle notificatiemails (MailMessage), in het Nederlands --}}
+{{-- Opmaak van alle notificatiemails (MailMessage), in de taal van de ontvanger --}}
 <x-mail::message>
 {{-- Greeting --}}
 @if (! empty($greeting))
 # {{ $greeting }}
 @elseif ($level === 'error')
-# Oeps!
+# {{ __('Oops!') }}
 @else
-# Hallo!
+# {{ __('Hello!') }}
 @endif
 
 {{-- Intro Lines --}}
@@ -38,14 +38,14 @@
 @if (! empty($salutation))
 {{ $salutation }}
 @else
-Sportieve groet,<br>
+{{ __('Sporty regards,') }}<br>
 {{ config('app.name') }}
 @endif
 
 {{-- Subcopy --}}
 @isset($actionText)
 <x-slot:subcopy>
-Werkt de knop "{{ $actionText }}" niet? Kopieer dan deze link naar je browser: <span class="break-all">[{{ $displayableActionUrl }}]({{ $actionUrl }})</span>
+{{ __('Does the ":action" button not work? Then copy this link into your browser:', ['action' => $actionText]) }} <span class="break-all">[{{ $displayableActionUrl }}]({{ $actionUrl }})</span>
 </x-slot:subcopy>
 @endisset
 </x-mail::message>

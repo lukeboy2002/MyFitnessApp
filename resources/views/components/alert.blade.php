@@ -29,7 +29,7 @@
     <x-icon :name="$styles[1]" class="mt-0.5 size-4.5 shrink-0" />
     <div class="min-w-0 flex-1">{{ $slot }}</div>
     @if ($dismissible)
-        <button type="button" x-on:click="show = false" aria-label="Sluiten"
+        <button type="button" x-on:click="show = false" aria-label="{{ __('Close') }}"
                 class="-my-1 -mr-2 grid size-7 shrink-0 place-items-center rounded-lg opacity-60 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10">
             <x-icon name="x" class="size-4" />
         </button>

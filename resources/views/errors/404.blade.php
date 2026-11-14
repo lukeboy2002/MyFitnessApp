@@ -1,8 +1,8 @@
 @extends('errors.layout')
 
 @section('code', '404')
-@section('title', 'Niet gevonden')
+@section('title', __('Not found'))
 @section('message')
-Deze pagina bestaat niet (meer). Misschien is de link verouderd of is het item verwijderd.
+{{ __('This page does not exist (anymore). Maybe the link is outdated or the item was deleted.') }}
 @endsection
 

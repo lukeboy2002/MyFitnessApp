@@ -17,14 +17,14 @@ class UsernameAvailabilityController
         $username = trim((string) $request->query('username'));
 
         if (! preg_match('/^[\pL\pM\pN_-]+$/u', $username) || mb_strlen($username) > 255) {
-            return response()->json(['available' => false, 'message' => 'Alleen letters, cijfers, - en _ (geen spaties).']);
+            return response()->json(['available' => false, 'message' => __('Only letters, numbers, - and _ (no spaces).')]);
         }
 
         $available = ! User::where('username', $username)->exists();
 
         return response()->json([
             'available' => $available,
-            'message' => $available ? 'Deze gebruikersnaam is nog vrij.' : 'Deze gebruikersnaam is al bezet.',
+            'message' => $available ? __('This username is still available.') : __('This username is already taken.'),
         ]);
     }
 }

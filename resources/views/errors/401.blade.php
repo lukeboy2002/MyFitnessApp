@@ -1,11 +1,11 @@
 @extends('errors.layout')
 
 @section('code', '401')
-@section('title', 'Niet ingelogd')
+@section('title', __('Not logged in'))
 @section('message')
-Je moet ingelogd zijn om deze pagina te bekijken.
+{{ __('You need to be logged in to view this page.') }}
 @endsection
 
 @section('actions')
-    <x-button :href="route('login')" icon="lock">Inloggen</x-button>
+    <x-button :href="route('login')" icon="lock">{{ __('Log in') }}</x-button>
 @endsection

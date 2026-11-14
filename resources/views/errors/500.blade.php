@@ -1,8 +1,8 @@
 @extends('errors.layout')
 
 @section('code', '500')
-@section('title', 'Er ging iets mis')
+@section('title', __('Something went wrong'))
 @section('message')
-Er ging aan onze kant iets mis. Probeer het zo nog eens. Blijft het gebeuren? Laat het de beheerder weten.
+{{ __('Something went wrong on our side. Try again in a moment. Does it keep happening? Let the administrator know.') }}
 @endsection
 

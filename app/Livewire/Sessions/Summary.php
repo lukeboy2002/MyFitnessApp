@@ -31,7 +31,7 @@ class Summary extends Component
     public function saveNotes(): void
     {
         $this->authorize('update', $this->session);
-        abort_if(filled($this->session->notes), 403, 'De notitie ligt al vast.');
+        abort_if(filled($this->session->notes), 403, __('The note is already fixed.'));
 
         $this->notes = trim($this->notes);
         $this->validate(['notes' => ['required', 'string', 'max:1000']], attributes: ['notes' => 'notitie']);

@@ -11,12 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('MuscleGroups')]
 class Index extends Component
 {
     use ConfirmsDeletion, ManagesMasterData;
@@ -67,7 +65,7 @@ class Index extends Component
             'icon' => ['nullable', Rule::in(array_keys(self::ICONS))],
             ...$this->imageRules(),
             'sort_order' => ['required', 'integer', 'between:0,999'],
-        ], attributes: ['body_part_id' => 'lichaamsdeel', 'name' => 'naam', 'color' => 'kleur', 'icon' => 'icoon', 'image' => 'plaatje', 'sort_order' => 'volgorde']);
+        ], attributes: ['body_part_id' => __('body part'), 'name' => __('name'), 'color' => __('colour'), 'icon' => __('icon'), 'image' => __('image'), 'sort_order' => __('order')]);
 
         if ($this->editingId) {
             $group = MuscleGroup::findOrFail($this->editingId);
@@ -81,7 +79,7 @@ class Index extends Component
         $this->applyImage($group, 'musclegroups');
         $group->save();
 
-        $this->done("{$group->name} is opgeslagen.");
+        $this->done(__(':name is saved.', ['name' => $group->name]));
         unset($this->muscleGroups);
     }
 
@@ -96,20 +94,20 @@ class Index extends Component
         $this->authorize('delete', $group);
 
         if ($group->muscles_count > 0) {
-            $this->fail("{$group->name} heeft nog {$group->muscles_count} spier(en). Verplaats of verwijder die eerst.");
+            $this->fail(trans_choice(':name still has :count muscle. Move or delete it first.|:name still has :count muscles. Move or delete them first.', $group->muscles_count, ['name' => $group->name]));
 
             return;
         }
 
         if ($group->exercises_count > 0) {
-            $this->fail("{$group->name} hoort nog bij {$group->exercises_count} oefening(en). Haal hem daar eerst weg.");
+            $this->fail(trans_choice(':name still belongs to :count exercise. Take it out there first.|:name still belongs to :count exercises. Take it out there first.', $group->exercises_count, ['name' => $group->name]));
 
             return;
         }
 
         $this->deleteStoredImage($group);
         $group->delete();
-        $this->done("{$group->name} is verwijderd.");
+        $this->done(__(':name is deleted.', ['name' => $group->name]));
         unset($this->muscleGroups);
     }
 
@@ -132,6 +130,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.muscle-groups.index');
+        return view('livewire.muscle-groups.index')->title(__('MuscleGroups'));
     }
 }

@@ -24,7 +24,7 @@ class WorkoutSession extends Model
 
     public const QUICKSTART_COLOR = '#c026d3';
 
-    public const QUICKSTART_DESCRIPTION = 'Dit is een vrije training. Deze kan iedere keer anders zijn.';
+    public const QUICKSTART_DESCRIPTION = 'This is a free training. It can be different every time.';
 
     protected function casts(): array
     {

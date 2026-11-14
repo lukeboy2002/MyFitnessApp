@@ -60,12 +60,12 @@ class ExerciseProgress
     public function measure(): array
     {
         return match ($this->exercise->type) {
-            ExerciseType::Strength => ['Geschat 1RM', 'kg'],
-            ExerciseType::Bodyweight => ['Totaal reps', 'reps'],
-            ExerciseType::Duration => ['Totale tijd', 'sec'],
+            ExerciseType::Strength => [__('Estimated 1RM'), 'kg'],
+            ExerciseType::Bodyweight => [__('Total reps'), 'reps'],
+            ExerciseType::Duration => [__('Total time'), 'sec'],
             ExerciseType::Cardio => $this->rows->contains(fn ($row) => $row['distance_m'])
-                ? ['Afstand', 'km']
-                : ['Tijd', 'min'],
+                ? [__('Distance'), 'km']
+                : [__('Time'), 'min'],
         };
     }
 

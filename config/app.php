@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'debug' => (bool)env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -82,6 +82,13 @@ return [
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
+    // Talen die je in de app kunt kiezen (profiel en inlogscherm). Teksten: lang/{taal}.json
+    'locales' => [
+        'nl' => 'Nederlands',
+        'en' => 'English',
+        'de' => 'Deutsch',
+    ],
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*
@@ -101,7 +108,7 @@ return [
 
     'previous_keys' => [
         ...array_filter(
-            explode(',', (string)env('APP_PREVIOUS_KEYS', ''))
+            explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
         ),
     ],
 

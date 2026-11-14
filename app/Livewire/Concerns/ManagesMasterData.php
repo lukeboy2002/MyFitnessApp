@@ -11,7 +11,7 @@ trait ManagesMasterData
     use HandlesImageUpload;
 
     /** Iconen om uit te kiezen (zie components/icon.blade.php) */
-    public const ICONS = ['arm' => 'Arm', 'body' => 'Lichaam', 'dumbbell' => 'Dumbbell', 'fiber' => 'Spier', 'run' => 'Hardlopen', 'heart' => 'Hart', 'bolt' => 'Kracht'];
+    public const ICONS = ['arm' => 'Arm', 'body' => 'Body', 'dumbbell' => 'Dumbbell', 'fiber' => 'Muscle', 'run' => 'Running', 'heart' => 'Heart', 'bolt' => 'Strength'];
 
     public bool $showForm = false;
 

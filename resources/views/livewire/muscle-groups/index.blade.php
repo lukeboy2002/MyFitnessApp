@@ -1,6 +1,6 @@
 <div>
-    <x-page-header title="MuscleGroups" description="Spiergroepen, met een eigen kleur voor badges bij oefeningen en workouts.">
-        <x-button icon="plus" type="button" wire:click="create">Spiergroep toevoegen</x-button>
+    <x-page-header :title="__('MuscleGroups')" :description="__('Muscle groups, with their own colour for badges on exercises and workouts.')">
+        <x-button icon="plus" type="button" wire:click="create">{{ __('Add muscle group') }}</x-button>
     </x-page-header>
 
     @include('livewire.partials.master-data-messages')
@@ -9,7 +9,7 @@
         <button type="button" wire:click="$set('bodyPartFilter', null)"
                 @class(['rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition',
                         'bg-brand-700 text-white ring-brand-700 dark:bg-brand-500 dark:ring-brand-500' => ! $bodyPartFilter,
-                        'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => $bodyPartFilter])>Alles</button>
+                        'bg-white ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:ring-line-dark' => $bodyPartFilter])>{{ __('All') }}</button>
         @foreach ($this->bodyParts as $bodyPart)
             <button type="button" wire:click="$set('bodyPartFilter', {{ $bodyPart->id }})" wire:key="f-{{ $bodyPart->id }}"
                     @class(['rounded-full px-4 py-2 text-sm font-semibold ring-1 ring-inset transition',
@@ -37,63 +37,63 @@
                             <x-icon :name="$group->icon ?? 'arm'" class="size-5" />
                         </span>
                         <h3 class="grow self-center font-display text-lg font-bold uppercase sm:text-xl">{{ $group->name }}</h3>
-                        <x-badge :color="$group->isStandard() ? 'gray' : 'brand'">{{ $group->isStandard() ? 'Standaard' : 'Eigen' }}</x-badge>
+                        <x-badge :color="$group->isStandard() ? 'gray' : 'brand'">{{ $group->isStandard() ? __('Standard') : __('Own') }}</x-badge>
                     </div>
                     <p class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                         <span class="size-2.5 shrink-0 rounded-full" style="background-color: {{ $group->color }}"></span>
-                        {{ $group->bodyPart->name }} · {{ $group->muscles_count }} {{ $group->muscles_count === 1 ? 'spier' : 'spieren' }}
+                        {{ $group->bodyPart->name }} · {{ trans_choice(':count muscle|:count muscles', $group->muscles_count) }}
                     </p>
                     <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
-                        <a href="{{ route('muscles.index', ['groep' => $group->id]) }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">Spieren bekijken</a>
+                        <a href="{{ route('muscles.index', ['groep' => $group->id]) }}" wire:navigate class="text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ __('View muscles') }}</a>
                         @can('update', $group)
                             <div class="flex gap-1">
-                                <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $group->id }})">Bewerken</x-button>
-                                <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="confirmDelete({{ $group->id }})" aria-label="Verwijderen" />
+                                <x-button variant="ghost" size="sm" type="button" wire:click="edit({{ $group->id }})">{{ __('Edit') }}</x-button>
+                                <x-button variant="ghost" size="sm" icon="trash" type="button" wire:click="confirmDelete({{ $group->id }})" :aria-label="__('Delete')" />
                             </div>
                         @endcan
                     </div>
                 </div>
             </article>
         @empty
-            <p class="text-slate-500 sm:col-span-2 xl:col-span-3">Geen spiergroepen gevonden.</p>
+            <p class="text-slate-500 sm:col-span-2 xl:col-span-3">{{ __('No muscle groups found.') }}</p>
         @endforelse
     </div>
 
-    <x-modal wire:model="showForm" :title="$editingId ? 'Spiergroep bewerken' : 'Nieuwe spiergroep'">
+    <x-modal wire:model="showForm" :title="$editingId ? __('Edit muscle group') : __('New muscle group')">
         <form wire:submit="save" id="muscle-group-form" class="grid gap-4 sm:grid-cols-2">
-            <x-form.input label="Naam" wire:model="name" required placeholder="Bijv. Onderrug" />
-            <x-form.select label="Lichaamsdeel" wire:model="body_part_id" :options="$this->bodyParts->pluck('name', 'id')" required />
+            <x-form.input :label="__('Name')" wire:model="name" required :placeholder="__('e.g. :example', ['example' => __('Lower back')])" />
+            <x-form.select :label="__('Body part')" wire:model="body_part_id" :options="$this->bodyParts->pluck('name', 'id')" required />
 
-            <x-form.field label="Kleur" name="color" class="sm:col-span-2">
+            <x-form.field :label="__('Colour')" name="color" class="sm:col-span-2">
                 <div class="flex flex-wrap items-center gap-2">
                     @foreach (\App\Livewire\MuscleGroups\Index::COLORS as $swatch)
-                        <button type="button" wire:click="$set('color', '{{ $swatch }}')" aria-label="Kleur {{ $swatch }}"
+                        <button type="button" wire:click="$set('color', '{{ $swatch }}')" aria-label="{{ __('Colour :colour', ['colour' => $swatch]) }}"
                                 style="background-color: {{ $swatch }}"
                                 @class(['size-9 rounded-full ring-offset-2 transition dark:ring-offset-panel-dark',
                                         'ring-2 ring-ink dark:ring-white' => strtolower($color) === $swatch])></button>
                     @endforeach
-                    <input type="color" wire:model.live="color" aria-label="Eigen kleur"
+                    <input type="color" wire:model.live="color" aria-label="{{ __('Own colour') }}"
                            class="size-9 cursor-pointer rounded-full border-0 bg-transparent p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch-wrapper]:p-0">
                 </div>
             </x-form.field>
 
-            <x-form.select label="Icoon" wire:model.live="icon" :options="\App\Livewire\MuscleGroups\Index::ICONS" />
-            <x-form.input label="Volgorde" type="number" wire:model="sort_order" inputmode="numeric" min="0" />
+            <x-form.select :label="__('Icon')" wire:model.live="icon" :options="array_map(fn ($label) => __($label), \App\Livewire\MuscleGroups\Index::ICONS)" />
+            <x-form.input :label="__('Order')" type="number" wire:model="sort_order" inputmode="numeric" min="0" />
 
             <div class="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 sm:col-span-2 dark:bg-white/5">
                 <span class="grid size-12 place-items-center rounded-2xl text-white" style="background-color: {{ $color }}">
                     <x-icon :name="$icon ?: 'arm'" class="size-6" />
                 </span>
-                <span class="text-sm text-slate-500 dark:text-slate-400">Voorbeeld</span>
-                <x-badge :hex="$color">{{ $name ?: 'Spiergroep' }}</x-badge>
+                <span class="text-sm text-slate-500 dark:text-slate-400">{{ __('Example') }}</span>
+                <x-badge :hex="$color">{{ $name ?: __('Muscle group') }}</x-badge>
             </div>
 
-            <x-form.image-upload label="Plaatje" wire:model="image" class="sm:col-span-2" hint="PNG met transparante achtergrond werkt het mooist · max 2 MB"
+            <x-form.image-upload :label="__('Image')" wire:model="image" class="sm:col-span-2" :hint="__('PNG with a transparent background looks best · up to :size MB', ['size' => 2])"
                                  :preview="$image?->temporaryUrl() ?? $currentImage" remove="deleteImage" />
         </form>
         <x-slot:footer>
-            <x-button variant="ghost" type="button" wire:click="closeForm">Annuleren</x-button>
-            <x-button form="muscle-group-form" icon="check" loading="save">Opslaan</x-button>
+            <x-button variant="ghost" type="button" wire:click="closeForm">{{ __('Cancel') }}</x-button>
+            <x-button form="muscle-group-form" icon="check" loading="save">{{ __('Save') }}</x-button>
         </x-slot:footer>
     </x-modal>
 

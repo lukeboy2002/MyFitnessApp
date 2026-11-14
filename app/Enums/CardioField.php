@@ -16,13 +16,13 @@ enum CardioField: string
     public function label(): string
     {
         return match ($this) {
-            self::Rotations => 'Rotaties',
-            self::Floors => 'Floors',
-            self::StrokeRate => 'Stroke rate',
-            self::Cadence => 'Cadans',
-            self::Incline => 'Helling',
-            self::Pace => 'Pace',
-            self::Splits => 'Tussentijden per km',
+            self::Rotations => __('Rotations'),
+            self::Floors => __('Floors'),
+            self::StrokeRate => __(__('Stroke rate')),
+            self::Cadence => __('Cadence'),
+            self::Incline => __('Incline'),
+            self::Pace => __('Pace'),
+            self::Splits => __('Split times per km'),
         };
     }
 

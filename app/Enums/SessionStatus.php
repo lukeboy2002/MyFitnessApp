@@ -12,10 +12,10 @@ enum SessionStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Active => 'Bezig',
-            self::Paused => 'Gepauzeerd',
-            self::Completed => 'Afgerond',
-            self::Cancelled => 'Geannuleerd',
+            self::Active => __('In progress'),
+            self::Paused => __('Paused'),
+            self::Completed => __('Completed'),
+            self::Cancelled => __('Cancelled'),
         };
     }
 

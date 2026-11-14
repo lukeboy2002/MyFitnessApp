@@ -8,12 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /** Admin: overzicht van de accounts, adminrechten geven of afnemen */
 #[Layout('layouts.app')]
-#[Title('Gebruikers')]
 class Users extends Component
 {
     public function mount(): void
@@ -24,7 +22,7 @@ class Users extends Component
     public function toggleAdmin(int $id): void
     {
         Gate::authorize('admin');
-        abort_if($id === Auth::id(), 403, 'Je kunt je eigen adminrechten niet afnemen.');
+        abort_if($id === Auth::id(), 403, __('You cannot take away your own admin rights.'));
 
         $user = User::findOrFail($id);
         $user->forceFill(['is_admin' => ! $user->is_admin])->save();
@@ -43,6 +41,6 @@ class Users extends Component
 
     public function render()
     {
-        return view('livewire.admin.users');
+        return view('livewire.admin.users')->title(__('Users'));
     }
 }

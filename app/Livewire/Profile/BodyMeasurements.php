@@ -33,13 +33,13 @@ class BodyMeasurements extends Component
             'values' => ['array'],
             ...collect(BodyMeasurement::FIELDS)->mapWithKeys(fn ($label, $field) => ["values.{$field}" => ['nullable', 'numeric', 'between:10,250']])->all(),
         ], attributes: [
-            'date' => 'datum',
-            ...collect(BodyMeasurement::FIELDS)->mapWithKeys(fn ($label, $field) => ["values.{$field}" => mb_strtolower($label)])->all(),
+            'date' => __('date'),
+            ...collect(BodyMeasurement::FIELDS)->mapWithKeys(fn ($label, $field) => ["values.{$field}" => BodyMeasurement::inSentence($field)])->all(),
         ]);
 
         $filled = array_filter($this->values, fn ($value) => $value !== '');
         if (! $filled) {
-            $this->addError('values', 'Vul minstens één maat in.');
+            $this->addError('values', __('Enter at least one measurement.'));
 
             return;
         }
@@ -79,7 +79,7 @@ class BodyMeasurements extends Component
             $last = $measured->last();
 
             return [
-                'label' => $label,
+                'label' => __($label),
                 'value' => $last?->{$field},
                 'change' => $last && $last->isNot($first) ? round($last->{$field} - $first->{$field}, 1) : null,
                 'since' => $first?->measured_on,

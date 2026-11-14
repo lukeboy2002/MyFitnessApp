@@ -22,7 +22,7 @@ class StarterWorkout
      * doel => [naam, kleur, omschrijving, rust in sec, [slug => [sets, reps] of cardio [minuten]]]
      */
     public const TEMPLATES = [
-        'lose_weight' => ['Vetverbranding', '#db3f6b', 'Kracht voor het hele lichaam met korte rust, afgesloten met rustige cardio.', 60, [
+        'lose_weight' => ['Fat burning', '#db3f6b', 'Full-body strength with short rest, finished with easy cardio.', 60, [
             'leg-press-machine' => [3, 15],
             'chest-press-machine' => [3, 15],
             'seated-row' => [3, 15],
@@ -30,7 +30,7 @@ class StarterWorkout
             'ab-crush-machine' => [3, 15],
             'treadmill' => [20],
         ]],
-        'build_muscle' => ['Full body opbouw', '#f97316', 'Elke grote spiergroep, met 8 tot 12 herhalingen. Doe hem twee of drie keer per week.', 90, [
+        'build_muscle' => ['Full body build', '#f97316', 'Every major muscle group, with 8 to 12 reps. Do it two or three times a week.', 90, [
             'leg-press-machine' => [4, 10],
             'chest-press-machine' => [4, 10],
             'lat-pull-down-cable-station' => [4, 10],
@@ -39,21 +39,21 @@ class StarterWorkout
             'bilateral-arm-curl-machine' => [3, 12],
             'seated-triceps-press' => [3, 12],
         ]],
-        'strength' => ['Kracht basis', '#1d63c5', 'Zware sets met weinig herhalingen en lange rust.', 180, [
+        'strength' => ['Strength basics', '#1d63c5', 'Heavy sets with few reps and long rest.', 180, [
             'leg-press-machine' => [5, 5],
             'chest-press-machine' => [5, 5],
             'seated-row' => [5, 5],
             'shoulder-press' => [4, 6],
             'back-extension-machine' => [3, 10],
         ]],
-        'endurance' => ['Conditie', '#0e9f8a', 'Vooral cardio, met een paar oefeningen voor de grote spieren.', 60, [
+        'endurance' => ['Endurance', '#0e9f8a', 'Mostly cardio, with a few exercises for the big muscles.', 60, [
             'rowing' => [10],
             'leg-press-machine' => [2, 15],
             'seated-row' => [2, 15],
             'ab-crush-machine' => [2, 15],
             'treadmill' => [20],
         ]],
-        'stay_fit' => ['Fit en gezond', '#8b5cf6', 'Een korte training voor het hele lichaam, met wat cardio.', 75, [
+        'stay_fit' => ['Fit and healthy', '#8b5cf6', 'A short full-body training, with some cardio.', 75, [
             'cross-trainer' => [10],
             'leg-press-machine' => [3, 12],
             'chest-press-machine' => [3, 12],
@@ -98,7 +98,7 @@ class StarterWorkout
             })
             ->values();
 
-        return new self($name, $color, $description, $rest, $items);
+        return new self(__($name), $color, __($description), $rest, $items);
     }
 
     /** Als workout opslaan voor deze gebruiker */

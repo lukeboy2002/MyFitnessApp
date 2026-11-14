@@ -1,8 +1,8 @@
-<x-guest-layout title="Bevestig je wachtwoord"
-                subtitle="Dit is een beveiligd onderdeel. Vul je wachtwoord in om door te gaan.">
+<x-guest-layout :title="__('Confirm your password')"
+                :subtitle="__('This is a secure area. Enter your password to continue.')">
     <form method="POST" action="{{ route('password.confirm') }}" class="flex flex-col gap-5">
         @csrf
-        <x-form.password label="Wachtwoord" name="password" required autocomplete="current-password" autofocus/>
-        <x-button block size="lg">Bevestigen</x-button>
+        <x-form.password :label="__('Password')" name="password" required autocomplete="current-password" autofocus/>
+        <x-button block size="lg">{{ __('Confirm') }}</x-button>
     </form>
 </x-guest-layout>

@@ -46,6 +46,6 @@ class Dashboard extends Component
             'ownExercisesCount' => Exercise::where('user_id', $user->id)->active()->count(),
             'badges' => Achievements::recent(Achievements::for($user), 3),
             'goalProgress' => GoalProgress::for($user),
-        ])->title('Dashboard');
+        ])->title(__('Dashboard'));
     }
 }

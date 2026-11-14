@@ -10,11 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
-#[Title('BodyParts')]
 class Index extends Component
 {
     use ConfirmsDeletion, ManagesMasterData;
@@ -49,7 +47,7 @@ class Index extends Component
             'icon' => ['nullable', Rule::in(array_keys(self::ICONS))],
             ...$this->imageRules(),
             'sort_order' => ['required', 'integer', 'between:0,999'],
-        ], attributes: ['name' => 'naam', 'icon' => 'icoon', 'image' => 'plaatje', 'sort_order' => 'volgorde']);
+        ], attributes: ['name' => __('name'), 'icon' => __('icon'), 'image' => __('image'), 'sort_order' => __('order')]);
 
         $user = Auth::user();
 
@@ -65,7 +63,7 @@ class Index extends Component
         $this->applyImage($bodyPart, 'bodyparts');
         $bodyPart->save();
 
-        $this->done("{$bodyPart->name} is opgeslagen.");
+        $this->done(__(':name is saved.', ['name' => $bodyPart->name]));
         unset($this->bodyParts);
     }
 
@@ -80,14 +78,14 @@ class Index extends Component
         $this->authorize('delete', $bodyPart);
 
         if ($bodyPart->muscle_groups_count > 0) {
-            $this->fail("{$bodyPart->name} heeft nog {$bodyPart->muscle_groups_count} spiergroep(en). Verplaats of verwijder die eerst.");
+            $this->fail(trans_choice(':name still has :count muscle group. Move or delete it first.|:name still has :count muscle groups. Move or delete them first.', $bodyPart->muscle_groups_count, ['name' => $bodyPart->name]));
 
             return;
         }
 
         $this->deleteStoredImage($bodyPart);
         $bodyPart->delete();
-        $this->done("{$bodyPart->name} is verwijderd.");
+        $this->done(__(':name is deleted.', ['name' => $bodyPart->name]));
         unset($this->bodyParts);
     }
 
@@ -102,6 +100,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.body-parts.index');
+        return view('livewire.body-parts.index')->title(__('BodyParts'));
     }
 }

@@ -4,7 +4,7 @@
     $n = fn ($v) => \App\Models\WorkoutExercise::number($v);
 @endphp
 
-<x-card title="Lichaamsmaten" description="Meet met een meetlint, steeds op dezelfde plek. Vul in wat je wilt, de rest mag leeg blijven.">
+<x-card :title="__('Body measurements')" :description="__('Measure with a tape measure, always in the same spot. Fill in what you want, the rest can stay empty.')">
     @if ($this->entries->isNotEmpty())
         <div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
             @foreach ($this->summary as $field => $item)
@@ -16,7 +16,7 @@
                     <p class="mt-1 text-lg font-bold tabular-nums">{{ $item['value'] !== null ? $n($item['value']).' cm' : '–' }}</p>
                     <p class="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
                         @if ($item['change'] !== null)
-                            {{ $item['change'] > 0 ? '+' : '' }}{{ $n($item['change']) }} cm sinds {{ $item['since']->translatedFormat('j M') }}
+                            {{ $item['change'] > 0 ? '+' : '' }}{{ $n($item['change']) }} cm {{ __('since :date', ['date' => $item['since']->translatedFormat('j M')]) }}
                         @else
                             &nbsp;
                         @endif
@@ -26,18 +26,18 @@
         </div>
 
         @if ($points->count() > 1)
-            <p class="mb-2 text-sm font-semibold">{{ BodyMeasurement::FIELDS[$chartField] }}</p>
+            <p class="mb-2 text-sm font-semibold">{{ __(BodyMeasurement::FIELDS[$chartField]) }}</p>
             <x-chart.line class="mb-5" unit="cm" :points="$points" />
         @else
-            <p class="mb-5 text-sm text-slate-500 dark:text-slate-400">Na twee metingen van je {{ mb_strtolower(BodyMeasurement::FIELDS[$chartField]) }} zie je hier het verloop. Tik op een maat om die te kiezen.</p>
+            <p class="mb-5 text-sm text-slate-500 dark:text-slate-400">{{ __('After two measurements of your :field you will see the trend here. Tap a measurement to choose it.', ['field' => BodyMeasurement::inSentence($chartField)]) }}</p>
         @endif
     @endif
 
     <form wire:submit="save" id="body-measurements-form" class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        @foreach (BodyMeasurement::FIELDS as $field => $label)
+        @foreach (BodyMeasurement::labels() as $field => $label)
             <x-form.input :label="$label" wire:model="values.{{ $field }}" inputmode="decimal" suffix="cm" />
         @endforeach
-        <x-form.date label="Datum" id="measurement-date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2 sm:col-span-1" />
+        <x-form.date :label="__('Date')" id="measurement-date" wire:model="date" :max="today()->format('Y-m-d')" class="col-span-2 sm:col-span-1" />
         @error('values')
             <p class="col-span-full text-sm font-semibold text-red-600 dark:text-red-400">{{ $message }}</p>
         @enderror
@@ -49,9 +49,9 @@
                 <li wire:key="measurement-{{ $entry->id }}" class="flex items-center gap-3 py-2">
                     <span class="w-24 shrink-0 whitespace-nowrap text-slate-500 dark:text-slate-400">{{ $entry->measured_on->translatedFormat('j M Y') }}</span>
                     <span class="flex-1 text-slate-600 dark:text-slate-300">
-                        {{ collect(BodyMeasurement::FIELDS)->filter(fn ($label, $field) => $entry->{$field} !== null)->map(fn ($label, $field) => mb_strtolower($label).' '.$n($entry->{$field}))->implode(' · ') }}
+                        {{ collect(BodyMeasurement::FIELDS)->filter(fn ($label, $field) => $entry->{$field} !== null)->map(fn ($label, $field) => BodyMeasurement::inSentence($field).' '.$n($entry->{$field}))->implode(' · ') }}
                     </span>
-                    <button type="button" wire:click="delete({{ $entry->id }})" wire:confirm="Deze meting verwijderen?" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" aria-label="Meting verwijderen">
+                    <button type="button" wire:click="delete({{ $entry->id }})" wire:confirm="{{ __('Delete this measurement?') }}" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" aria-label="{{ __('Delete measurement') }}">
                         <x-icon name="trash" class="size-4" />
                     </button>
                 </li>
@@ -60,7 +60,7 @@
     @endif
 
     <x-slot:footer>
-        <x-action-message on="body-measurements-saved">Opgeslagen.</x-action-message>
-        <x-button form="body-measurements-form" icon="check" loading="save">Maten opslaan</x-button>
+        <x-action-message on="body-measurements-saved">{{ __('Saved.') }}</x-action-message>
+        <x-button form="body-measurements-form" icon="check" loading="save">{{ __('Save measurements') }}</x-button>
     </x-slot:footer>
 </x-card>

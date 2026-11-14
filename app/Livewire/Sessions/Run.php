@@ -15,6 +15,7 @@ use App\Models\SetLog;
 use App\Models\WorkoutExercise;
 use App\Models\WorkoutSession;
 use App\Support\ExerciseRecords;
+use App\Support\Locale;
 use App\Support\ProgressionHint;
 use App\Support\RestReminder;
 use Illuminate\Support\Facades\Auth;
@@ -69,7 +70,7 @@ class Run extends Component
     {
         if ($e instanceof SessionNotRunning) {
             $stopPropagation();
-            session()->flash('status', 'Deze training is al afgerond. Je laatste wijziging is niet opgeslagen.');
+            session()->flash('status', __('This training is already completed. Your last change was not saved.'));
             $this->redirectRoute('sessions.summary', $this->session, navigate: true);
         }
     }
@@ -89,7 +90,7 @@ class Run extends Component
 
         $rules = ['reps' => 'integer|between:0,500', 'weight' => 'numeric|between:-200,999', 'seconds' => 'integer|between:0,36000'];
         if (! isset($rules[$field]) || Validator::make(['v' => $value], ['v' => 'nullable|'.$rules[$field]])->fails()) {
-            $this->addError("values.{$id}.{$field}", 'Ongeldige waarde');
+            $this->addError("values.{$id}.{$field}", __('Invalid value'));
 
             return;
         }
@@ -116,13 +117,13 @@ class Run extends Component
             // Ook met je scherm uit: pushmelding als de rust voorbij is
             $next = $set->sessionExercise->sets()->where('is_completed', false)->orderBy('set_number')->first();
             RestReminder::schedule(Auth::user(), $rest,
-                $next ? "Tijd voor set {$next->set_number} van {$exercise->name}." : 'Tijd voor je volgende oefening.',
+                $next ? __('Time for set :number of :exercise.', ['number' => $next->set_number, 'exercise' => $exercise->name]) : __('Time for your next exercise.'),
                 route('sessions.run', $this->session));
         }
 
         $records = $done ? ExerciseRecords::build($this->session, $exercise->id, $exercise->type) : null;
         if ($records?->isRecordSet($set)) {
-            $this->dispatch('record', title: 'Nieuw record!', text: $exercise->name.' · '.$records->describeSet($set));
+            $this->dispatch('record', title: __('New record!'), text: $exercise->name.' · '.$records->describeSet($set));
         }
     }
 
@@ -187,7 +188,7 @@ class Run extends Component
         };
 
         if (! $column || (filled($value) && $column[1] === null && $field !== 'metric')) {
-            $this->addError("cardio.{$id}.{$field}", 'Ongeldige waarde');
+            $this->addError("cardio.{$id}.{$field}", __('Invalid value'));
 
             return;
         }
@@ -219,7 +220,7 @@ class Run extends Component
         }
 
         if (filled($value) && ! $seconds) {
-            $this->addError("splits.{$id}.{$number}", 'Ongeldige tijd');
+            $this->addError("splits.{$id}.{$number}", __('Invalid time'));
 
             return;
         }
@@ -301,7 +302,7 @@ class Run extends Component
             ? ExerciseRecords::build($this->session, $item->exercise_id, $item->exercise->type)->cardioRecords($item->cardio()->with('splits')->first())
             : [];
         if ($new) {
-            $this->dispatch('record', title: count($new) > 1 ? 'Nieuwe records!' : 'Nieuw record!', text: $item->exercise->name.' · '.mb_strtolower(implode(', ', $new)));
+            $this->dispatch('record', title: count($new) > 1 ? __('New records!') : __('New record!'), text: $item->exercise->name.' · '.Locale::lower(implode(', ', $new)));
         }
     }
 
@@ -386,7 +387,7 @@ class Run extends Component
         $workout = $this->session->workout;
         $this->session->delete();
 
-        session()->flash('status', 'De training is gestopt en niet opgeslagen.');
+        session()->flash('status', __('The training was stopped and not saved.'));
 
         return $workout
             ? $this->redirectRoute('workouts.show', $workout, navigate: true)

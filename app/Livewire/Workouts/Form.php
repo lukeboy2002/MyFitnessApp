@@ -111,7 +111,7 @@ class Form extends Component
             'items.*.exercise_id' => ['required', 'integer', $visible('exercises')],
             ...$this->targetRules('items.*'),
         ], [
-            'items.min' => 'Voeg minstens één oefening toe.',
+            'items.min' => __('Add at least one exercise.'),
         ], [
             'name' => 'naam', 'color' => 'kleur', 'description' => 'omschrijving', 'estimated_minutes' => 'duur',
             'muscle_group_ids' => 'spiergroepen', 'items' => 'oefeningen', ...$this->targetAttributes('items.*'),
@@ -148,7 +148,7 @@ class Form extends Component
             $workout->muscleGroups()->sync($data['muscle_group_ids'] ?: $this->primaryGroupIds());
         });
 
-        session()->flash('status', "{$workout->name} is opgeslagen.");
+        session()->flash('status', __(':name is saved.', ['name' => $workout->name]));
 
         return $this->redirectRoute('workouts.show', $workout, navigate: true);
     }
@@ -162,7 +162,7 @@ class Form extends Component
 
     public function render()
     {
-        return view('livewire.workouts.form')->title($this->workout ? 'Workout bewerken' : 'Nieuwe workout');
+        return view('livewire.workouts.form')->title($this->workout ? __('Edit workout') : __('New workout'));
     }
 
     /** @return list<int> */

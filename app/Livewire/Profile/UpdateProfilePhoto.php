@@ -36,7 +36,7 @@ class UpdateProfilePhoto extends Component
         $this->reset('photo');
 
         // Volledig herladen zodat ook de avatar in de sidebar ververst
-        session()->flash('status', 'Profielfoto bijgewerkt.');
+        session()->flash('status', __('Profile photo updated.'));
         $this->redirectRoute('profile.edit', navigate: true);
     }
 
@@ -49,7 +49,7 @@ class UpdateProfilePhoto extends Component
             $user->forceFill(['profile_photo_path' => null])->save();
         }
 
-        session()->flash('status', 'Profielfoto verwijderd.');
+        session()->flash('status', __('Profile photo removed.'));
         $this->redirectRoute('profile.edit', navigate: true);
     }
 

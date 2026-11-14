@@ -5,6 +5,7 @@ namespace App\Livewire\Profile;
 use App\Enums\ExperienceLevel;
 use App\Enums\FitnessGoal;
 use App\Enums\Gender;
+use App\Models\WorkoutExercise;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
@@ -36,7 +37,7 @@ class UpdatePersonalDetails extends Component
         $this->birthDate = $user->birth_date?->format('Y-m-d') ?? '';
         $this->gender = $user->gender?->value ?? '';
         $this->heightCm = (string) ($user->height_cm ?? '');
-        $this->targetWeight = $user->target_weight_kg ? str_replace('.', ',', (string) (float) $user->target_weight_kg) : '';
+        $this->targetWeight = $user->target_weight_kg ? WorkoutExercise::number($user->target_weight_kg) : '';
         $this->goal = $user->goal?->value ?? '';
         $this->experience = $user->experience?->value ?? '';
         $this->maxHeartRate = (string) ($user->max_heart_rate ?? '');
@@ -57,14 +58,14 @@ class UpdatePersonalDetails extends Component
             'maxHeartRate' => ['nullable', 'integer', 'between:100,230'],
             'restingHeartRate' => ['nullable', 'integer', 'between:30,120', ...($this->maxHeartRate !== '' ? ['lt:maxHeartRate'] : [])],
         ], attributes: [
-            'birthDate' => 'geboortedatum',
-            'gender' => 'geslacht',
-            'heightCm' => 'lengte',
-            'targetWeight' => 'streefgewicht',
-            'goal' => 'doel',
-            'experience' => 'ervaring',
-            'maxHeartRate' => 'max. hartslag',
-            'restingHeartRate' => 'rusthartslag',
+            'birthDate' => __('date of birth'),
+            'gender' => __('gender'),
+            'heightCm' => __('height'),
+            'targetWeight' => __('target weight'),
+            'goal' => __('goal'),
+            'experience' => __('experience'),
+            'maxHeartRate' => __('max. heart rate'),
+            'restingHeartRate' => __('resting heart rate'),
         ]);
 
         Auth::user()->update([
@@ -78,7 +79,7 @@ class UpdatePersonalDetails extends Component
             'resting_heart_rate' => $this->restingHeartRate === '' ? null : (int) $this->restingHeartRate,
         ]);
 
-        $this->targetWeight = str_replace('.', ',', $this->targetWeight);
+        $this->targetWeight = $this->targetWeight === '' ? '' : WorkoutExercise::number($this->targetWeight);
         $this->dispatch('saved');
         $this->dispatch('personal-details-saved');
     }

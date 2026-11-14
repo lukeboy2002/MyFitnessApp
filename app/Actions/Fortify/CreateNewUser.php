@@ -30,7 +30,7 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        abort_unless(Registration::isOpen(), 403, 'Registreren is gesloten.');
+        abort_unless(Registration::isOpen(), 403, __('Registration is closed.'));
 
         // Komma's in kommagetallen (84,2 kg) en lege velden als null
         foreach (['weight_kg', 'target_weight_kg', 'weekly_goal_hours'] as $field) {
@@ -59,14 +59,14 @@ class CreateNewUser implements CreatesNewUsers
             'target_weight_kg' => ['nullable', 'numeric', 'between:30,300'],
             'weekly_goal_hours' => ['nullable', 'numeric', 'min:0.25', 'max:40'],
         ], attributes: [
-            'birth_date' => 'geboortedatum',
-            'gender' => 'geslacht',
-            'height_cm' => 'lengte',
-            'experience' => 'ervaring',
-            'goal' => 'doel',
-            'weight_kg' => 'gewicht',
-            'target_weight_kg' => 'streefgewicht',
-            'weekly_goal_hours' => 'trainingstijd per week',
+            'birth_date' => __('date of birth'),
+            'gender' => __('gender'),
+            'height_cm' => __('height'),
+            'experience' => __('experience'),
+            'goal' => __('goal'),
+            'weight_kg' => __('weight'),
+            'target_weight_kg' => __('target weight'),
+            'weekly_goal_hours' => __('training time per week'),
         ])->validate();
 
         return DB::transaction(function () use ($data) {
@@ -84,6 +84,8 @@ class CreateNewUser implements CreatesNewUsers
                 'experience' => ($data['experience'] ?? null) ?: null,
                 'goal' => ($data['goal'] ?? null) ?: null,
                 'target_weight_kg' => isset($data['target_weight_kg']) ? round($data['target_weight_kg'], 1) : null,
+                // De taal van je telefoon/computer; later aan te passen in je profiel
+                'locale' => app()->getLocale(),
             ]);
 
             // Het gewicht bij registratie is de eerste weging
