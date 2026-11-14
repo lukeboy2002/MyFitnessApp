@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -122,7 +123,8 @@ test('admins and yourself cannot be blocked', function () {
 
     Livewire::actingAs($this->admin)->test(Users::class)->call('startBan', $this->admin->id)->assertForbidden();
     Livewire::actingAs($this->admin)->test(Users::class)->call('startBan', $otherAdmin->id)->assertForbidden();
-    Livewire::actingAs($this->admin)->test(Users::class)->set('banning', $otherAdmin->id)->call('ban')->assertForbidden();
+    expect(fn () => Livewire::actingAs($this->admin)->test(Users::class)->set('banning', $otherAdmin->id))
+        ->toThrow(CannotUpdateLockedPropertyException::class);
 
     expect($otherAdmin->fresh()->isBanned())->toBeFalse();
 });

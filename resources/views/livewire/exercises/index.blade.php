@@ -103,7 +103,7 @@
 
                 <div class="flex min-w-0 flex-1 flex-col gap-1.5">
                     <h3 class="font-display text-lg leading-tight font-bold uppercase">
-                        <a href="{{ route('exercises.show', $exercise) }}" wire:navigate class="after:absolute after:inset-0 focus:outline-none">{{ $exercise->name }}</a>
+                        <a href="{{ route('exercises.show', $exercise) }}" wire:navigate class="after:absolute after:inset-0 focus:outline-hidden">{{ $exercise->name }}</a>
                     </h3>
                     <div class="flex flex-wrap items-center gap-1.5">
                         <x-badge :color="$exercise->type->color()" :icon="$exercise->type->icon()">{{ $exercise->type->label() }}</x-badge>

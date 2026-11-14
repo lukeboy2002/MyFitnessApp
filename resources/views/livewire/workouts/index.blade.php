@@ -36,7 +36,7 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <h3 class="font-display text-xl leading-tight font-bold uppercase">
-                                <a href="{{ route('workouts.show', $workout) }}" wire:navigate class="after:absolute after:inset-0 focus:outline-none">{{ $workout->name }}</a>
+                                <a href="{{ route('workouts.show', $workout) }}" wire:navigate class="after:absolute after:inset-0 focus:outline-hidden">{{ $workout->name }}</a>
                             </h3>
                             <p class="text-sm text-slate-500 dark:text-slate-400">
                                 {{ trans_choice(':count exercise|:count exercises', $workout->exercises_count) }}@if ($minutes = $workout->minutes()) · ± {{ $minutes }} min @endif

@@ -5,7 +5,7 @@
         <x-card :title="__('Recently earned')" class="mb-5">
             <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 @foreach ($recent as $row)
-                    <li class="flex items-center gap-3">
+                    <li wire:key="recent-{{ $row['badge']->key }}-{{ $row['level'] }}" class="flex items-center gap-3">
                         <x-medal :badge="$row['badge']" :level="$row['level']" size="sm" />
                         <span class="min-w-0">
                             <span class="block truncate font-semibold">{{ $row['badge']->labelFor($row['level']) }}</span>

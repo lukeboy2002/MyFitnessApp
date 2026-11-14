@@ -35,7 +35,7 @@
             <p class="mb-3 flex items-center gap-2 font-semibold"><x-icon name="medal" class="size-5 text-accent-500" /> {{ trans_choice('New badge!|:count new badges!', $newBadges->count()) }}</p>
             <ul class="grid gap-3 sm:grid-cols-2">
                 @foreach ($newBadges as $row)
-                    <li class="flex items-center gap-3">
+                    <li wire:key="new-{{ $row['badge']->key }}-{{ $row['level'] }}" class="flex items-center gap-3">
                         <x-medal :badge="$row['badge']" :level="$row['level']" size="sm" />
                         <span class="min-w-0">
                             <span class="block truncate font-semibold">{{ $row['badge']->labelFor($row['level']) }}</span>
@@ -72,7 +72,7 @@
             @foreach ($session->exercises as $item)
                 @php($type = $item->exercise->type)
                 @php($done = $item->sets->where('is_completed', true))
-                <li class="flex gap-4 px-4 py-3 sm:px-5">
+                <li wire:key="ex-{{ $item->id }}" class="flex gap-4 px-4 py-3 sm:px-5">
                     <span @class(['mt-0.5 grid size-7 shrink-0 place-items-center rounded-full text-sm font-bold',
                                   'bg-emerald-500 text-white' => $item->isDone(),
                                   'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300' => ! $item->isDone()])>

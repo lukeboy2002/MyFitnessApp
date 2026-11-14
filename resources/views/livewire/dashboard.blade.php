@@ -190,7 +190,7 @@
             @else
                 <ul class="mt-3 divide-y divide-slate-100 dark:divide-line-dark">
                     @foreach ($recent as $session)
-                        <li style="--c: {{ $session->color ?? '#1d63c5' }}">
+                        <li wire:key="recent-{{ $session->id }}" style="--c: {{ $session->color ?? '#1d63c5' }}">
                             <a href="{{ route('sessions.summary', $session) }}" wire:navigate class="flex items-center gap-3 px-5 py-3 transition hover:bg-slate-50 sm:px-6 dark:hover:bg-white/[.03]">
                                 <span class="h-9 w-1.5 shrink-0 rounded-full bg-(--c)"></span>
                                 <span class="min-w-0 flex-1">
@@ -219,7 +219,7 @@
             @else
                 <ul class="mt-3 divide-y divide-slate-100 dark:divide-line-dark">
                     @foreach ($badges as $row)
-                        <li class="flex items-center gap-3 px-5 py-3 sm:px-6">
+                        <li wire:key="badge-{{ $row['badge']->key }}-{{ $row['level'] }}" class="flex items-center gap-3 px-5 py-3 sm:px-6">
                             <x-medal :badge="$row['badge']" :level="$row['level']" size="sm" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate font-semibold">{{ $row['badge']->labelFor($row['level']) }}</span>
@@ -244,7 +244,7 @@
                 <ul class="mt-3 divide-y divide-slate-100 dark:divide-line-dark">
                     @foreach ($ownExercises as $exercise)
                         @php($primary = $exercise->primaryMuscleGroup())
-                        <li style="--g: {{ $primary?->color ?? '#1d63c5' }}">
+                        <li wire:key="own-{{ $exercise->id }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}">
                             <a href="{{ route('exercises.show', $exercise) }}" wire:navigate class="flex items-center gap-3 px-5 py-3 transition hover:bg-slate-50 sm:px-6 dark:hover:bg-white/[.03]">
                                 <span class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-slate-50 dark:bg-white/5">
                                     @if ($picture = $exercise->imageUrl())

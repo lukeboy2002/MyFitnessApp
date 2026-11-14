@@ -4,6 +4,7 @@ namespace App\Livewire\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 
 /**
  * Verwijderen via een bevestigingsmodal (<x-confirm-delete />).
@@ -13,6 +14,7 @@ trait ConfirmsDeletion
 {
     public bool $confirmingDeletion = false;
 
+    #[Locked]
     public ?int $deletingId = null;
 
     public string $deletingName = '';

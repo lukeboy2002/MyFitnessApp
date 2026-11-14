@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /** Admin: badges en hun drempels (niveaus) beheren; geldt voor alle gebruikers */
@@ -19,6 +20,7 @@ class Badges extends Component
 {
     public bool $showForm = false;
 
+    #[Locked]
     public ?int $editingId = null;
 
     public string $name = '';
@@ -42,6 +44,7 @@ class Badges extends Component
 
     public bool $confirmingDeletion = false;
 
+    #[Locked]
     public ?int $deletingId = null;
 
     public string $deletingName = '';

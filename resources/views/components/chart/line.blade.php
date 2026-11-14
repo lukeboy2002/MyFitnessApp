@@ -44,7 +44,7 @@
             @foreach ($points as $i => $point)
                 <button type="button" x-on:mouseenter="active = {{ $i }}" x-on:mouseleave="active = null" x-on:focus="active = {{ $i }}" x-on:blur="active = null"
                         x-on:click="active = active === {{ $i }} ? null : {{ $i }}"
-                        class="group absolute grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center focus:outline-none"
+                        class="group absolute grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center focus:outline-hidden"
                         style="left: {{ $x($i) }}%; top: {{ $y($point['value']) }}%"
                         aria-label="{{ $point['date']->translatedFormat('j M Y') }}: {{ $n($point['value']) }} {{ $unit }}">
                     <span class="size-2.5 rounded-full bg-brand-600 ring-2 ring-white transition group-hover:scale-150 dark:bg-brand-400 dark:ring-panel-dark"

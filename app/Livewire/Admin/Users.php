@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /** Admin: overzicht van de accounts, details openklappen (dan is een nieuw account gezien), adminrechten geven of afnemen, blokkeren en de blokkade opheffen */
@@ -24,6 +25,7 @@ class Users extends Component
     /** Blokkeren: welk account, hoelang (1/7/30 dagen, date of forever), tot welke datum en de reden */
     public bool $showBan = false;
 
+    #[Locked]
     public ?int $banning = null;
 
     public string $ban_duration = '7';

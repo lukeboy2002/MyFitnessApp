@@ -21,7 +21,7 @@
         @foreach ($bars as $i => $bar)
             <button type="button" x-on:mouseenter="active = {{ $i }}" x-on:mouseleave="active = null" x-on:focus="active = {{ $i }}" x-on:blur="active = null"
                     x-on:click="active = active === {{ $i }} ? null : {{ $i }}"
-                    class="group relative flex h-full flex-1 items-end justify-center focus:outline-none" aria-label="{{ $bar['label'] }}: {{ $bar['tip'] }}">
+                    class="group relative flex h-full flex-1 items-end justify-center focus:outline-hidden" aria-label="{{ $bar['label'] }}: {{ $bar['tip'] }}">
                 <span @class(['w-full max-w-8 rounded-t transition',
                               'bg-brand-600 dark:bg-brand-400' => $bar['current'] ?? false,
                               'bg-brand-300 group-hover:bg-brand-400 dark:bg-brand-500/50 dark:group-hover:bg-brand-500/70' => ! ($bar['current'] ?? false)])

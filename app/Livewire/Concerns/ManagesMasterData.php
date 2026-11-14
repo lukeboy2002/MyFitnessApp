@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Concerns;
 
+use Livewire\Attributes\Locked;
+
 /**
  * Gedeeld gedrag voor de beheerpagina's van stamgegevens:
  * formulier in een modal, aanmaken/bewerken, plaatje en meldingen.
@@ -15,6 +17,7 @@ trait ManagesMasterData
 
     public bool $showForm = false;
 
+    #[Locked]
     public ?int $editingId = null;
 
     public ?string $message = null;
