@@ -63,18 +63,19 @@ window.LukeboyPush = {
 
     test: () => send('POST', '/push/test'),
 
-    /** Twee korte piepjes */
+    /** Drie piepjes, hard genoeg om in de sportschool te horen */
     beep() {
         if (!audio || audio.state !== 'running') return;
-        [0, 0.25].forEach((start) => {
+        [0, 0.3, 0.6].forEach((start) => {
             const tone = audio.createOscillator();
             const volume = audio.createGain();
-            tone.frequency.value = 880;
-            volume.gain.setValueAtTime(0.25, audio.currentTime + start);
-            volume.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + start + 0.18);
+            tone.type = 'triangle';
+            tone.frequency.value = 1000;
+            volume.gain.setValueAtTime(0.9, audio.currentTime + start);
+            volume.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + start + 0.25);
             tone.connect(volume).connect(audio.destination);
             tone.start(audio.currentTime + start);
-            tone.stop(audio.currentTime + start + 0.2);
+            tone.stop(audio.currentTime + start + 0.27);
         });
     },
 };
