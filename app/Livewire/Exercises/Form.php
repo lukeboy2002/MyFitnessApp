@@ -124,6 +124,24 @@ class Form extends Component
         }
     }
 
+    /** Standaardoefening aan: eigen spiergroepen vallen uit de keuzelijst, dus ook uit wat er gekozen was */
+    public function updatedStandard(): void
+    {
+        unset($this->muscleGroups);
+        $visible = $this->muscleGroups->pluck('id')->all();
+
+        if ($this->primary_muscle_group_id && ! in_array($this->primary_muscle_group_id, $visible, true)) {
+            $this->primary_muscle_group_id = null;
+        }
+        $this->secondary_muscle_group_ids = array_values(array_intersect($this->secondary_muscle_group_ids, $visible));
+    }
+
+    /** Maakt een admin nu een nieuwe standaardoefening (voor iedereen)? */
+    private function makesStandard(): bool
+    {
+        return ! $this->exercise && $this->standard && Auth::user()->isAdmin();
+    }
+
     /** De primaire spiergroep hoort niet ook bij de secundaire */
     public function updatedPrimaryMuscleGroupId(): void
     {
@@ -141,7 +159,7 @@ class Form extends Component
 
         $type = $this->type;
         $this->default_metric_value = is_string($this->default_metric_value) ? str_replace(',', '.', trim($this->default_metric_value)) : $this->default_metric_value;
-        $standard = ! $this->exercise && $this->standard && $user->isAdmin();
+        $standard = $this->makesStandard();
         // Een standaardoefening mag alleen standaard-spiergroepen hebben, anders ziet niet iedereen ze
         $visibleGroup = Rule::exists('muscle_groups', 'id')->where(fn ($q) => $standard ? $q->whereNull('user_id') : $q->whereNull('user_id')->orWhere('user_id', $user->id));
 
@@ -211,7 +229,8 @@ class Form extends Component
     #[Computed]
     public function muscleGroups()
     {
-        return MuscleGroup::visibleTo(Auth::user())->with('bodyPart')->orderBy('sort_order')->orderBy('name')->get();
+        // Standaardoefening: alleen standaard-spiergroepen, die ziet iedereen
+        return MuscleGroup::visibleTo($this->makesStandard() ? null : Auth::user())->with('bodyPart')->orderBy('sort_order')->orderBy('name')->get();
     }
 
     public function render()

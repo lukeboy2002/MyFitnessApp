@@ -157,6 +157,18 @@ test('from an exercise request the admin creates a standard exercise with that n
     $exercise = Exercise::where('name', 'Hip Thrust (Machine)')->sole();
     expect($exercise->user_id)->toBeNull();
 
+    // Eigen spiergroepen van de admin staan alleen in de lijst bij een eigen oefening; omzetten haalt ze uit de keuze
+    $own = MuscleGroup::factory()->create(['user_id' => $this->admin->id, 'name' => 'Mijn groep']);
+    Livewire::withQueryParams([])->actingAs($this->admin)->test(ExerciseForm::class)
+        ->assertSet('standard', false)
+        ->assertSee('Mijn groep')
+        ->set('primary_muscle_group_id', $own->id)
+        ->set('secondary_muscle_group_ids', [$own->id, $group])
+        ->set('standard', true)
+        ->assertDontSee('Mijn groep')
+        ->assertSet('primary_muscle_group_id', null)
+        ->assertSet('secondary_muscle_group_ids', [$group]);
+
     // Een gewone gebruiker kan dat niet
     Livewire::withQueryParams(['name' => 'Eigen', 'standard' => 1])
         ->actingAs($this->user)->test(ExerciseForm::class)

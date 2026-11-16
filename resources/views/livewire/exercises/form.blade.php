@@ -10,7 +10,7 @@
 
                 @if (! $exercise && auth()->user()->isAdmin())
                     <div class="sm:col-span-2">
-                        <x-form.toggle wire:model="standard" :label="__('Standard exercise')" :description="__('Visible to everyone, like the exercises from the library. Off: only for yourself.')" />
+                        <x-form.toggle wire:model.live="standard" :label="__('Standard exercise')" :description="__('Visible to everyone, like the exercises from the library. Off: only for yourself.')" />
                     </div>
                 @endif
 
