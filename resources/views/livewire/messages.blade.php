@@ -1,5 +1,7 @@
 <div>
-    <x-page-header :title="__('Messages')" :description="__('Messages from the admin. You decide what you keep.')" />
+    <x-page-header :title="__('Messages')" :description="__('Messages from the admin. You decide what you keep.')">
+        <x-button variant="secondary" icon="mail" :href="route('contact')" wire:navigate>{{ __('Contact the admin') }}</x-button>
+    </x-page-header>
 
     @if ($this->messages->isEmpty())
         <x-card>

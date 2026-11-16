@@ -62,10 +62,17 @@ class Form extends Component
     /** Cardio: extra velden op het apparaat */
     public array $cardio_fields = [];
 
+    /** Admin: nieuwe oefening als standaardoefening, voor iedereen zichtbaar (bv. na een aanvraag via Contact) */
+    public bool $standard = false;
+
     public function mount(?Exercise $exercise = null): void
     {
         if (! $exercise?->exists) {
             $this->authorize('create', Exercise::class);
+
+            // Vanuit Admin > Contact: naam van de aangevraagde oefening, als standaardoefening
+            $this->name = str(request()->string('name'))->limit(100, '')->value();
+            $this->standard = Auth::user()->isAdmin() && request()->boolean('standard');
 
             return;
         }
@@ -134,7 +141,9 @@ class Form extends Component
 
         $type = $this->type;
         $this->default_metric_value = is_string($this->default_metric_value) ? str_replace(',', '.', trim($this->default_metric_value)) : $this->default_metric_value;
-        $visibleGroup = Rule::exists('muscle_groups', 'id')->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', $user->id));
+        $standard = ! $this->exercise && $this->standard && $user->isAdmin();
+        // Een standaardoefening mag alleen standaard-spiergroepen hebben, anders ziet niet iedereen ze
+        $visibleGroup = Rule::exists('muscle_groups', 'id')->where(fn ($q) => $standard ? $q->whereNull('user_id') : $q->whereNull('user_id')->orWhere('user_id', $user->id));
 
         $data = $this->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -164,7 +173,7 @@ class Form extends Component
         ]);
 
         $type = ExerciseType::from($data['type']);
-        $exercise = $this->exercise ?? new Exercise(['user_id' => $user->id]);
+        $exercise = $this->exercise ?? new Exercise(['user_id' => $standard ? null : $user->id]);
 
         // Alleen de doelvelden die bij het type horen bewaren
         $exercise->fill([

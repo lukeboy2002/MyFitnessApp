@@ -31,6 +31,7 @@
         $nav[] = ['route' => 'admin.users', 'active' => 'admin.users', 'icon' => 'shield', 'label' => __('Users'), 'badge' => auth()->user()->newUsersCount()];
         $nav[] = ['route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'sliders', 'label' => __('Settings')];
         $nav[] = ['route' => 'admin.badges', 'active' => 'admin.badges', 'icon' => 'medal', 'label' => __('Badge management')];
+        $nav[] = ['route' => 'admin.contact', 'active' => 'admin.contact', 'icon' => 'mail', 'label' => __('Contact (admin)'), 'badge' => auth()->user()->openContactCount()];
         $nav[] = ['route' => 'admin.push', 'active' => 'admin.push', 'icon' => 'bell', 'label' => __('Push notifications')];
     }
 
@@ -44,7 +45,8 @@
     ];
 
     // Op mobiel onder de drie puntjes rechtsboven
-    $more = collect($nav)->whereNotIn('route', ['dashboard', 'workouts.index', 'progress.index']);
+    $more = collect($nav)->whereNotIn('route', ['dashboard', 'workouts.index', 'progress.index'])
+        ->push(['route' => 'contact', 'active' => 'contact|contact.*', 'icon' => 'mail', 'label' => __('Contact')]);
 
     $is = fn (string $pattern) => request()->routeIs(...explode('|', $pattern));
 
@@ -92,6 +94,7 @@
             <span x-show="unread" x-text="unread" @if (! $unread) x-cloak @endif
                   class="pointer-events-none absolute right-1.5 top-1 min-w-5 rounded-full bg-fire-500 px-1.5 text-center text-xs font-bold leading-5 text-white tabular-nums lg:right-3 lg:top-1/2 lg:-translate-y-1/2">{{ $unread }}</span>
         </div>
+        <x-nav.sidebar-link :href="$link('contact')" icon="mail" :active="$is('contact|contact.*')">{{ __('Contact') }}</x-nav.sidebar-link>
         <x-nav.sidebar-link :href="$link('profile.edit')" icon="user" :active="$is('profile.*')">{{ __('Profile') }}</x-nav.sidebar-link>
         <x-theme-toggle variant="sidebar"/>
         <form method="POST" action="{{ $link('logout') }}">

@@ -8,6 +8,12 @@
             <x-form.section :title="__('General')" :description="__('Name, type and what you do the exercise with.')">
                 <x-form.input :label="__('Name')" wire:model="name" required class="sm:col-span-2" :placeholder="__('e.g. :example', ['example' => 'Chest Press Machine'])" />
 
+                @if (! $exercise && auth()->user()->isAdmin())
+                    <div class="sm:col-span-2">
+                        <x-form.toggle wire:model="standard" :label="__('Standard exercise')" :description="__('Visible to everyone, like the exercises from the library. Off: only for yourself.')" />
+                    </div>
+                @endif
+
                 @if ($typeLocked)
                     <div class="flex flex-col gap-1.5 sm:col-span-2">
                         <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ __('Type') }}</span>

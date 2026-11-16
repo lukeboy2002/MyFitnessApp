@@ -173,6 +173,18 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->hasMany(PushSubscription::class);
     }
 
+    /** Vragen aan de admin (Contact) */
+    public function contactRequests(): HasMany
+    {
+        return $this->hasMany(ContactRequest::class);
+    }
+
+    /** Admin: vragen die op antwoord wachten (teller in het menu) */
+    public function openContactCount(): int
+    {
+        return $this->isAdmin() ? once(fn () => ContactRequest::open()->count()) : 0;
+    }
+
     public function workoutSessions(): HasMany
     {
         return $this->hasMany(WorkoutSession::class);

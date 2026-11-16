@@ -6,12 +6,15 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\UsernameAvailabilityController;
 use App\Livewire\Admin\Badges as AdminBadges;
+use App\Livewire\Admin\Contact as AdminContact;
 use App\Livewire\Admin\PushMessages as AdminPushMessages;
 use App\Livewire\Admin\Settings as AdminSettings;
 use App\Livewire\Admin\Users as AdminUsers;
 use App\Livewire\Badges;
 use App\Livewire\BodyParts\Index as BodyPartsIndex;
 use App\Livewire\Calendar;
+use App\Livewire\Contact\Index as ContactIndex;
+use App\Livewire\Contact\Show as ContactShow;
 use App\Livewire\Dashboard;
 use App\Livewire\Exercises\Form as ExerciseForm;
 use App\Livewire\Exercises\Index as ExercisesIndex;
@@ -88,12 +91,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Berichten van de admin
     Route::get('messages', Messages::class)->name('messages');
 
+    // Contact met de admin
+    Route::get('contact', ContactIndex::class)->name('contact');
+    Route::get('contact/{contactRequest}', ContactShow::class)->name('contact.show');
+
     // Beheer (alleen admins)
     Route::middleware('can:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('users', AdminUsers::class)->name('users');
         Route::get('settings', AdminSettings::class)->name('settings');
         Route::get('badges', AdminBadges::class)->name('badges');
         Route::get('push', AdminPushMessages::class)->name('push');
+        Route::get('contact', AdminContact::class)->name('contact');
         Route::get('preview/mail/{mail}', [PreviewController::class, 'mail'])->name('preview.mail');
         Route::get('preview/error/{code}', [PreviewController::class, 'error'])->whereNumber('code')->name('preview.error');
     });
