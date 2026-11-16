@@ -6,7 +6,7 @@
             <div class="flex flex-col items-center gap-2 py-6 text-center">
                 <span class="grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-white/10"><x-icon name="bell" /></span>
                 <p class="font-semibold">{{ __('No messages') }}</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('Messages from the admin will appear here.') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('Messages from the admin and your training reminders will appear here.') }}</p>
             </div>
         </x-card>
     @else

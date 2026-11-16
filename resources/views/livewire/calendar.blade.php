@@ -95,7 +95,8 @@
                 <p class="text-slate-500 dark:text-slate-400">{{ $selected->isBefore(today()) ? __('No training on this day.') : __('Nothing planned yet.') }}</p>
             @endif
 
-            <ul class="grid gap-2.5">
+            {{-- grid-cols-1 = minmax(0, 1fr): lange namen worden afgekapt i.p.v. de kaart op te rekken --}}
+            <ul class="grid grid-cols-1 gap-2.5">
                 @foreach ($daySessions as $session)
                     <li wire:key="s-{{ $session->id }}" style="--c: {{ $session->color ?? '#1d63c5' }}">
                         <a href="{{ $session->isRunning() ? route('sessions.run', $session) : route('sessions.summary', $session) }}" wire:navigate
@@ -104,7 +105,7 @@
                                 <x-icon :name="$session->isRunning() ? 'play' : 'check'" class="size-4.5" />
                             </span>
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate font-semibold">{{ $session->name }}</span>
+                                <span class="line-clamp-2 font-semibold leading-snug" title="{{ $session->name }}">{{ $session->name }}</span>
                                 <span class="block text-sm text-slate-500 dark:text-slate-400">
                                     {{ $session->started_at->format('H:i') }} ·
                                     {{ $session->isRunning() ? __('in progress') : WorkoutSession::clock($session->duration_seconds ?? 0).' · '.trans_choice(':count exercise|:count exercises', $session->exercises_count) }}
@@ -120,21 +121,23 @@
 
                 @foreach ($dayPlanned as $item)
                     <li wire:key="p-{{ $item->id }}" style="--c: {{ $item->isMissed() ? '#94a3b8' : $item->workout->color ?? '#1d63c5' }}"
-                        class="flex items-center gap-3 rounded-xl border-2 border-dashed border-(--c) p-2.5">
-                        <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--c)_15%,transparent)] text-(--c)">
-                            <x-icon name="calendar" class="size-4.5" />
-                        </span>
-                        <span class="min-w-0 flex-1">
-                            <a href="{{ route('workouts.show', $item->workout) }}" wire:navigate class="block truncate font-semibold hover:underline">{{ $item->workout->name }}</a>
-                            <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $item->isMissed() ? __('Missed') : __('Planned') }}{{ $item->notes ? ' · '.$item->notes : '' }}</span>
-                        </span>
+                        class="rounded-xl border-2 border-dashed border-(--c) p-2.5">
+                        <div class="flex items-center gap-3">
+                            <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--c)_15%,transparent)] text-(--c)">
+                                <x-icon name="calendar" class="size-4.5" />
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <a href="{{ route('workouts.show', $item->workout) }}" wire:navigate class="line-clamp-2 font-semibold leading-snug hover:underline" title="{{ $item->workout->name }}">{{ $item->workout->name }}</a>
+                                <span class="block text-sm text-slate-500 dark:text-slate-400">{{ $item->isMissed() ? __('Missed') : __('Planned') }}{{ $item->notes ? ' · '.$item->notes : '' }}</span>
+                            </span>
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" aria-label="{{ __('Delete plan') }}"
+                                    class="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400">
+                                <x-icon name="x" class="size-4.5" />
+                            </button>
+                        </div>
                         @if ($item->scheduled_on->isToday() && ! $item->workout->isArchived())
-                            <x-button size="sm" icon="play" type="button" wire:click="start({{ $item->id }})" loading="start({{ $item->id }})">{{ __('Start') }}</x-button>
+                            <x-button size="sm" icon="play" type="button" wire:click="start({{ $item->id }})" loading="start({{ $item->id }})" :block="true" class="mt-2.5">{{ __('Start') }}</x-button>
                         @endif
-                        <button type="button" wire:click="confirmDelete({{ $item->id }})" aria-label="{{ __('Delete plan') }}"
-                                class="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400">
-                            <x-icon name="x" class="size-4.5" />
-                        </button>
                     </li>
                 @endforeach
             </ul>
