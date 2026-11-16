@@ -3,6 +3,7 @@
 namespace App\Livewire\Sessions;
 
 use App\Actions\AddSessionExercise;
+use App\Actions\PostTrainingHighlights;
 use App\Enums\CardioMetric;
 use App\Exceptions\SessionNotRunning;
 use App\Livewire\Concerns\ConfirmsDeletion;
@@ -370,11 +371,12 @@ class Run extends Component
         $this->session->resume();
     }
 
-    public function finish()
+    public function finish(PostTrainingHighlights $highlights)
     {
         $this->ensureRunning();
         RestReminder::cancel(Auth::user());
         $this->session->finish();
+        $highlights->handle($this->session);
 
         return $this->redirectRoute('sessions.summary', $this->session, navigate: true);
     }
