@@ -220,7 +220,7 @@ Daarna `sudo nginx -t && sudo systemctl reload nginx`. Controleren: `curl -sI ht
 
 ## Back-up
 
-Je lokale database is om te testen; de echte trainingen staan alleen online. `deploy/backup.sh` maakt een kopie van de online database (en van de plaatjes in `storage/app/public`) in `~/backups/myfitnessapp` en ruimt kopieën ouder dan 14 dagen op. De inloggegevens leest het script uit `.env`.
+Je lokale database is om te testen; de echte trainingen staan alleen online. `deploy/backup.sh` maakt een kopie van de online database (en van de plaatjes in `storage/app/public`) in `~/backups/myfitnessapp` en bewaart alleen de nieuwste 3 van elk (database en plaatjes); oudere worden verwijderd. Met `KEEP=7 bash deploy/backup.sh` bewaar je er meer. De inloggegevens leest het script uit `.env`.
 
 **Eenmalig instellen.** Eerst één keer met de hand proberen:
 

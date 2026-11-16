@@ -3,13 +3,13 @@
 #   bash deploy/backup.sh               database + plaatjes (elke nacht via cron)
 #   bash deploy/backup.sh --db-only     alleen de database (deploy.sh doet dit vóór elke migrate)
 #
-# De inloggegevens komen uit .env. Back-ups ouder dan KEEP_DAYS dagen worden opgeruimd.
+# De inloggegevens komen uit .env. Alleen de nieuwste KEEP back-ups (per soort) blijven staan.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 BACKUP_DIR="${BACKUP_DIR:-$HOME/backups/myfitnessapp}"
-KEEP_DAYS="${KEEP_DAYS:-14}"
+KEEP="${KEEP:-3}"
 STAMP="$(date +%Y-%m-%d_%H%M)"
 DB_ONLY=false
 [[ "${1:-}" == "--db-only" ]] && DB_ONLY=true
@@ -60,7 +60,13 @@ if [[ "$DB_ONLY" == false ]]; then
     echo "  $IMAGES ($(du -h "$IMAGES" | cut -f1))"
 fi
 
-echo "→ Ouder dan $KEEP_DAYS dagen opruimen"
-find "$BACKUP_DIR" -maxdepth 1 -type f \( -name 'db-*.sql.gz' -o -name 'images-*.tar.gz' \) -mtime +"$KEEP_DAYS" -print -delete
+echo "→ Alleen de nieuwste $KEEP bewaren"
+# De datum staat in de naam, dus op naam sorteren = op datum
+for pattern in 'db-*.sql.gz' 'images-*.tar.gz'; do
+    find "$BACKUP_DIR" -maxdepth 1 -type f -name "$pattern" | sort -r | tail -n +"$((KEEP + 1))" | while read -r old; do
+        echo "  weg: $old"
+        rm -f "$old"
+    done
+done
 
 echo "✓ Back-up klaar"
