@@ -15,6 +15,9 @@ Schedule::command('fitness:training-reminders')->dailyAt('07:00');
 // Weekoverzicht: maandag om 8:00 een bericht + pushmelding over de week ervoor
 Schedule::command('fitness:weekly-summaries')->weeklyOn(1, '08:00');
 
+// Niet-actief-melding: om 10:00 een bericht + pushmelding voor wie al 10 dagen niet heeft getraind
+Schedule::command('fitness:inactivity-reminders')->dailyAt('10:00');
+
 // Mislukte jobs (pushmeldingen, mails) ouder dan een week opruimen
 Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->at('03:30');
 
