@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\ScheduledWorkout;
 use App\Models\User;
-use App\Support\WebPush;
+use App\Support\Inbox;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
@@ -25,8 +25,7 @@ class SendTrainingReminders extends Command
         $planned = ScheduledWorkout::query()
             ->open()
             ->whereDate('scheduled_on', $today)
-            ->whereHas('user', fn ($q) => $q->where('push_reminder', true)
-                ->where(fn ($q) => $q->whereNull('banned_at')->orWhere('banned_until', '<=', now())))
+            ->whereHas('user', fn ($q) => $q->where('push_reminder', true)->notBanned())
             ->with('user', 'workout')
             ->orderBy('id')
             ->get()
@@ -58,19 +57,13 @@ class SendTrainingReminders extends Command
             ? route('workouts.show', $items->first()->workout, absolute: false)
             : route('calendar', absolute: false);
 
-        $message = $user->messages()->create([
-            'title' => __('On the schedule today', [], $locale),
-            'body' => trans_choice(':workouts is planned for today. Good luck!|:workouts are planned for today. Good luck!', $names->count(), [
+        Inbox::deliver($user,
+            title: __('On the schedule today', [], $locale),
+            body: trans_choice(':workouts is planned for today. Good luck!|:workouts are planned for today. Good luck!', $names->count(), [
                 'workouts' => $names->join(', ', ' '.__('and', [], $locale).' '),
             ], $locale),
-            'url' => $url,
-        ]);
-
-        WebPush::send($user, [
-            'title' => $message->title,
-            'body' => $message->body,
-            'url' => route('messages', ['read' => $message->id, 'go' => 1], absolute: false),
-            'tag' => 'reminder-'.today()->toDateString(),
-        ]);
+            url: $url,
+            tag: 'reminder-'.today()->toDateString(),
+        );
     }
 }

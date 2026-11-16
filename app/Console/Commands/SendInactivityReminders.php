@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\SessionStatus;
 use App\Models\User;
 use App\Models\WorkoutSession;
-use App\Support\WebPush;
+use App\Support\Inbox;
 use Illuminate\Console\Command;
 use Illuminate\Support\Traits\Localizable;
 
@@ -36,7 +36,7 @@ class SendInactivityReminders extends Command
             ->selectSub($lastTraining, 'last_trained_at')
             ->withCasts(['last_trained_at' => 'datetime'])
             ->where('push_inactive', true)
-            ->where(fn ($q) => $q->whereNull('banned_at')->orWhere('banned_until', '<=', now()))
+            ->notBanned()
             ->whereDoesntHave('workoutSessions', fn ($q) => $q->running())
             ->orderBy('id')
             ->get()
@@ -57,19 +57,13 @@ class SendInactivityReminders extends Command
     {
         $days = (int) $user->last_trained_at->startOfDay()->diffInDays(today());
 
-        $message = $user->messages()->create([
-            'title' => __('We miss you!'),
-            'body' => __('Your last training was :days days ago. How about a training today? Even a short one counts.', ['days' => $days]),
-            'url' => route('workouts.index', absolute: false),
-        ]);
-
         $user->forceFill(['inactive_reminded_at' => now()])->save();
 
-        WebPush::send($user, [
-            'title' => $message->title,
-            'body' => $message->body,
-            'url' => route('messages', ['read' => $message->id, 'go' => 1], absolute: false),
-            'tag' => 'inactive',
-        ]);
+        Inbox::deliver($user,
+            title: __('We miss you!'),
+            body: __('Your last training was :days days ago. How about a training today? Even a short one counts.', ['days' => $days]),
+            url: route('workouts.index', absolute: false),
+            tag: 'inactive',
+        );
     }
 }

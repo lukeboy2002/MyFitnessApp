@@ -60,7 +60,7 @@ class PushBroadcast extends Model
     {
         return User::query()
             ->when($recipientId, fn ($q) => $q->whereKey($recipientId))
-            ->where(fn ($q) => $q->whereNull('banned_at')->orWhere('banned_until', '<=', now()));
+            ->notBanned();
     }
 
     /** Wie er ook een pushmelding van krijgt: pushmeldingen aan en berichten van de beheerder aan */

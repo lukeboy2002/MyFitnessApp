@@ -54,7 +54,7 @@ test('a new badge after finishing a training ends up in messages', function () {
     finishWith(40, 10);
 
     $message = $this->user->messages()->sole();
-    expect($message->title)->toStartWith('Nieuwe badge')
+    expect($message->title)->toMatch('/^(Nieuwe badge!|\d+ nieuwe badges!)$/') // hoeveel hangt af van tijdstip en dag (vroeg, laat, weekend)
         ->and($message->body)->toContain('• ');
 });
 

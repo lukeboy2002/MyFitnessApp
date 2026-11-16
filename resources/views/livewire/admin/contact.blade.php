@@ -70,7 +70,8 @@
                 <x-slot:footer>
                     <form wire:submit="reply" class="grid w-full gap-3">
                         <x-form.textarea :label="__('Answer')" wire:model="answer" rows="3" maxlength="2000" required />
-                        <div class="flex flex-wrap justify-end gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            <x-action-message on="answered" class="me-auto">{{ __('Your answer has been sent to :name.', ['name' => $selected->user->name]) }}</x-action-message>
                             @if ($selected->status === \App\Enums\ContactStatus::Closed)
                                 <x-button variant="secondary" icon="plus" type="button" wire:click="reopen">{{ __('Reopen') }}</x-button>
                             @else

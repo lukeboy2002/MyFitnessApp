@@ -4,7 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Enums\ContactStatus;
 use App\Models\ContactRequest;
-use App\Support\WebPush;
+use App\Support\Inbox;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -83,7 +83,7 @@ class Contact extends Component
 
         $this->reset('answer');
         unset($this->selected, $this->requests, $this->counts);
-        session()->flash('status', __('Your answer has been sent to :name.', ['name' => $request->user->name]));
+        $this->dispatch('answered');
     }
 
     public function close(): void
@@ -110,20 +110,13 @@ class Contact extends Component
             return;
         }
 
-        $message = $user->messages()->create([
-            'title' => __('Answer to your question', [], $user->preferredLocale()),
-            'body' => $request->subject."\n\n".Str::limit($answer, 300),
-            'url' => route('contact.show', $request, absolute: false),
-        ]);
-
-        if ($user->push_admin) {
-            WebPush::send($user, [
-                'title' => $message->title,
-                'body' => Str::limit($answer, 120),
-                'url' => route('messages', ['read' => $message->id, 'go' => 1], absolute: false),
-                'tag' => 'contact-'.$request->id,
-            ]);
-        }
+        Inbox::deliver($user,
+            title: __('Answer to your question', [], $user->preferredLocale()),
+            body: $request->subject."\n\n".Str::limit($answer, 300),
+            url: route('contact.show', $request, absolute: false),
+            tag: 'contact-'.$request->id,
+            push: $user->push_admin,
+        );
     }
 
     public function render()

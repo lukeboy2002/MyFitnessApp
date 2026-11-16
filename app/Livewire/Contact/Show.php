@@ -43,12 +43,13 @@ class Show extends Component
 
     public function render()
     {
-        // Gezien: het bolletje in Mijn vragen en het bericht hierover in Berichten verdwijnen
-        ContactRequest::withoutTimestamps(fn () => $this->request->update(['user_seen_at' => now()]));
-        $read = Auth::user()->messages()->whereNull('read_at')
-            ->where('url', route('contact.show', $this->request, absolute: false))
-            ->update(['read_at' => now()]);
-        if ($read) {
+        // Nieuw antwoord gezien: het bolletje in Mijn vragen en het bericht hierover in Berichten verdwijnen.
+        // Alleen schrijven als er iets nieuws is, want de pagina ververst elke 10 seconden.
+        if ($this->request->hasUnreadAnswer()) {
+            ContactRequest::withoutTimestamps(fn () => $this->request->update(['user_seen_at' => now()]));
+            Auth::user()->messages()->whereNull('read_at')
+                ->where('url', route('contact.show', $this->request, absolute: false))
+                ->update(['read_at' => now()]);
             $this->dispatch('messages-changed', unread: Auth::user()->messages()->whereNull('read_at')->count());
         }
 

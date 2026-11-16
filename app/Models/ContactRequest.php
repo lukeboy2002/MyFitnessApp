@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ContactStatus;
 use App\Enums\ContactTopic;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,7 +46,8 @@ class ContactRequest extends Model
     }
 
     /** Wacht op de admin */
-    protected function scopeOpen(Builder $query): void
+    #[Scope]
+    protected function open(Builder $query): void
     {
         $query->where('status', ContactStatus::Open);
     }

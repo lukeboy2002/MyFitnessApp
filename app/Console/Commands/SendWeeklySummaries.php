@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use App\Enums\SessionStatus;
 use App\Models\User;
+use App\Support\Inbox;
 use App\Support\TrainingStats;
-use App\Support\WebPush;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -31,7 +31,7 @@ class SendWeeklySummaries extends Command
 
         $users = User::query()
             ->where('push_weekly', true)
-            ->where(fn ($q) => $q->whereNull('banned_at')->orWhere('banned_until', '<=', now()))
+            ->notBanned()
             ->whereHas('workoutSessions', fn ($q) => $q->where('status', SessionStatus::Completed)
                 ->where('started_at', '>=', $from)->where('started_at', '<', $until))
             ->orderBy('id')
@@ -75,20 +75,14 @@ class SendWeeklySummaries extends Command
                 : __(':time of :goal training time for your goal.', ['time' => $time, 'goal' => $goalTime]);
         }
 
-        $message = $user->messages()->create([
-            'title' => __('Your week of :from – :until', [
+        Inbox::deliver($user,
+            title: __('Your week of :from – :until', [
                 'from' => $from->translatedFormat($from->month === $until->subDay()->month ? 'j' : 'j F'),
                 'until' => $until->subDay()->translatedFormat('j F'),
             ]),
-            'body' => implode("\n", $lines),
-            'url' => route('progress.index', absolute: false),
-        ]);
-
-        WebPush::send($user, [
-            'title' => $message->title,
-            'body' => $message->body,
-            'url' => route('messages', ['read' => $message->id, 'go' => 1], absolute: false),
-            'tag' => 'weekly-'.$from->toDateString(),
-        ]);
+            body: implode("\n", $lines),
+            url: route('progress.index', absolute: false),
+            tag: 'weekly-'.$from->toDateString(),
+        );
     }
 }

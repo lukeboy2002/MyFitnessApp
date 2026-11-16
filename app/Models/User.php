@@ -11,6 +11,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -114,6 +116,13 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function isAdmin(): bool
     {
         return $this->is_admin;
+    }
+
+    /** Niet (meer) geblokkeerd; de tegenhanger van isBanned() voor queries */
+    #[Scope]
+    protected function notBanned(Builder $query): void
+    {
+        $query->where(fn ($q) => $q->whereNull('banned_at')->orWhere('banned_until', '<=', now()));
     }
 
     /** Door een admin geblokkeerd (een tijdelijke blokkade vervalt vanzelf) */
