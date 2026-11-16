@@ -2,6 +2,7 @@
 
 use App\Jobs\SendPushBroadcast;
 use App\Livewire\Admin\PushMessages;
+use App\Livewire\Admin\Users;
 use App\Models\PushBroadcast;
 use App\Models\PushSubscription;
 use App\Models\User;
@@ -124,4 +125,27 @@ test('the migration creates and drops the table', function () {
     expect(Schema::hasTable('push_broadcasts'))->toBeFalse();
     $migration->up();
     expect(Schema::hasTable('push_broadcasts'))->toBeTrue();
+});
+
+test('the users page has a send message button that opens push notifications with that user chosen', function () {
+    Livewire::actingAs($this->admin)->test(Users::class)
+        ->call('toggle', $this->jan->id)
+        ->assertSee(route('admin.push', ['to' => $this->jan->id]), false)
+        ->assertSee('Bericht sturen');
+
+    $this->actingAs($this->admin)->get(route('admin.push', ['to' => $this->jan->id]))->assertOk();
+
+    Livewire::withQueryParams(['to' => $this->jan->id])->actingAs($this->admin)->test(PushMessages::class)
+        ->assertSet('audience', 'user')
+        ->assertSet('recipient_id', (string) $this->jan->id);
+});
+
+test('a blocked or unknown user in the link is not chosen', function () {
+    $blocked = User::factory()->create(['banned_at' => now()]);
+
+    foreach ([$blocked->id, 99999] as $id) {
+        Livewire::withQueryParams(['to' => $id])->actingAs($this->admin)->test(PushMessages::class)
+            ->assertSet('audience', 'everyone')
+            ->assertSet('recipient_id', null);
+    }
 });

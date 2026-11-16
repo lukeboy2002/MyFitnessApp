@@ -891,6 +891,7 @@
     "Send a message to everyone or to one user. It appears in their Messages, and as a push notification for users who turned that on in their profile.": "Sende eine Nachricht an alle oder an einen Nutzer. Sie erscheint in ihren Nachrichten und als Push-Benachrichtigung bei allen, die das in ihrem Profil aktiviert haben.",
     "Send a test notification": "Testbenachrichtigung senden",
     "Send link": "Link senden",
+    "Send message": "Nachricht senden",
     "Send the email again.": "E-Mail erneut senden.",
     "Send this push notification now?": "Diese Nachricht jetzt senden?",
     "Sent": "Gesendet",

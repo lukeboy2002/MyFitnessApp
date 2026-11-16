@@ -44,6 +44,10 @@
                             <div><dt class="text-slate-500 dark:text-slate-400">{{ __('Last training') }}</dt><dd class="font-medium">{{ $user->last_training_at ? \Illuminate\Support\Carbon::parse($user->last_training_at)->translatedFormat('j M Y') : '–' }}</dd></div>
                         </dl>
 
+                        @unless ($user->isBanned())
+                            <x-button variant="secondary" size="sm" icon="bell" :href="route('admin.push', ['to' => $user->id])" wire:navigate>{{ __('Send message') }}</x-button>
+                        @endunless
+
                         @unless ($user->is(auth()->user()) || $user->is_admin)
                             <div class="flex w-full flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4 text-sm dark:bg-white/5">
                                 @if ($user->isBanned())

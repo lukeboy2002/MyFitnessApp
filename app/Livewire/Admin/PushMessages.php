@@ -30,6 +30,13 @@ class PushMessages extends Component
     public function mount(): void
     {
         Gate::authorize('admin');
+
+        // Vanuit Admin > Gebruikers (knop "Bericht sturen"): die gebruiker staat al gekozen
+        $to = request()->integer('to');
+        if ($to && $this->recipients->has($to)) {
+            $this->audience = 'user';
+            $this->recipient_id = (string) $to;
+        }
     }
 
     /** Wie het bericht kan krijgen (id => naam): iedereen behalve geblokkeerden */
