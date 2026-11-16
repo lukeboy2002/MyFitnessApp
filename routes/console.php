@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Schedule;
  * Lokaal bekijken: php artisan schedule:list
  */
 
+// Trainingsherinnering: om 7:00 een bericht + pushmelding voor de trainingen die vandaag in de kalender staan
+Schedule::command('fitness:training-reminders')->dailyAt('07:00');
+
 // Mislukte jobs (pushmeldingen, mails) ouder dan een week opruimen
 Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->at('03:30');
 

@@ -9,17 +9,21 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-/** Berichten van de admin: lezen, als gelezen markeren en verwijderen. ?read={id} (uit de pushmelding) zet dat bericht op gelezen */
+/** Berichten (van de admin en trainingsherinneringen): lezen, als gelezen markeren en verwijderen. ?read={id} (uit de pushmelding) zet dat bericht op gelezen */
 #[Layout('layouts.app')]
 class Messages extends Component
 {
     #[Url(except: null)]
     public ?int $read = null;
 
+    /** ?read={id}&go=1 (trainingsherinnering): op gelezen zetten en direct naar de link van het bericht */
     public function mount(): void
     {
-        if ($this->read) {
-            $this->find($this->read)?->markRead();
+        $message = $this->read ? $this->find($this->read) : null;
+        $message?->markRead();
+
+        if ($message?->url && request()->boolean('go')) {
+            $this->redirect($message->url, navigate: true);
         }
     }
 

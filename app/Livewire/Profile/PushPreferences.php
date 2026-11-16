@@ -12,15 +12,18 @@ class PushPreferences extends Component
 
     public bool $push_admin = true;
 
+    public bool $push_reminder = true;
+
     public function mount(): void
     {
         $this->push_rest = Auth::user()->push_rest;
         $this->push_admin = Auth::user()->push_admin;
+        $this->push_reminder = Auth::user()->push_reminder;
     }
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['push_rest', 'push_admin'], true)) {
+        if (in_array($property, ['push_rest', 'push_admin', 'push_reminder'], true)) {
             Auth::user()->forceFill([$property => $this->{$property}])->save();
             $this->dispatch('saved');
         }
