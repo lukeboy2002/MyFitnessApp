@@ -194,6 +194,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         return $this->isAdmin() ? once(fn () => ContactRequest::open()->count()) : 0;
     }
 
+    /** Apparaatinstellingen per oefening ("stoel 4, rugleuning 2") */
+    public function exerciseSettings(): HasMany
+    {
+        return $this->hasMany(ExerciseSetting::class);
+    }
+
     public function workoutSessions(): HasMany
     {
         return $this->hasMany(WorkoutSession::class);

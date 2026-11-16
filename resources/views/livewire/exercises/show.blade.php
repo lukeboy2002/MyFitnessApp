@@ -31,6 +31,11 @@
                 @endif
             </div>
 
+            <x-card :title="__('Machine setting')">
+                <p class="mb-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Your own setting, you will see it again during every training.') }}</p>
+                <livewire:exercises.setting :exercise="$exercise" />
+            </x-card>
+
             <x-card>
                 <dl class="grid gap-4 text-sm">
                     <div>

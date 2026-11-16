@@ -60,6 +60,11 @@
                     </button>
                 </header>
 
+                {{-- Jouw apparaatinstelling (stoel, rugleuning ...) --}}
+                <div class="-mt-1 px-3 pb-2 sm:px-4">
+                    <livewire:exercises.setting :exercise="$exercise" wire:key="setting-{{ $item->id }}" />
+                </div>
+
                 {{-- Records uit eerdere trainingen --}}
                 @php($record = $records[$exercise->id] ?? null)
                 @if ($record && ! $record->isEmpty())
