@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Schedule;
 // Trainingsherinnering: om 7:00 een bericht + pushmelding voor de trainingen die vandaag in de kalender staan
 Schedule::command('fitness:training-reminders')->dailyAt('07:00');
 
+// Weekoverzicht: maandag om 8:00 een bericht + pushmelding over de week ervoor
+Schedule::command('fitness:weekly-summaries')->weeklyOn(1, '08:00');
+
 // Mislukte jobs (pushmeldingen, mails) ouder dan een week opruimen
 Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->at('03:30');
 
