@@ -175,6 +175,38 @@
                                 </div>
                             @endforeach
                         </div>
+
+                        {{-- Schijvencalculator: per gewicht van de sets die nog open staan, wat er per kant op de stang gaat --}}
+                        @php($plates = $type === $Type::Strength ? \App\Support\PlateCalculator::for($exercise, auth()->user()) : null)
+                        @php($weights = $plates ? $item->sets->where('is_completed', false)->pluck('weight')->filter(fn ($w) => (float) $w > 0)->map(fn ($w) => (float) $w)->unique()->sort()->values() : collect())
+                        @if ($weights->isNotEmpty())
+                            <div class="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-white/5">
+                                <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                    {{ $plates->bar ? __('Plates per side (bar :bar kg)', ['bar' => \App\Models\WorkoutSession::formatNumber($plates->bar)]) : __('Plates per side') }}
+                                </p>
+                                <ul class="flex flex-col gap-1.5">
+                                    @foreach ($weights as $weight)
+                                        @php($side = $plates->perSide($weight))
+                                        <li wire:key="plates-{{ $item->id }}-{{ $weight }}" class="flex flex-wrap items-center gap-1.5">
+                                            <span class="w-16 shrink-0 font-semibold tabular-nums">{{ \App\Models\WorkoutSession::formatNumber($weight) }} kg</span>
+                                            @if (! $side)
+                                                <span class="text-slate-500 dark:text-slate-400">{{ __('lighter than the bar') }}</span>
+                                            @elseif (! $side['plates'])
+                                                <span class="text-slate-500 dark:text-slate-400">{{ __('only the bar') }}</span>
+                                            @else
+                                                @foreach ($side['plates'] as $plate)
+                                                    <span class="grid h-7 min-w-7 place-items-center rounded-full px-1.5 text-xs font-bold tabular-nums {{ \App\Support\PlateCalculator::color($plate) }}">{{ \App\Models\WorkoutSession::formatNumber($plate) }}</span>
+                                                @endforeach
+                                            @endif
+                                            @if ($side && $side['rest'] > 0)
+                                                <span class="text-xs text-amber-700 dark:text-amber-400">{{ __('+ :kg kg per side does not fit', ['kg' => \App\Models\WorkoutSession::formatNumber($side['rest'])]) }}</span>
+                                            @endif
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div class="mt-2 flex gap-2">
                             <x-button variant="ghost" size="sm" type="button" icon="plus" wire:click="addSet({{ $item->id }})">{{ __('Set') }}</x-button>
                             @if ($item->sets->count() > 1)
