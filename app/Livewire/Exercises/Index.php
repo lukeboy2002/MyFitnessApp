@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Exercises;
 
+use App\Enums\Equipment;
 use App\Enums\ExerciseType;
 use App\Livewire\Concerns\ConfirmsDeletion;
 use App\Models\Exercise;
@@ -30,6 +31,10 @@ class Index extends Component
 
     #[Url(as: 'groep')]
     public ?int $groupFilter = null;
+
+    /** Materiaal (Equipment), bijv. 'barbell' */
+    #[Url(as: 'materiaal', except: '')]
+    public string $equipmentFilter = '';
 
     #[Url(as: 'eigen', except: false)]
     public bool $ownOnly = false;
@@ -129,7 +134,7 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('search', 'typeFilter', 'groupFilter', 'ownOnly', 'letter');
+        $this->reset('search', 'typeFilter', 'groupFilter', 'equipmentFilter', 'ownOnly', 'letter');
     }
 
     public function pickLetter(string $letter): void
@@ -150,6 +155,16 @@ class Index extends Component
         return MuscleGroup::visibleTo(Auth::user())->orderBy('sort_order')->orderBy('name')->get();
     }
 
+    /** Alleen materiaal dat bij minstens één oefening voorkomt: ['barbell' => 'Barbell', ...] */
+    #[Computed]
+    public function equipment(): array
+    {
+        $used = Exercise::visibleTo(Auth::user())->whereNotNull('equipment')->distinct()->pluck('equipment')
+            ->map(fn ($equipment) => $equipment instanceof Equipment ? $equipment->value : $equipment)->all();
+
+        return collect(Equipment::options())->only($used)->all();
+    }
+
     /** Oefeningen na zoeken en filters, nog zonder letter (daaruit volgt welke letters er zijn) */
     #[Computed]
     public function filtered()
@@ -161,6 +176,7 @@ class Index extends Component
             ->when($this->search !== '', fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->when(ExerciseType::tryFrom($this->typeFilter), fn ($q, $type) => $q->where('type', $type))
             ->when($this->groupFilter, fn ($q) => $q->whereHas('muscleGroups', fn ($q) => $q->whereKey($this->groupFilter)))
+            ->when(Equipment::tryFrom($this->equipmentFilter), fn ($q, $equipment) => $q->where('equipment', $equipment))
             ->orderBy('name')
             ->get();
     }

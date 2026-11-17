@@ -13,9 +13,10 @@
 
     {{-- Filters --}}
     <div class="mb-5 flex flex-col gap-3">
-        <div class="grid gap-3 sm:grid-cols-[1fr_16rem]">
-            <x-form.input wire:model.live.debounce.300ms="search" icon="search" :placeholder="__('Search an exercise…')" :aria-label="__('Search')" />
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-[1fr_14rem_14rem]">
+            <x-form.input wire:model.live.debounce.300ms="search" icon="search" :placeholder="__('Search an exercise…')" :aria-label="__('Search')" class="col-span-2 sm:col-span-1" />
             <x-form.select wire:model.live="groupFilter" :options="$this->muscleGroups->pluck('name', 'id')" :placeholder="__('All muscle groups')" :aria-label="__('Muscle group')" />
+            <x-form.select wire:model.live="equipmentFilter" :options="$this->equipment" :placeholder="__('All equipment')" :aria-label="__('Equipment')" />
         </div>
         <div class="flex flex-wrap items-center gap-2">
             @foreach (['' => __('All')] + collect(\App\Enums\ExerciseType::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all() as $value => $label)
@@ -148,7 +149,7 @@
         @empty
             <div class="rounded-2xl bg-white p-8 text-center ring-1 ring-slate-200 sm:col-span-2 xl:col-span-3 dark:bg-panel-dark dark:ring-line-dark">
                 <p class="text-slate-500 dark:text-slate-400">{{ $showArchived ? __('There are no exercises in the archive.') : __('No exercises found.') }}</p>
-                @if ($search !== '' || $typeFilter !== '' || $groupFilter || $ownOnly || $letter !== '')
+                @if ($search !== '' || $typeFilter !== '' || $groupFilter || $equipmentFilter !== '' || $ownOnly || $letter !== '')
                     <x-button variant="secondary" size="sm" type="button" wire:click="resetFilters" class="mt-3">{{ __('Clear filters') }}</x-button>
                 @endif
             </div>

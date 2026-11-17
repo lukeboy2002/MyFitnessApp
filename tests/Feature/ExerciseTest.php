@@ -68,6 +68,21 @@ test('the index lists exercises and filters by type, muscle group and search', f
         ->assertSee('Leg Press Machine')->assertDontSee('Seated Row');
 });
 
+test('the index filters by equipment and only offers equipment that is used', function () {
+    $this->seed(ExerciseSeeder::class);
+    Exercise::where('equipment', 'suspension')->delete();
+
+    Livewire::actingAs($this->user)->test(Index::class)
+        ->assertSeeHtml('value="cardio_machine"')
+        ->assertDontSeeHtml('value="suspension"')
+        ->set('equipmentFilter', 'cardio_machine')
+        ->assertSee('Treadmill')->assertDontSee('Pec Fly Machine')
+        ->set('equipmentFilter', 'nonsense')
+        ->assertSee('Treadmill')->assertSee('Pec Fly Machine')
+        ->call('resetFilters')
+        ->assertSet('equipmentFilter', '');
+});
+
 test('guests are redirected to login', function () {
     $this->get(route('exercises.index'))->assertRedirect(route('login'));
 });

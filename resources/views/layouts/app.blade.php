@@ -148,7 +148,7 @@
         </button>
 
         <div x-show="more" x-cloak x-transition.origin.top.right x-on:click.outside="more = false"
-             class="absolute right-3 top-full mt-2 w-60 rounded-2xl bg-white p-1.5 text-ink shadow-xl ring-1 ring-slate-200 dark:bg-panel-dark dark:text-slate-100 dark:ring-line-dark">
+             class="absolute right-3 top-full mt-2 max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-10.5rem)] w-64 overflow-y-auto overscroll-contain rounded-2xl bg-white p-1.5 text-ink shadow-xl ring-1 ring-slate-200 dark:bg-panel-dark dark:text-slate-100 dark:ring-line-dark">
             @foreach ($more as $item)
                 <a href="{{ $link($item['route']) }}" wire:navigate
                     @class(['flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold hover:bg-slate-100 dark:hover:bg-white/5',
@@ -168,6 +168,15 @@
                     {{ __('Log out') }}
                 </button>
             </form>
+            {{-- Wie er is ingelogd (zoals onderaan de sidebar); tik = profiel --}}
+            <a href="{{ $link('profile.edit') }}" wire:navigate
+               class="mt-1 flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10">
+                <x-avatar :user="auth()->user()" class="ring-white! dark:ring-white/20!"/>
+                <span class="min-w-0 text-sm">
+                    <span class="block truncate font-semibold">{{ auth()->user()?->name }}</span>
+                    <span class="block truncate text-slate-500 dark:text-slate-400">{{ auth()->user()?->email }}</span>
+                </span>
+            </a>
         </div>
     </header>
 
