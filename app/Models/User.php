@@ -25,7 +25,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 #[Fillable([
-    'name', 'username', 'email', 'password', 'weekly_goal_minutes', 'weekly_goal_sessions', 'default_rest_seconds',
+    'name', 'username', 'email', 'password', 'weekly_goal_minutes', 'weekly_goal_sessions', 'default_rest_seconds', 'bar_weights',
     'onboarded_at',
     'birth_date', 'gender', 'height_cm', 'target_weight_kg', 'goal', 'experience',
     'max_heart_rate', 'resting_heart_rate', 'locale',
@@ -61,6 +61,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'push_rest' => 'boolean',
+            'bar_weights' => 'array',
             'push_admin' => 'boolean',
             'push_reminder' => 'boolean',
             'push_weekly' => 'boolean',
@@ -103,6 +104,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'weekly_goal_minutes' => null,
         'weekly_goal_sessions' => null,
         'default_rest_seconds' => null,
+        'bar_weights' => null,
         'onboarded_at' => null,
     ];
 

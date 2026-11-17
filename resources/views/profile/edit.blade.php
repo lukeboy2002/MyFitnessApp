@@ -101,6 +101,7 @@
         <div x-show="tab === 'weekdoel'" x-cloak role="tabpanel" class="grid max-w-3xl gap-5">
             <livewire:profile.update-weekly-goal/>
             <livewire:profile.update-rest-time/>
+            <livewire:profile.update-bar-weights/>
         </div>
 
         <div x-show="tab === 'meldingen'" x-cloak role="tabpanel" class="grid max-w-3xl gap-5">
