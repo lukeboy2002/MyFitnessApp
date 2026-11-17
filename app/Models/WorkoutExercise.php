@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
 #[Fillable([
-    'workout_id', 'exercise_id', 'position', 'target_sets', 'target_reps', 'target_weight', 'rest_seconds',
+    'workout_id', 'exercise_id', 'position', 'superset_next', 'target_sets', 'target_reps', 'target_weight', 'rest_seconds',
     'target_duration_seconds', 'target_metric', 'target_metric_value', 'notes',
 ])]
 class WorkoutExercise extends Model

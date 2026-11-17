@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
-    'workout_session_id', 'exercise_id', 'workout_exercise_id', 'position', 'target_sets', 'target_reps', 'target_weight',
+    'workout_session_id', 'exercise_id', 'workout_exercise_id', 'position', 'superset_next', 'target_sets', 'target_reps', 'target_weight',
     'rest_seconds', 'target_duration_seconds', 'target_metric', 'target_metric_value', 'completed_at', 'notes',
 ])]
 class SessionExercise extends Model

@@ -18,6 +18,7 @@ trait HasTargets
             'target_weight' => 'decimal:2',
             'target_metric' => CardioMetric::class,
             'target_metric_value' => 'decimal:1',
+            'superset_next' => 'boolean',
         ]);
     }
 

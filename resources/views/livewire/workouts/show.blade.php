@@ -28,7 +28,9 @@
                 @foreach ($workout->exercises as $item)
                     @php($exercise = $item->exercise)
                     @php($primary = $exercise->primaryMuscleGroup())
-                    <li wire:key="i-{{ $item->id }}" class="flex items-center gap-4 px-4 py-3 sm:px-5" style="--g: {{ $primary?->color ?? '#1d63c5' }}">
+                    @php($inSuperset = $item->superset_next || ($loop->index > 0 && $workout->exercises[$loop->index - 1]->superset_next))
+                    <li wire:key="i-{{ $item->id }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
+                        @class(['flex items-center gap-4 px-4 py-3 sm:px-5', 'border-l-4 border-violet-500 bg-violet-50/50 pl-3 sm:pl-4 dark:bg-violet-500/10' => $inSuperset])>
                         <span class="grid size-7 shrink-0 place-items-center rounded-full bg-(--c) text-sm font-bold text-white">{{ $loop->iteration }}</span>
                         <div class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-[radial-gradient(circle_at_50%_30%,white,color-mix(in_oklab,var(--g)_22%,var(--color-canvas))_80%)] dark:bg-[radial-gradient(circle_at_50%_30%,#1b2a45,color-mix(in_oklab,var(--g)_30%,var(--color-canvas-dark))_85%)]">
                             @if ($picture = $exercise->imageUrl())
@@ -41,7 +43,8 @@
                             <a href="{{ route('exercises.show', $exercise) }}" wire:navigate class="font-semibold hover:underline">{{ $exercise->name }}</a>
                             <p class="text-sm text-slate-600 dark:text-slate-300">
                                 <span class="font-semibold text-ink dark:text-white">{{ $item->targetSummary() ?? __('No target') }}</span>
-                                @if ($item->rest_seconds && $exercise->type->usesSets()) <span class="text-slate-400">· {{ __('rest :time', ['time' => \App\Models\WorkoutExercise::duration($item->rest_seconds)]) }}</span> @endif
+                                @if ($item->superset_next) <span class="text-violet-700 dark:text-violet-300">· {{ __('superset with the next one') }}</span>
+                                @elseif ($item->rest_seconds && $exercise->type->usesSets()) <span class="text-slate-400">· {{ __('rest :time', ['time' => \App\Models\WorkoutExercise::duration($item->rest_seconds)]) }}</span> @endif
                             </p>
                             @if ($item->notes)
                                 <p class="mt-0.5 text-sm text-slate-500 italic dark:text-slate-400">{{ $item->notes }}</p>

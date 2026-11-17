@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Sessions\Concerns;
 
+use App\Models\SessionExercise;
 use App\Models\SetLog;
 use App\Models\WorkoutSession;
 use App\Support\ExerciseRecords;
@@ -36,7 +37,10 @@ trait LogsSets
         $set->update([$field === 'seconds' ? 'duration_seconds' : $field => $value]);
     }
 
-    /** Het vinkje van een set; bij afvinken start de rusttimer */
+    /**
+     * Het vinkje van een set; bij afvinken start de rusttimer.
+     * Superset: na de eerste oefening van het paar geen rust maar door naar de tweede; na de tweede de rust.
+     */
     public function toggleSet(int $id): void
     {
         $set = $this->findSet($id);
@@ -44,20 +48,27 @@ trait LogsSets
 
         $set->update(['is_completed' => $done, 'completed_at' => $done ? now() : null]);
 
-        // Nieuw record: confetti en een melding
-        $exercise = $set->sessionExercise->exercise;
+        $item = $set->sessionExercise;
+        $exercise = $item->exercise;
+        $partner = $done && $item->superset_next ? $this->neighbour($item, 1) : null;
 
-        $rest = $set->sessionExercise->rest_seconds;
-        if ($done && $rest) {
-            $this->dispatch('rest-start', seconds: $rest);
+        if ($partner) {
+            RestReminder::cancel(Auth::user());
+            $partnerSet = $partner->sets()->where('is_completed', false)->orderBy('set_number')->first();
+            $this->dispatch('superset-next', id: $partner->id, set: $partnerSet?->id, name: $partner->exercise->name, number: $partnerSet?->set_number);
+        } elseif ($done && $item->rest_seconds) {
+            $this->dispatch('rest-start', seconds: $item->rest_seconds);
 
-            // Ook met je scherm uit: pushmelding als de rust voorbij is
-            $next = $set->sessionExercise->sets()->where('is_completed', false)->orderBy('set_number')->first();
-            RestReminder::schedule(Auth::user(), $rest,
-                $next ? __('Time for set :number of :exercise.', ['number' => $next->set_number, 'exercise' => $exercise->name]) : __('Time for your next exercise.'),
+            // Ook met je scherm uit: pushmelding als de rust voorbij is (bij een superset: de volgende set van de eerste oefening)
+            $first = $this->neighbour($item, -1);
+            $first = $first?->superset_next ? $first : null;
+            $next = ($first ?? $item)->sets()->where('is_completed', false)->orderBy('set_number')->first();
+            RestReminder::schedule(Auth::user(), $item->rest_seconds,
+                $next ? __('Time for set :number of :exercise.', ['number' => $next->set_number, 'exercise' => ($first ?? $item)->exercise->name]) : __('Time for your next exercise.'),
                 route('sessions.run', $this->session));
         }
 
+        // Nieuw record: confetti en een melding
         $records = $done ? ExerciseRecords::build($this->session, $exercise->id, $exercise->type) : null;
         if ($records?->isRecordSet($set)) {
             $this->dispatch('record', title: __('New record!'), text: $exercise->name.' · '.$records->describeSet($set));
@@ -112,6 +123,15 @@ trait LogsSets
             unset($this->values[$set->id]);
             $set->delete();
         }
+    }
+
+    /** De oefening direct na ($step = 1) of voor ($step = -1) deze in de training */
+    private function neighbour(SessionExercise $item, int $step): ?SessionExercise
+    {
+        return $this->session->exercises()->with('exercise')
+            ->where('position', $step > 0 ? '>' : '<', $item->position)
+            ->reorder('position', $step > 0 ? 'asc' : 'desc')
+            ->first();
     }
 
     private function setValues(SetLog $set): array

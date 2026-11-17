@@ -13,16 +13,30 @@
     </x-page-header>
 
     {{-- Verslepen via het grip-icoon, of "Later" om een oefening achteraan te zetten als de machine bezet is --}}
+    @php($linkable = $this->linkable())
     <div wire:sort="sortExercise" class="flex flex-col gap-4">
         @foreach ($session->exercises as $item)
+            {{-- Superset: het paar staat in één paars kader; de tweede sluit aan op de eerste --}}
+            @php($partnerBefore = $loop->index > 0 && $session->exercises[$loop->index - 1]->superset_next ? $session->exercises[$loop->index - 1] : null)
+            @php($partnerAfter = $item->superset_next ? $session->exercises[$loop->index + 1] ?? null : null)
             @php($exercise = $item->exercise)
             @php($type = $exercise->type)
             @php($primary = $exercise->primaryMuscleGroup())
             @php($done = $item->isDone())
             <section id="se-{{ $item->id }}" wire:key="se-{{ $item->id }}" wire:sort:item="{{ $item->id }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
-                     @class(['rounded-2xl bg-white shadow-sm ring-1 transition dark:bg-panel-dark',
-                             'ring-emerald-300 dark:ring-emerald-500/40' => $done,
-                             'ring-slate-200 dark:ring-line-dark' => ! $done])>
+                     @class(['rounded-2xl bg-white shadow-sm transition dark:bg-panel-dark',
+                             'ring-2 ring-violet-300 dark:ring-violet-500/50' => $partnerBefore || $partnerAfter,
+                             'rounded-b-none' => $partnerAfter,
+                             '-mt-4 rounded-t-none border-t border-dashed border-violet-200 dark:border-violet-500/30' => $partnerBefore,
+                             'ring-1 ring-emerald-300 dark:ring-emerald-500/40' => $done && ! $partnerBefore && ! $partnerAfter,
+                             'ring-1 ring-slate-200 dark:ring-line-dark' => ! $done && ! $partnerBefore && ! $partnerAfter])>
+                @if ($partnerAfter)
+                    @php($rounds = max($item->sets->count(), $partnerAfter->sets->count()))
+                    @php($round = min($rounds, min($item->sets->where('is_completed', true)->count(), $partnerAfter->sets->where('is_completed', true)->count()) + 1))
+                    <div class="flex items-center gap-1.5 rounded-t-2xl bg-violet-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
+                        <x-icon name="link" class="size-4" /> {{ __('Superset') }} · {{ __('round :round of :total', ['round' => $round, 'total' => $rounds]) }}
+                    </div>
+                @endif
                 <header class="flex items-center gap-3 p-3 pl-1.5 sm:p-4 sm:pl-2">
                     <button type="button" wire:sort:handle aria-label="{{ __('Drag') }}"
                             class="-mr-1.5 grid h-10 w-7 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-ink active:cursor-grabbing dark:hover:bg-white/10 dark:hover:text-white">
@@ -42,7 +56,7 @@
                     <div class="min-w-0 flex-1">
                         <h2 class="truncate font-semibold">{{ $exercise->name }}</h2>
                         <p class="text-sm text-slate-500 dark:text-slate-400">
-                            {{ __('Target:') }} {{ $item->targetSummary() ?? '–' }}@if ($item->rest_seconds && $type->usesSets()) · {{ __('rest :time', ['time' => \App\Models\WorkoutExercise::duration($item->rest_seconds)]) }}@endif
+                            {{ __('Target:') }} {{ $item->targetSummary() ?? '–' }}@if ($partnerAfter) · {{ __('no rest, then :exercise', ['exercise' => $partnerAfter->exercise->name]) }}@elseif ($item->rest_seconds && $type->usesSets()) · {{ __('rest :time', ['time' => \App\Models\WorkoutExercise::duration($item->rest_seconds)]) }}@endif
                         </p>
                         @if ($item->notes)
                             <p class="text-sm text-slate-500 italic dark:text-slate-400">{{ $item->notes }}</p>
@@ -123,7 +137,7 @@
                         </div>
                         <div class="flex flex-col gap-1.5">
                             @foreach ($item->sets as $set)
-                                <div wire:key="set-{{ $set->id }}"
+                                <div wire:key="set-{{ $set->id }}" id="set-row-{{ $set->id }}"
                                      @class(['grid items-center gap-2 rounded-xl p-1 transition', $columns,
                                              'bg-emerald-50 dark:bg-emerald-500/10' => $set->is_completed])>
                                     {{-- Tik op het nummer: opwarmset (W) aan of uit --}}
@@ -258,6 +272,12 @@
                         </div>
                     </div>
                 @endif
+
+                @if ($item->superset_next || ($linkable[$item->id] ?? false))
+                    <div class="-mt-2 pb-3">
+                        <x-superset-toggle :linked="$item->superset_next" wire:click="toggleSuperset({{ $item->id }})" />
+                    </div>
+                @endif
             </section>
         @endforeach
     </div>
@@ -347,6 +367,19 @@
                  setTimeout(() => this.restDone = false, 4000);
              },
              restDone: false,
+             {{-- Superset: na de eerste oefening geen rust maar door naar de volgende set van de tweede --}}
+             next: null,
+             nextTimer: null,
+             supersetNext(detail) {
+                 this.restUntil = null;
+                 this.next = detail;
+                 clearTimeout(this.nextTimer);
+                 this.nextTimer = setTimeout(() => this.next = null, 6000);
+                 const row = document.getElementById(`set-row-${detail.set}`) ?? document.getElementById(`se-${detail.id}`);
+                 row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 row?.classList.add('ring-2', 'ring-violet-400');
+                 setTimeout(() => row?.classList.remove('ring-2', 'ring-violet-400'), 2500);
+             },
              get elapsed() {
                  const d = this.$root.dataset;
                  const end = d.pausedAt ? +d.pausedAt : this.now + this.offset;
@@ -358,14 +391,15 @@
                  return h ? `${h}:${String(m).padStart(2, '0')}:${x}` : `${String(m).padStart(2, '0')}:${x}`;
              },
          }"
-         x-on:rest-start.window="restTotal = $event.detail.seconds; restUntil = Date.now() + $event.detail.seconds * 1000"
+         x-on:rest-start.window="next = null; restTotal = $event.detail.seconds; restUntil = Date.now() + $event.detail.seconds * 1000"
+         x-on:superset-next.window="supersetNext($event.detail)"
          data-started="{{ $session->started_at->getTimestampMs() }}"
          data-paused-seconds="{{ $session->paused_seconds }}"
          data-paused-at="{{ $session->paused_at?->getTimestampMs() }}"
          class="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-20 px-2 md:bottom-4 md:left-20 md:px-7 lg:left-64 lg:px-10">
         <div class="mx-auto flex max-w-6xl items-center gap-3 rounded-2xl bg-brand-700 p-2 pl-4 text-white shadow-xl shadow-brand-950/30 ring-1 ring-white/10 dark:bg-brand-900">
             {{-- Totale tijd --}}
-            <div class="min-w-0">
+            <div class="shrink-0">
                 <p class="font-display text-2xl leading-none font-extrabold tabular-nums sm:text-[28px]" x-text="clock(elapsed)">{{ \App\Models\WorkoutSession::clock($session->elapsedSeconds()) }}</p>
                 <p class="text-xs text-brand-200">
                     @if ($session->isPaused()) {{ __('Paused') }} @else {{ __(':done/:total sets', ['done' => $setsDone, 'total' => $setsTotal]) }} @endif
@@ -380,10 +414,22 @@
                 <span class="absolute bottom-0 left-0 h-1 bg-brand-950/30 transition-[width] duration-300" :style="`width: ${restTotal ? rest / restTotal * 100 : 0}%`"></span>
             </button>
 
+            {{-- Superset: geen rust, door naar de tweede oefening --}}
+            <button type="button" x-show="next && rest === 0" x-cloak x-transition.opacity x-on:click="next = null"
+                    class="mx-auto flex min-w-0 flex-1 items-center gap-2 rounded-xl bg-violet-500 px-2.5 py-1.5 text-left text-white">
+                <x-icon name="link" class="hidden size-5 shrink-0 sm:block" />
+                <span class="min-w-0 leading-tight">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider whitespace-nowrap text-white/80">{{ __('No rest') }}</span>
+                    <span class="block truncate text-sm font-bold">
+                        <span x-text="next?.number ? `→ {{ __('set') }} ${next.number}` : '→'"></span><span class="hidden sm:inline" x-text="next ? ` · ${next.name}` : ''"></span>
+                    </span>
+                </span>
+            </button>
+
             <span x-show="restDone && rest === 0" x-cloak x-transition.opacity
                   class="mx-auto shrink-0 rounded-xl bg-accent-400 px-3 py-2 font-display text-lg leading-none font-extrabold uppercase text-brand-950">{{ __('Rest is over') }}</span>
 
-            <div class="ml-auto flex shrink-0 items-center gap-2" :class="(rest > 0 || restDone) && 'ml-0!'">
+            <div class="ml-auto flex shrink-0 items-center gap-2" :class="(rest > 0 || restDone || next) && 'ml-0!'">
                 @if ($session->isPaused())
                     <button type="button" wire:click="resume" aria-label="{{ __('Resume') }}" class="grid size-11 place-items-center rounded-xl bg-white/15 hover:bg-white/25">
                         <x-icon name="play" />
