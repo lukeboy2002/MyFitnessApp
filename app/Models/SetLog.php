@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'session_exercise_id', 'set_number', 'target_reps', 'target_weight', 'target_duration_seconds',
+    'session_exercise_id', 'set_number', 'is_warmup', 'target_reps', 'target_weight', 'target_duration_seconds',
     'reps', 'weight', 'duration_seconds', 'is_completed', 'completed_at', 'rpe',
 ])]
 class SetLog extends Model
@@ -17,6 +17,7 @@ class SetLog extends Model
         return [
             'target_weight' => 'decimal:2',
             'weight' => 'decimal:2',
+            'is_warmup' => 'boolean',
             'is_completed' => 'boolean',
             'completed_at' => 'datetime',
         ];

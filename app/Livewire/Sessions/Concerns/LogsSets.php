@@ -64,7 +64,14 @@ trait LogsSets
         }
     }
 
-    /** Het voorstel uit de vorige keer (ProgressionHint) invullen in de sets die nog niet zijn afgevinkt */
+    /** Tik op het setnummer: opwarmset aan of uit (telt niet mee voor records, 1RM en het voorstel) */
+    public function toggleWarmup(int $id): void
+    {
+        $set = $this->findSet($id);
+        $set->update(['is_warmup' => ! $set->is_warmup]);
+    }
+
+    /** Het voorstel uit de vorige keer (ProgressionHint) invullen in de sets die nog niet zijn afgevinkt (niet in opwarmsets) */
     public function applyHint(int $sessionExerciseId): void
     {
         $item = $this->findExercise($sessionExerciseId);
@@ -75,7 +82,7 @@ trait LogsSets
             return;
         }
 
-        foreach ($item->sets()->where('is_completed', false)->get() as $set) {
+        foreach ($item->sets()->where('is_completed', false)->where('is_warmup', false)->get() as $set) {
             $set->update(['reps' => $hint->reps, ...($hint->weight !== null ? ['weight' => $hint->weight] : [])]);
             $this->values[$set->id] = $this->setValues($set);
         }

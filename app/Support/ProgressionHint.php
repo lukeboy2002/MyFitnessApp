@@ -28,10 +28,10 @@ final class ProgressionHint
         public int $reps,
     ) {}
 
-    /** @param  array<int, SetLog>  $lastSets  afgevinkte sets van de vorige keer */
+    /** @param  array<int, SetLog>  $lastSets  afgevinkte sets van de vorige keer (opwarmsets tellen niet mee) */
     public static function for(ExerciseType $type, array $lastSets, ?int $targetReps): ?self
     {
-        $sets = collect($lastSets)->filter(fn (SetLog $set) => $set->reps > 0)->values();
+        $sets = collect($lastSets)->filter(fn (SetLog $set) => $set->reps > 0 && ! $set->is_warmup)->values();
 
         if (! $type->usesReps() || $sets->isEmpty()) {
             return null;
