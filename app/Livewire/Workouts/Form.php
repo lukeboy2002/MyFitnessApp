@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Workouts;
 
+use App\Enums\ExerciseType;
 use App\Livewire\Concerns\EditsExerciseTargets;
 use App\Livewire\Concerns\PicksExercises;
 use App\Models\Exercise;
 use App\Models\Workout;
 use App\Models\WorkoutExercise;
+use App\Support\Supersets;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -71,19 +73,38 @@ class Form extends Component
     {
         $this->items = array_values(array_filter($this->items, fn ($item) => $item['key'] !== $key));
         unset($this->itemExercises);
+        $this->normalizeSupersets();
+    }
+
+    /** Superset: regel $key koppelen aan de volgende, of het paar weer losmaken */
+    public function toggleSuperset(string $key): void
+    {
+        [$order, $linked, $cardio] = $this->supersetState();
+        $first = Supersets::block($order, $linked, $key)[0];
+
+        if ($linked[$first]) {
+            $linked[$first] = false;
+        } elseif (Supersets::canLink($order, $linked, $cardio, $key)) {
+            $linked[$key] = true;
+        }
+
+        $this->items = array_map(fn (array $item) => ['superset' => $linked[$item['key']]] + $item, $this->items);
+        $this->normalizeSupersets();
     }
 
     /** wire:sort: regel $key naar plek $position slepen */
     public function sortItem(string $key, int $position): void
     {
-        $index = collect($this->items)->search(fn ($item) => $item['key'] === $key);
+        [$order, $linked] = $this->supersetState();
 
-        if ($index === false) {
+        if (! in_array($key, $order, true)) {
             return;
         }
 
-        $item = array_splice($this->items, $index, 1)[0];
-        array_splice($this->items, max(0, min($position, count($this->items))), 0, [$item]);
+        // Een superset-paar gaat samen mee
+        $items = collect($this->items)->keyBy('key');
+        $this->items = array_map(fn ($k) => $items[$k], Supersets::move($order, $linked, $key, $position));
+        $this->normalizeSupersets();
     }
 
     /** Spiergroepen overnemen van de primaire spiergroepen van de oefeningen */
@@ -132,7 +153,11 @@ class Form extends Component
             // Bestaande regels bijwerken (id blijft gelijk), nieuwe aanmaken, weggehaalde verwijderen
             $keep = [];
             foreach (array_values($data['items']) as $position => $item) {
-                $attributes = ['position' => $position, ...$this->targets($exercises[$item['exercise_id']]->type, $item)];
+                $attributes = [
+                    'position' => $position,
+                    'superset_next' => (bool) ($this->items[$position]['superset'] ?? false),
+                    ...$this->targets($exercises[$item['exercise_id']]->type, $item),
+                ];
                 $row = filled($this->items[$position]['id'] ?? null)
                     ? $workout->exercises()->find($this->items[$position]['id'])
                     : null;
@@ -160,9 +185,36 @@ class Form extends Component
         return Exercise::whereIn('id', Arr::pluck($this->items, 'exercise_id'))->with('muscleGroups')->get()->keyBy('id');
     }
 
+    /** Per regel: kan hij aan de volgende gekoppeld worden? (voor het knopje "Superset met volgende") */
+    public function linkable(): array
+    {
+        [$order, $linked, $cardio] = $this->supersetState();
+
+        return collect($order)->mapWithKeys(fn ($key) => [$key => Supersets::canLink($order, $linked, $cardio, $key)])->all();
+    }
+
     public function render()
     {
         return view('livewire.workouts.form')->title($this->workout ? __('Edit workout') : __('New workout'));
+    }
+
+    /** @return array{0: list<string>, 1: array<string, bool>, 2: array<string, bool>} volgorde, gekoppeld, cardio */
+    private function supersetState(): array
+    {
+        $items = collect($this->items);
+
+        return [
+            $items->pluck('key')->all(),
+            $items->mapWithKeys(fn ($item) => [$item['key'] => (bool) ($item['superset'] ?? false)])->all(),
+            $items->mapWithKeys(fn ($item) => [$item['key'] => $this->itemExercises[$item['exercise_id']]?->type === ExerciseType::Cardio])->all(),
+        ];
+    }
+
+    /** Ongeldige koppelingen weghalen (na verwijderen of verslepen, of als cardio ertussen komt) */
+    private function normalizeSupersets(): void
+    {
+        $valid = Supersets::normalize(...$this->supersetState());
+        $this->items = array_map(fn (array $item) => ['superset' => $valid[$item['key']]] + $item, $this->items);
     }
 
     /** @return list<int> */

@@ -15,7 +15,7 @@ class AddSessionExercise
     public function handle(WorkoutSession $session, Exercise $exercise, array $targets, ?int $workoutExerciseId = null): SessionExercise
     {
         $item = $session->exercises()->create([
-            ...collect($targets)->only('target_sets', 'target_reps', 'target_weight', 'rest_seconds',
+            ...collect($targets)->only('superset_next', 'target_sets', 'target_reps', 'target_weight', 'rest_seconds',
                 'target_duration_seconds', 'target_metric', 'target_metric_value', 'notes')->all(),
             'exercise_id' => $exercise->id,
             'workout_exercise_id' => $workoutExerciseId,

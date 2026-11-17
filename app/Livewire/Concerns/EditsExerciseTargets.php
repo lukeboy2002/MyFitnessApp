@@ -95,6 +95,7 @@ trait EditsExerciseTargets
             'metric' => $metric instanceof CardioMetric ? $metric->value : $metric,
             'metric_value' => filled($metricValue) ? rtrim(rtrim((string) $metricValue, '0'), '.') : null,
             'notes' => $targets['notes'] ?? null,
+            'superset' => (bool) ($targets['superset_next'] ?? false),
         ];
     }
 }

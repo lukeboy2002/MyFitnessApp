@@ -36,14 +36,25 @@
                 <x-alert type="danger" class="mb-4">{{ $message }}</x-alert>
             @enderror
 
+            @php($linkable = $this->linkable())
             <ol wire:sort="sortItem" class="flex flex-col gap-3">
                 @foreach ($items as $i => $item)
+                    @php($pairedWithPrevious = $i > 0 && ($items[$i - 1]['superset'] ?? false))
                     @php($exercise = $this->itemExercises[$item['exercise_id']] ?? null)
                     @continue(! $exercise)
                     @php($type = $exercise->type)
                     @php($primary = $exercise->primaryMuscleGroup())
+                    {{-- Superset: het paar staat in één paars kader --}}
                     <li wire:key="item-{{ $item['key'] }}" wire:sort:item="{{ $item['key'] }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
-                        class="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200 sm:p-4 dark:bg-white/[.03] dark:ring-line-dark">
+                        @class(['relative rounded-2xl bg-slate-50 p-3 sm:p-4 dark:bg-white/[.03]',
+                                'ring-1 ring-slate-200 dark:ring-line-dark' => ! $item['superset'] && ! $pairedWithPrevious,
+                                'rounded-b-none bg-violet-50/60 ring-2 ring-violet-300 dark:bg-violet-500/10 dark:ring-violet-500/50' => $item['superset'],
+                                '-mt-3 rounded-t-none bg-violet-50/60 ring-2 ring-violet-300 dark:bg-violet-500/10 dark:ring-violet-500/50' => $pairedWithPrevious])>
+                        @if ($item['superset'])
+                            <span class="absolute -top-2.5 left-4 inline-flex items-center gap-1 rounded-full bg-violet-600 px-2 py-0.5 text-xs font-bold text-white">
+                                <x-icon name="link" class="size-3.5" /> {{ __('Superset') }}
+                            </span>
+                        @endif
                         <div class="flex items-center gap-3">
                             <button type="button" wire:sort:handle aria-label="{{ __('Drag') }}"
                                     class="grid h-10 w-7 shrink-0 cursor-grab touch-none place-items-center rounded-lg text-slate-400 hover:bg-slate-200/60 hover:text-ink active:cursor-grabbing dark:hover:bg-white/10 dark:hover:text-white">
@@ -68,6 +79,13 @@
                         </div>
 
                         <x-exercise-targets :type="$type" :item="$item" model="items.{{ $i }}" class="mt-3" />
+
+                        @if ($item['superset'])
+                            <p class="mt-2 text-xs text-violet-700 dark:text-violet-300">{{ __('No rest after this exercise: you go straight to the next one. The rest of the pair is the rest of the second exercise.') }}</p>
+                        @endif
+                        @if ($item['superset'] || ($linkable[$item['key']] ?? false))
+                            <x-superset-toggle :linked="$item['superset']" wire:click="toggleSuperset('{{ $item['key'] }}')" />
+                        @endif
                     </li>
                 @endforeach
             </ol>
