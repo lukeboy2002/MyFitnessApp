@@ -5,6 +5,7 @@ namespace App\Livewire\Equipment;
 use App\Livewire\Concerns\ConfirmsDeletion;
 use App\Livewire\Concerns\ManagesMasterData;
 use App\Models\Equipment;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -38,7 +39,7 @@ class Index extends Component
 
         $this->name = $equipment->label();
         $this->sort_order = $equipment->sort_order;
-        $this->openForm($equipment->id);
+        $this->openForm($equipment->id, $equipment->imageUrl());
     }
 
     public function save(): void
@@ -46,7 +47,9 @@ class Index extends Component
         $data = $this->validate([
             'name' => ['required', 'string', 'max:60'],
             'sort_order' => ['required', 'integer', 'between:0,999'],
-        ], attributes: ['name' => __('name'), 'sort_order' => __('order')]);
+            ...$this->imageRules(),
+        ], attributes: ['name' => __('name'), 'sort_order' => __('order'), 'image' => __('image')]);
+        $data = Arr::except($data, 'image');
 
         if ($this->editingId) {
             $equipment = Equipment::findOrFail($this->editingId);
@@ -61,7 +64,9 @@ class Index extends Component
             $data['name'] = $equipment->name;
         }
 
-        $equipment->fill([...$data, 'slug' => $equipment->slugFor($data['name'])])->save();
+        $equipment->fill([...$data, 'slug' => $equipment->slugFor($data['name'])]);
+        $this->applyImage($equipment, 'equipment');
+        $equipment->save();
 
         $this->done(__(':name is saved.', ['name' => $equipment->label()]));
         unset($this->equipment);
@@ -83,6 +88,7 @@ class Index extends Component
             return;
         }
 
+        $this->deleteStoredImage($equipment);
         $equipment->delete();
         $this->done(__(':name is deleted.', ['name' => $equipment->label()]));
         unset($this->equipment);

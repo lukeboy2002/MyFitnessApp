@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\BodyMeasurement;
 use App\Models\BodyPart;
 use App\Models\BodyWeight;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\Muscle;
 use App\Models\MuscleGroup;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Verwijdert een account met alles wat erbij hoort: trainingen, workouts, planning, eigen oefeningen,
- * spieren, spiergroepen en lichaamsdelen, wegingen, maten, passkeys, sessies en alle plaatjes.
+ * spieren, spiergroepen, lichaamsdelen en materiaal, wegingen, maten, passkeys, sessies en alle plaatjes.
  * De standaardlijst en de gegevens van anderen blijven onaangeroerd.
  */
 class DeleteUserAccount
@@ -32,6 +33,7 @@ class DeleteUserAccount
             ScheduledWorkout::where('user_id', $user->id)->delete();
             Workout::where('user_id', $user->id)->delete();          // met oefeningen en spiergroepen van de workout
             Exercise::where('user_id', $user->id)->delete();
+            Equipment::where('user_id', $user->id)->delete();
             Muscle::where('user_id', $user->id)->delete();
             MuscleGroup::where('user_id', $user->id)->delete();
             BodyPart::where('user_id', $user->id)->delete();
@@ -55,7 +57,7 @@ class DeleteUserAccount
      */
     private function files(User $user): array
     {
-        $models = [Exercise::class, MuscleGroup::class, BodyPart::class];
+        $models = [Exercise::class, MuscleGroup::class, BodyPart::class, Equipment::class];
 
         $own = collect($models)->flatMap(fn ($model) => $model::where('user_id', $user->id)->whereNotNull('image_path')->pluck('image_path'));
         $shared = collect($models)->flatMap(fn ($model) => $model::whereIn('image_path', $own)

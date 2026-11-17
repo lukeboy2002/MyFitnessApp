@@ -11,10 +11,14 @@
             <ul class="divide-y divide-slate-200 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:divide-line-dark dark:bg-panel-dark dark:ring-line-dark">
                 @foreach ($items as $equipment)
                     <li wire:key="eq-{{ $equipment->id }}" class="flex items-center gap-3 px-4 py-3">
-                        <span @class(['grid size-10 shrink-0 place-items-center rounded-xl',
+                        <span @class(['grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl',
                                       'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300' => $equipment->isStandard(),
                                       'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300' => ! $equipment->isStandard()])>
-                            <x-icon name="weight" class="size-5" />
+                            @if ($picture = $equipment->imageUrl())
+                                <img src="{{ $picture }}" alt="" loading="lazy" class="size-full bg-white object-contain p-1">
+                            @else
+                                <x-icon name="weight" class="size-6" />
+                            @endif
                         </span>
                         <div class="min-w-0 flex-1">
                             <p class="truncate font-semibold">{{ $equipment->label() }}</p>
@@ -46,6 +50,8 @@
         <form wire:submit="save" id="equipment-form" class="grid gap-4">
             <x-form.input :label="__('Name')" wire:model="name" required maxlength="60" :placeholder="__('e.g. :example', ['example' => 'Smith machine'])" />
             <x-form.input :label="__('Order')" type="number" wire:model="sort_order" inputmode="numeric" min="0" />
+            <x-form.image-upload :label="__('Image')" wire:model="image" :hint="__('JPG, PNG or WEBP · up to :size MB', ['size' => 2])"
+                                 :preview="$image?->temporaryUrl() ?? $currentImage" remove="deleteImage" />
         </form>
         <x-slot:footer>
             <x-button variant="ghost" type="button" wire:click="closeForm">{{ __('Cancel') }}</x-button>

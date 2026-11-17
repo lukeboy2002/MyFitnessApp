@@ -10,7 +10,9 @@ use App\Models\MuscleGroup;
 use App\Models\User;
 use Database\Seeders\BodyPartSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -129,4 +131,30 @@ test('deleting an account removes own equipment', function () {
     app(DeleteUserAccount::class)->handle($this->user);
 
     expect(Equipment::where('name', 'Smith machine')->exists())->toBeFalse();
+});
+
+test('equipment can get an image, which is removed again with the equipment', function () {
+    Storage::fake('public');
+
+    $component = Livewire::actingAs($this->user)->test(Index::class)
+        ->call('create')
+        ->set('name', 'Smith machine')
+        ->set('image', UploadedFile::fake()->image('smith.png', 300, 300))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $own = Equipment::where('user_id', $this->user->id)->sole();
+    Storage::disk('public')->assertExists($own->image_path);
+    expect($own->imageUrl())->toContain($own->image_path);
+
+    $component->call('delete', $own->id);
+    Storage::disk('public')->assertMissing($own->image_path);
+});
+
+test('standard equipment uses an image from storage when there is one', function () {
+    Storage::fake('public');
+    Storage::disk('public')->put('equipment/barbell.png', 'png');
+
+    expect(Equipment::where('slug', 'barbell')->whereNull('user_id')->sole()->imageUrl())->toContain('equipment/barbell.png')
+        ->and(Equipment::where('slug', 'cable')->whereNull('user_id')->sole()->imageUrl())->toBeNull();
 });
