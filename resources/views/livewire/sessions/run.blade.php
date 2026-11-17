@@ -86,7 +86,7 @@
 
                 {{-- Voorstel voor vandaag: een herhaling erbij, of zwaarder als je vorige keer het maximum haalde --}}
                 @php($hint = \App\Support\ProgressionHint::for($type, $record?->lastSets ?? [], $item->target_reps))
-                @php($open = $item->sets->where('is_completed', false))
+                @php($open = $item->sets->where('is_completed', false)->where('is_warmup', false))
                 @if ($hint && $open->isNotEmpty())
                     <div class="mx-3 mb-3 flex max-w-xl items-start gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm sm:mx-4 dark:bg-brand-500/15">
                         <x-icon name="bolt" class="mt-0.5 size-4 shrink-0 text-brand-700 dark:text-brand-300" />
@@ -126,12 +126,18 @@
                                 <div wire:key="set-{{ $set->id }}"
                                      @class(['grid items-center gap-2 rounded-xl p-1 transition', $columns,
                                              'bg-emerald-50 dark:bg-emerald-500/10' => $set->is_completed])>
-                                    <span class="relative text-center font-display text-lg font-bold text-slate-500 dark:text-slate-400">
-                                        {{ $set->set_number }}
+                                    {{-- Tik op het nummer: opwarmset (W) aan of uit --}}
+                                    <button type="button" wire:click="toggleWarmup({{ $set->id }})"
+                                            title="{{ $set->is_warmup ? __('Warm-up set, tap to make it a normal set') : __('Tap to mark as warm-up set') }}"
+                                            aria-label="{{ $set->is_warmup ? __('Set :number is a warm-up set', ['number' => $set->set_number]) : __('Mark set :number as warm-up set', ['number' => $set->set_number]) }}"
+                                            @class(['relative grid h-10 place-items-center rounded-lg font-display text-lg font-bold transition hover:bg-slate-100 dark:hover:bg-white/10',
+                                                    'text-amber-600 dark:text-amber-400' => $set->is_warmup,
+                                                    'text-slate-500 dark:text-slate-400' => ! $set->is_warmup])>
+                                        {{ $set->is_warmup ? __('W (warm-up)') : $set->set_number }}
                                         @if ($record?->isRecordSet($set))
                                             <x-icon name="trophy" class="absolute -top-1 right-0 size-4 text-accent-500" title="{{ __('New record') }}" />
                                         @endif
-                                    </span>
+                                    </button>
                                     @if ($previous)
                                         <span class="truncate text-sm tabular-nums text-slate-500 dark:text-slate-400" title="{{ __('Last time set :number', ['number' => $set->set_number]) }}">
                                             {{ isset($previous[$set->set_number]) ? $record->describeSet($previous[$set->set_number]) : '–' }}

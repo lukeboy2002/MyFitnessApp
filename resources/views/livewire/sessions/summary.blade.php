@@ -91,6 +91,7 @@
                                                       'bg-accent-300/40 text-brand-950 dark:bg-accent-400/20 dark:text-accent-300' => $isRecord,
                                                       'bg-slate-100 dark:bg-white/10' => ! $isRecord])>
                                             @if ($isRecord) <x-icon name="trophy" class="size-3.5 text-accent-500" /> @endif
+                                            @if ($set->is_warmup) <span class="text-amber-600 dark:text-amber-400" title="{{ __('Warm-up set') }}">{{ __('W (warm-up)') }}</span> @endif
                                             @if ($type->usesReps())
                                                 {{ $set->reps ?? 0 }} ×@if (filled($set->weight) && (float) $set->weight !== 0.0) {{ $type->usesExtraWeight() && $set->weight > 0 ? '+' : '' }}{{ $n($set->weight) }} kg @endif
                                             @else

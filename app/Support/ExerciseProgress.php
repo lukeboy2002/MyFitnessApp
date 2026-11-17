@@ -26,7 +26,7 @@ class ExerciseProgress
         $rows = SessionExercise::query()
             ->where('exercise_id', $exercise->id)
             ->whereHas('session', fn ($q) => $q->where('user_id', $user->id)->where('status', SessionStatus::Completed))
-            ->with(['session', 'sets' => fn ($q) => $q->where('is_completed', true), 'cardio.splits'])
+            ->with(['session', 'sets' => fn ($q) => $q->where('is_completed', true)->where('is_warmup', false), 'cardio.splits'])
             ->get()
             ->sortBy(fn (SessionExercise $item) => $item->session->started_at)
             ->map(fn (SessionExercise $item) => $type === ExerciseType::Cardio ? $this->cardioRow($item) : $this->setsRow($item))

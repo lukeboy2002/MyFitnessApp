@@ -169,7 +169,8 @@ class Achievements
         $perExercise['exercise_count'][$id] = ($perExercise['exercise_count'][$id] ?? 0) + 1;
         $perExercise['exercise_distance'][$id] = ($perExercise['exercise_distance'][$id] ?? 0) + ($item->cardio?->distance_m ?? 0) / 1000;
 
-        if ($weight = $item->sets->max(fn ($set) => (float) $set->weight)) {
+        // Zwaarste gewicht: opwarmsets tellen niet mee
+        if ($weight = $item->sets->reject->is_warmup->max(fn ($set) => (float) $set->weight)) {
             $perExercise['exercise_weight'][$id] = max($perExercise['exercise_weight'][$id] ?? 0, $weight);
         }
     }

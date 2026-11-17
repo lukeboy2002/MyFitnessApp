@@ -86,7 +86,7 @@ class ExerciseRecords
             ->whereHas('session', fn ($q) => $q->where('user_id', $userId)
                 ->where('status', SessionStatus::Completed)
                 ->when($before, fn ($q) => $q->where('started_at', '<', $before)))
-            ->with(['session', 'sets' => fn ($q) => $q->where('is_completed', true), 'cardio.splits'])
+            ->with(['session', 'sets' => fn ($q) => $q->where('is_completed', true)->where('is_warmup', false), 'cardio.splits'])
             ->get()
             ->sortByDesc(fn (SessionExercise $item) => $item->session->started_at);
 
@@ -108,7 +108,7 @@ class ExerciseRecords
     {
         return [
             ...collect(get_object_vars($this))->except('type', 'lastSets')->all(),
-            'lastSets' => array_map(fn (SetLog $set) => $set->only('set_number', 'reps', 'weight', 'duration_seconds', 'is_completed'), $this->lastSets),
+            'lastSets' => array_map(fn (SetLog $set) => $set->only('set_number', 'is_warmup', 'reps', 'weight', 'duration_seconds', 'is_completed'), $this->lastSets),
         ];
     }
 
@@ -163,10 +163,10 @@ class ExerciseRecords
         return round($reps === 1 ? $weight : $weight * (1 + $reps / 30), 1);
     }
 
-    /** Verbetert deze (afgevinkte) set een record? Alleen als er al een vorige keer is. */
+    /** Verbetert deze (afgevinkte) set een record? Alleen als er al een vorige keer is; een opwarmset nooit. */
     public function isRecordSet(SetLog $set): bool
     {
-        if ($this->isEmpty() || ! $set->is_completed) {
+        if ($this->isEmpty() || ! $set->is_completed || $set->is_warmup) {
             return false;
         }
 
@@ -240,6 +240,10 @@ class ExerciseRecords
 
     private function addSet(SetLog $set): void
     {
+        if ($set->is_warmup) {
+            return;
+        }
+
         $weight = filled($set->weight) ? (float) $set->weight : null;
 
         if ($weight !== null && ($weight > ($this->heaviestWeight ?? PHP_FLOAT_MIN) || ($weight == $this->heaviestWeight && $set->reps > $this->heaviestReps))) {
