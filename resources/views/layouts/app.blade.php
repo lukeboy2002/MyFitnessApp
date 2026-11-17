@@ -20,6 +20,7 @@
         ['route' => 'body-parts.index',    'active' => 'body-parts.*',     'icon' => 'body',     'label' => __('BodyParts')],
         ['route' => 'muscle-groups.index', 'active' => 'muscle-groups.*',  'icon' => 'arm',      'label' => __('MuscleGroups')],
         ['route' => 'muscles.index',       'active' => 'muscles.*',        'icon' => 'fiber',    'label' => __('Muscles')],
+        ['route' => 'equipment.index',     'active' => 'equipment.*',      'icon' => 'weight',   'label' => __('Equipment')],
         ['route' => 'calendar',            'active' => 'calendar',         'icon' => 'calendar', 'label' => __('Calendar')],
         ['route' => 'progress.index',      'active' => 'progress.*',       'icon' => 'chart',    'label' => __('Progress')],
         ['route' => 'badges',              'active' => 'badges',           'icon' => 'medal',    'label' => __('Badges')],

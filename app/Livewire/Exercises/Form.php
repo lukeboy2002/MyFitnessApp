@@ -4,9 +4,9 @@ namespace App\Livewire\Exercises;
 
 use App\Enums\CardioField;
 use App\Enums\CardioMetric;
-use App\Enums\Equipment;
 use App\Enums\ExerciseType;
 use App\Livewire\Concerns\HandlesImageUpload;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
 use Illuminate\Support\Facades\Auth;
@@ -31,7 +31,8 @@ class Form extends Component
     #[Locked]
     public bool $typeLocked = false;
 
-    public string $equipment = 'machine';
+    /** Materiaal (App\Models\Equipment): standaard of eigen */
+    public ?int $equipment_id = null;
 
     public string $description = '';
 
@@ -73,6 +74,7 @@ class Form extends Component
             // Vanuit Admin > Contact: naam van de aangevraagde oefening, als standaardoefening
             $this->name = str(request()->string('name'))->limit(100, '')->value();
             $this->standard = Auth::user()->isAdmin() && request()->boolean('standard');
+            $this->equipment_id = Equipment::standardId(Equipment::MACHINE);
 
             return;
         }
@@ -87,7 +89,7 @@ class Form extends Component
         $this->description = $exercise->description ?? '';
         $this->type = $exercise->type->value;
         $this->typeLocked = $exercise->isTypeLocked();
-        $this->equipment = $exercise->equipment?->value ?? 'none';
+        $this->equipment_id = $exercise->equipment_id;
         $this->instructions = implode("\n", $exercise->instructions ?? []);
         $this->tips = implode("\n", $exercise->tips ?? []);
         $this->primary_muscle_group_id = $exercise->primaryMuscleGroup()?->id;
@@ -117,7 +119,8 @@ class Form extends Component
 
         if ($type === ExerciseType::Cardio) {
             $this->default_minutes ??= intdiv($defaults['default_duration_seconds'], 60);
-            $this->equipment = $this->equipment === 'machine' ? 'cardio_machine' : $this->equipment;
+            $machine = $this->equipmentOptions->first(fn ($e) => $e->isStandardKind(Equipment::MACHINE));
+            $this->equipment_id = $this->equipment_id === $machine?->id ? $this->equipmentOptions->first(fn ($e) => $e->isStandardKind(Equipment::CARDIO_MACHINE))?->id : $this->equipment_id;
             $this->primary_muscle_group_id ??= $this->muscleGroups->firstWhere('slug', 'cardio')?->id;
         } elseif ($type === ExerciseType::Duration) {
             $this->default_seconds ??= $defaults['default_duration_seconds'];
@@ -166,7 +169,8 @@ class Form extends Component
         $data = $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'type' => ['required', Rule::enum(ExerciseType::class)],
-            'equipment' => ['required', Rule::enum(Equipment::class)],
+            // Een standaardoefening mag alleen standaardmateriaal hebben, anders ziet niet iedereen het
+            'equipment_id' => ['required', 'integer', Rule::in($this->equipmentOptions->pluck('id'))],
             'description' => ['nullable', 'string', 'max:2000'],
             'instructions' => ['nullable', 'string', 'max:4000'],
             'tips' => ['nullable', 'string', 'max:2000'],
@@ -184,7 +188,7 @@ class Form extends Component
             'cardio_fields' => ['array'],
             'cardio_fields.*' => [Rule::enum(CardioField::class)],
         ], attributes: [
-            'name' => __('name'), 'equipment' => __('equipment'), 'description' => __('description'), 'instructions' => __('instructions'),
+            'name' => __('name'), 'equipment_id' => __('equipment'), 'description' => __('description'), 'instructions' => __('instructions'),
             'primary_muscle_group_id' => __('primary muscle group'), 'secondary_muscle_group_ids' => __('secondary muscle groups'),
             'image' => __('image'), 'default_sets' => __('sets'), 'default_reps' => __('reps'), 'default_weight' => __('weight'),
             'default_seconds' => __('time'), 'default_minutes' => __('time'), 'default_metric' => __('setting'), 'default_metric_value' => __('value'),
@@ -198,7 +202,7 @@ class Form extends Component
             'name' => $data['name'],
             'slug' => $exercise->slugFor($data['name']),
             'type' => $type,
-            'equipment' => $data['equipment'],
+            'equipment_id' => $data['equipment_id'],
             'description' => $data['description'] ?: null,
             'instructions' => $this->lines($data['instructions']),
             'tips' => $this->lines($data['tips']),
@@ -224,6 +228,15 @@ class Form extends Component
         session()->flash('status', __(':name is saved.', ['name' => $exercise->name]));
 
         return $this->redirectRoute('exercises.show', $exercise, navigate: true);
+    }
+
+    /** Materiaal om uit te kiezen; bij een standaardoefening alleen standaardmateriaal */
+    #[Computed]
+    public function equipmentOptions()
+    {
+        $standard = $this->makesStandard() || $this->exercise?->isStandard();
+
+        return Equipment::visibleTo($standard ? null : Auth::user())->orderByRaw('user_id is not null')->orderBy('sort_order')->orderBy('name')->get();
     }
 
     #[Computed]

@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Enums\Equipment;
 use App\Enums\ExerciseType;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,7 +19,7 @@ class ExerciseFactory extends Factory
             'name' => ucfirst($name),
             'slug' => str($name)->slug(),
             'type' => ExerciseType::Strength,
-            'equipment' => Equipment::Machine,
+            'equipment_id' => fn () => Equipment::standardId(Equipment::MACHINE),
             'default_sets' => 3,
             'default_reps' => 10,
         ];
@@ -27,7 +27,7 @@ class ExerciseFactory extends Factory
 
     public function cardio(): static
     {
-        return $this->state(['type' => ExerciseType::Cardio, 'equipment' => Equipment::CardioMachine, 'default_sets' => null, 'default_reps' => null, 'default_duration_seconds' => 1200]);
+        return $this->state(['type' => ExerciseType::Cardio, 'equipment_id' => fn () => Equipment::standardId(Equipment::CARDIO_MACHINE), 'default_sets' => null, 'default_reps' => null, 'default_duration_seconds' => 1200]);
     }
 
     public function archived(): static

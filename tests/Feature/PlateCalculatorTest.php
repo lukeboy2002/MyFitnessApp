@@ -1,9 +1,9 @@
 <?php
 
 use App\Actions\StartWorkoutSession;
-use App\Enums\Equipment;
 use App\Livewire\Profile\UpdateBarWeights;
 use App\Livewire\Sessions\Run;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\User;
 use App\Models\Workout;
@@ -27,20 +27,27 @@ test('the plates per side, from heavy to light', function () {
 });
 
 test('only exercises with a bar or loaded plates get the calculator', function () {
-    $make = fn (string $name, Equipment $equipment) => Exercise::factory()->make(['name' => $name, 'equipment' => $equipment]);
+    $make = fn (string $name, string $equipment) => Exercise::factory()->make(['name' => $name, 'equipment_id' => Equipment::standardId($equipment)]);
 
-    expect(PlateCalculator::for($make('Bench Press (Barbell)', Equipment::Barbell))->bar)->toBe(20.0)
-        ->and(PlateCalculator::for($make('EZ Bar Biceps Curl', Equipment::Barbell))->bar)->toBe(10.0)
-        ->and(PlateCalculator::for($make('Leg Press Plated', Equipment::Plate))->bar)->toBe(0.0)
-        ->and(PlateCalculator::for($make('Landmine Row', Equipment::Barbell)))->toBeNull()
-        ->and(PlateCalculator::for($make('Plate Curl', Equipment::Plate)))->toBeNull()
-        ->and(PlateCalculator::for($make('Leg Extension (Machine)', Equipment::Machine)))->toBeNull();   // pen in de stapel
+    expect(PlateCalculator::for($make('Bench Press (Barbell)', Equipment::BARBELL))->bar)->toBe(20.0)
+        ->and(PlateCalculator::for($make('EZ Bar Biceps Curl', Equipment::BARBELL))->bar)->toBe(10.0)
+        ->and(PlateCalculator::for($make('Leg Press Plated', Equipment::PLATE))->bar)->toBe(0.0)
+        ->and(PlateCalculator::for($make('Landmine Row', Equipment::BARBELL)))->toBeNull()
+        ->and(PlateCalculator::for($make('Plate Curl', Equipment::PLATE)))->toBeNull()
+        ->and(PlateCalculator::for($make('Leg Extension (Machine)', Equipment::MACHINE)))->toBeNull();   // pen in de stapel
+});
+
+test('own equipment never gets the calculator, even when it is called barbell', function () {
+    $user = User::factory()->create();
+    $own = Equipment::create(['user_id' => $user->id, 'name' => 'Barbell', 'slug' => 'barbell']);
+
+    expect(PlateCalculator::for(Exercise::factory()->make(['name' => 'Bench Press', 'equipment_id' => $own->id])))->toBeNull();
 });
 
 test('the training screen shows the plates for the open sets', function () {
     $user = User::factory()->create(['locale' => 'nl']);
-    $bench = Exercise::factory()->create(['name' => 'Bench Press (Barbell)', 'equipment' => Equipment::Barbell]);
-    $machine = Exercise::factory()->create(['name' => 'Chest Press (Machine)', 'equipment' => Equipment::Machine]);
+    $bench = Exercise::factory()->create(['name' => 'Bench Press (Barbell)', 'equipment_id' => Equipment::standardId(Equipment::BARBELL)]);
+    $machine = Exercise::factory()->create(['name' => 'Chest Press (Machine)', 'equipment_id' => Equipment::standardId(Equipment::MACHINE)]);
     $workout = Workout::factory()->for($user)->create();
     WorkoutExercise::factory()->for($workout)->create(['exercise_id' => $bench->id, 'position' => 0, 'target_sets' => 2, 'target_reps' => 8, 'target_weight' => 60]);
     WorkoutExercise::factory()->for($workout)->create(['exercise_id' => $machine->id, 'position' => 1, 'target_sets' => 2, 'target_reps' => 8, 'target_weight' => 50]);
@@ -57,8 +64,8 @@ test('the training screen shows the plates for the open sets', function () {
 
 test('the bar weights can be changed in the profile', function () {
     $user = User::factory()->create(['locale' => 'nl']);
-    $bench = Exercise::factory()->make(['name' => 'Bench Press (Barbell)', 'equipment' => Equipment::Barbell]);
-    $curl = Exercise::factory()->make(['name' => 'EZ Bar Biceps Curl', 'equipment' => Equipment::Barbell]);
+    $bench = Exercise::factory()->make(['name' => 'Bench Press (Barbell)', 'equipment_id' => Equipment::standardId(Equipment::BARBELL)]);
+    $curl = Exercise::factory()->make(['name' => 'EZ Bar Biceps Curl', 'equipment_id' => Equipment::standardId(Equipment::BARBELL)]);
 
     Livewire::actingAs($user)->test(UpdateBarWeights::class)
         ->set('weights.bar', '15')

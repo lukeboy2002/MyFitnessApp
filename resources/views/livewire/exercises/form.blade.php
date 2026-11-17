@@ -33,7 +33,16 @@
                     <x-form.radio-cards :label="__('Type')" wire:model.live="type" class="sm:col-span-2" :options="\App\Enums\ExerciseType::options()" />
                 @endif
 
-                <x-form.select :label="__('Equipment')" wire:model="equipment" :options="\App\Enums\Equipment::options()" required />
+                <x-form.select :label="__('Equipment')" wire:model="equipment_id" required
+                               :hint="$this->equipmentOptions->contains(fn ($e) => ! $e->isStandard()) ? null : __('Missing something? Add your own equipment under :page.', ['page' => __('Equipment')])">
+                    @foreach ($this->equipmentOptions->groupBy(fn ($e) => $e->isStandard() ? __('Standard') : __('Own')) as $group => $items)
+                        <optgroup label="{{ $group }}">
+                            @foreach ($items as $item)
+                                <option value="{{ $item->id }}">{{ $item->label() }}</option>
+                            @endforeach
+                        </optgroup>
+                    @endforeach
+                </x-form.select>
             </x-form.section>
 
             <x-form.section :title="__('Muscle groups')" :description="__('One primary muscle group; it counts towards your weekly total. Secondary is optional.')" :columns="1">

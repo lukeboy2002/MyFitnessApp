@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Enums\Equipment;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -27,13 +27,15 @@ final class PlateCalculator
     {
         $name = Str::lower($exercise->name);
         $bar = fn (string $type) => new self((float) ($user?->bar_weights[$type] ?? self::BARS[$type]));
+        // Alleen standaardmateriaal; bij eigen materiaal weten we niet of er schijven op gaan
+        $kind = $exercise->equipment?->isStandard() ? $exercise->equipment->slug : null;
 
         return match (true) {
-            $exercise->equipment === Equipment::Barbell && Str::contains($name, 'landmine') => null,   // schijven aan één kant
-            $exercise->equipment === Equipment::Barbell && Str::contains($name, 'ez bar') => $bar('ez_bar'),
-            $exercise->equipment === Equipment::Barbell && Str::contains($name, 'trap bar') => $bar('trap_bar'),
-            $exercise->equipment === Equipment::Barbell => $bar('bar'),
-            $exercise->equipment === Equipment::Plate && Str::contains($name, ['plated', 't bar', 'iso-lateral', 'leg press']) => new self(0),
+            $kind === Equipment::BARBELL && Str::contains($name, 'landmine') => null,   // schijven aan één kant
+            $kind === Equipment::BARBELL && Str::contains($name, 'ez bar') => $bar('ez_bar'),
+            $kind === Equipment::BARBELL && Str::contains($name, 'trap bar') => $bar('trap_bar'),
+            $kind === Equipment::BARBELL => $bar('bar'),
+            $kind === Equipment::PLATE && Str::contains($name, ['plated', 't bar', 'iso-lateral', 'leg press']) => new self(0),
             default => null,
         };
     }

@@ -115,7 +115,7 @@ class Run extends Component
 
     public function render()
     {
-        $this->session->load(['exercises.exercise.muscleGroups', 'exercises.sets', 'exercises.cardio.splits']);
+        $this->session->load(['exercises.exercise.muscleGroups', 'exercises.exercise.equipment', 'exercises.sets', 'exercises.cardio.splits']);
         $sets = $this->session->exercises->flatMap->sets;
 
         return view('livewire.sessions.run', [

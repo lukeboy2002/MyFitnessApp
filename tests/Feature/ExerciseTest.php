@@ -4,6 +4,7 @@ use App\Enums\ExerciseType;
 use App\Livewire\Exercises\Form;
 use App\Livewire\Exercises\Index;
 use App\Livewire\MuscleGroups\Index as MuscleGroupsIndex;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
 use App\Models\User;
@@ -70,17 +71,18 @@ test('the index lists exercises and filters by type, muscle group and search', f
 
 test('the index filters by equipment and only offers equipment that is used', function () {
     $this->seed(ExerciseSeeder::class);
-    Exercise::where('equipment', 'suspension')->delete();
+    $cardio = Equipment::standardId(Equipment::CARDIO_MACHINE);
+    Exercise::where('equipment_id', Equipment::standardId('suspension'))->delete();
 
-    Livewire::actingAs($this->user)->test(Index::class)
-        ->assertSeeHtml('value="cardio_machine"')
-        ->assertDontSeeHtml('value="suspension"')
-        ->set('equipmentFilter', 'cardio_machine')
+    $component = Livewire::actingAs($this->user)->test(Index::class);
+    expect($component->instance()->equipment)->toHaveKey($cardio)
+        ->not->toHaveKey(Equipment::standardId('suspension'));
+
+    $component->set('equipmentFilter', $cardio)
         ->assertSee('Treadmill')->assertDontSee('Pec Fly Machine')
-        ->set('equipmentFilter', 'nonsense')
-        ->assertSee('Treadmill')->assertSee('Pec Fly Machine')
         ->call('resetFilters')
-        ->assertSet('equipmentFilter', '');
+        ->assertSet('equipmentFilter', null)
+        ->assertSee('Pec Fly Machine');
 });
 
 test('guests are redirected to login', function () {
@@ -91,7 +93,7 @@ test('a user can create an exercise with primary and secondary muscle groups', f
     Livewire::actingAs($this->user)->test(Form::class)
         ->set('name', 'Bench Press')
         ->set('type', 'strength')
-        ->set('equipment', 'barbell')
+        ->set('equipment_id', Equipment::standardId(Equipment::BARBELL))
         ->set('primary_muscle_group_id', standardGroup('chest')->id)
         ->set('secondary_muscle_group_ids', [standardGroup('triceps')->id, standardGroup('chest')->id])
         ->set('default_weight', '40')

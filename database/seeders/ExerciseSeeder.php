@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\ExerciseType;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
 use Illuminate\Database\Seeder;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
  * Standaardoefeningen (user_id = null):
  *  - de machines van de gym (hieronder, uit MyFitnessNew)
  *  - de bibliotheek in data/exercise-library.php (Hevy-achtig: per oefening en materiaal een aparte oefening)
- * muscle_groups: slugs van de spiergroepen, de eerste is de primaire.
+ * muscle_groups: slugs van de spiergroepen, de eerste is de primaire. equipment: slug van standaardmateriaal.
  * Plaatje: storage/app/public/exercises/{slug}.jpg of .png (als dat bestand er staat).
  * Veilig om vaker te draaien: bestaande oefeningen worden bijgewerkt.
  *
@@ -41,6 +42,7 @@ class ExerciseSeeder extends Seeder
     public function run(): void
     {
         $groups = MuscleGroup::whereNull('user_id')->pluck('id', 'slug');
+        $equipment = Equipment::whereNull('user_id')->pluck('id', 'slug');
 
         foreach ([...$this->data(), ...require __DIR__.'/data/exercise-library.php'] as $data) {
             $slug = str($data['name'])->slug()->value();
@@ -51,7 +53,8 @@ class ExerciseSeeder extends Seeder
             $exercise = Exercise::updateOrCreate(
                 ['user_id' => null, 'slug' => $slug],
                 [
-                    ...collect($data)->except('muscle_groups')->all(),
+                    ...collect($data)->except('muscle_groups', 'equipment')->all(),
+                    'equipment_id' => $equipment[$data['equipment'] ?? ''] ?? null,
                     ...$type->defaults(),
                     'default_metric' => $type === ExerciseType::Cardio ? self::CARDIO_METRICS[$slug] ?? null : null,
                     'cardio_fields' => $type === ExerciseType::Cardio ? self::CARDIO_FIELDS[$slug] ?? null : null,

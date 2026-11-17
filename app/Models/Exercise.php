@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\CardioField;
 use App\Enums\CardioMetric;
-use App\Enums\Equipment;
 use App\Enums\ExerciseType;
 use App\Models\Concerns\OwnedOrGlobal;
 use Database\Factories\ExerciseFactory;
@@ -14,12 +13,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
-    'user_id', 'name', 'slug', 'type', 'equipment', 'description', 'instructions', 'tips', 'image_path',
+    'user_id', 'name', 'slug', 'type', 'equipment_id', 'description', 'instructions', 'tips', 'image_path',
     'default_sets', 'default_reps', 'default_weight', 'default_duration_seconds', 'default_metric', 'default_metric_value', 'cardio_fields', 'archived_at',
 ])]
 class Exercise extends Model
@@ -31,7 +31,6 @@ class Exercise extends Model
     {
         return [
             'type' => ExerciseType::class,
-            'equipment' => Equipment::class,
             'instructions' => 'array',
             'tips' => 'array',
             'default_weight' => 'decimal:2',
@@ -51,6 +50,12 @@ class Exercise extends Model
     public function hasCardioField(CardioField $field): bool
     {
         return in_array($field, $this->cardioFields(), true);
+    }
+
+    /** Materiaal: standaard of eigen (App\Models\Equipment) */
+    public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class);
     }
 
     /** Spiergroepen, de primaire eerst */

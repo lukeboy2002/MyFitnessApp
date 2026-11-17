@@ -149,7 +149,7 @@
         @empty
             <div class="rounded-2xl bg-white p-8 text-center ring-1 ring-slate-200 sm:col-span-2 xl:col-span-3 dark:bg-panel-dark dark:ring-line-dark">
                 <p class="text-slate-500 dark:text-slate-400">{{ $showArchived ? __('There are no exercises in the archive.') : __('No exercises found.') }}</p>
-                @if ($search !== '' || $typeFilter !== '' || $groupFilter || $equipmentFilter !== '' || $ownOnly || $letter !== '')
+                @if ($search !== '' || $typeFilter !== '' || $groupFilter || $equipmentFilter || $ownOnly || $letter !== '')
                     <x-button variant="secondary" size="sm" type="button" wire:click="resetFilters" class="mt-3">{{ __('Clear filters') }}</x-button>
                 @endif
             </div>

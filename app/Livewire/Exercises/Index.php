@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Exercises;
 
-use App\Enums\Equipment;
 use App\Enums\ExerciseType;
 use App\Livewire\Concerns\ConfirmsDeletion;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
 use Illuminate\Support\Facades\Auth;
@@ -32,9 +32,9 @@ class Index extends Component
     #[Url(as: 'groep')]
     public ?int $groupFilter = null;
 
-    /** Materiaal (Equipment), bijv. 'barbell' */
-    #[Url(as: 'materiaal', except: '')]
-    public string $equipmentFilter = '';
+    /** Materiaal (App\Models\Equipment), standaard of eigen */
+    #[Url(as: 'materiaal')]
+    public ?int $equipmentFilter = null;
 
     #[Url(as: 'eigen', except: false)]
     public bool $ownOnly = false;
@@ -155,14 +155,14 @@ class Index extends Component
         return MuscleGroup::visibleTo(Auth::user())->orderBy('sort_order')->orderBy('name')->get();
     }
 
-    /** Alleen materiaal dat bij minstens één oefening voorkomt: ['barbell' => 'Barbell', ...] */
+    /** Alleen materiaal dat bij minstens één van jouw zichtbare oefeningen hoort: [id => naam] */
     #[Computed]
     public function equipment(): array
     {
-        $used = Exercise::visibleTo(Auth::user())->whereNotNull('equipment')->distinct()->pluck('equipment')
-            ->map(fn ($equipment) => $equipment instanceof Equipment ? $equipment->value : $equipment)->all();
-
-        return collect(Equipment::options())->only($used)->all();
+        return Equipment::visibleTo(Auth::user())
+            ->whereHas('exercises', fn ($q) => $q->visibleTo(Auth::user()))
+            ->orderByRaw('user_id is not null')->orderBy('sort_order')->orderBy('name')
+            ->get()->mapWithKeys(fn (Equipment $equipment) => [$equipment->id => $equipment->label()])->all();
     }
 
     /** Oefeningen na zoeken en filters, nog zonder letter (daaruit volgt welke letters er zijn) */
@@ -170,13 +170,13 @@ class Index extends Component
     public function filtered()
     {
         return Exercise::visibleTo(Auth::user())
-            ->with('muscleGroups')
+            ->with('muscleGroups', 'equipment')
             ->when($this->showArchived, fn ($q) => $q->archived(), fn ($q) => $q->active())
             ->when($this->ownOnly && $this->ownCount, fn ($q) => $q->where('user_id', Auth::id()))
             ->when($this->search !== '', fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->when(ExerciseType::tryFrom($this->typeFilter), fn ($q, $type) => $q->where('type', $type))
             ->when($this->groupFilter, fn ($q) => $q->whereHas('muscleGroups', fn ($q) => $q->whereKey($this->groupFilter)))
-            ->when(Equipment::tryFrom($this->equipmentFilter), fn ($q, $equipment) => $q->where('equipment', $equipment))
+            ->when($this->equipmentFilter, fn ($q) => $q->where('equipment_id', $this->equipmentFilter))
             ->orderBy('name')
             ->get();
     }

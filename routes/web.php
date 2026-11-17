@@ -16,6 +16,7 @@ use App\Livewire\Calendar;
 use App\Livewire\Contact\Index as ContactIndex;
 use App\Livewire\Contact\Show as ContactShow;
 use App\Livewire\Dashboard;
+use App\Livewire\Equipment\Index as EquipmentIndex;
 use App\Livewire\Exercises\Form as ExerciseForm;
 use App\Livewire\Exercises\Index as ExercisesIndex;
 use App\Livewire\Exercises\Show as ExerciseShow;
@@ -59,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Stamgegevens
     Route::get('body-parts', BodyPartsIndex::class)->name('body-parts.index');
     Route::get('muscle-groups', MuscleGroupsIndex::class)->name('muscle-groups.index');
+    Route::get('equipment', EquipmentIndex::class)->name('equipment.index');
     Route::get('muscles', MusclesIndex::class)->name('muscles.index');
 
     // Oefeningen
