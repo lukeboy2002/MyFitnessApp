@@ -2,6 +2,7 @@ import { Passkeys, PasskeyExistsError, UserCancelledError } from '@laravel/passk
 import './theme';
 import './confetti';
 import './push';
+import './offline-training';
 
 // Globaal beschikbaar voor de @script-blokken in Livewire-componenten en de passkey-loginknop
 window.Passkeys = Passkeys;

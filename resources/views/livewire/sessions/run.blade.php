@@ -3,8 +3,9 @@
     $input = 'w-full min-w-0 rounded-lg border-0 bg-white px-2 py-2 text-center font-semibold tabular-nums ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-brand-500 dark:bg-white/5 dark:ring-line-dark';
 @endphp
 
-{{-- Ruimte onderaan voor de timerbalk --}}
-<div x-on:visibilitychange.document="document.visibilityState === 'visible' && $wire.checkRunning()"
+{{-- Ruimte onderaan voor de timerbalk. offlineTraining: trainen zonder bereik (resources/js/offline-training.js) --}}
+<div x-data="offlineTraining({{ $session->id }})" data-rendered="{{ now()->getTimestampMs() }}"
+     x-on:visibilitychange.document="document.visibilityState === 'visible' && $wire.checkRunning()"
      x-on:exercise-added.window="$nextTick(() => document.getElementById(`se-${$event.detail.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))"
      class="pb-20 md:pb-24" style="--c: {{ $session->color ?? '#1d63c5' }}">
     <x-page-header :title="$session->name"
@@ -24,6 +25,7 @@
             @php($primary = $exercise->primaryMuscleGroup())
             @php($done = $item->isDone())
             <section id="se-{{ $item->id }}" wire:key="se-{{ $item->id }}" wire:sort:item="{{ $item->id }}" style="--g: {{ $primary?->color ?? '#1d63c5' }}"
+                     data-rest="{{ (int) $item->rest_seconds }}" data-partner="{{ $partnerAfter?->id }}" data-partner-name="{{ $partnerAfter?->exercise->name }}"
                      @class(['rounded-2xl bg-white shadow-sm transition dark:bg-panel-dark',
                              'ring-2 ring-violet-300 dark:ring-violet-500/50' => $partnerBefore || $partnerAfter,
                              'rounded-b-none' => $partnerAfter,
@@ -138,6 +140,7 @@
                         <div class="flex flex-col gap-1.5">
                             @foreach ($item->sets as $set)
                                 <div wire:key="set-{{ $set->id }}" id="set-row-{{ $set->id }}"
+                                     data-done="{{ (int) $set->is_completed }}" data-warmup="{{ (int) $set->is_warmup }}" data-number="{{ $set->set_number }}"
                                      @class(['grid items-center gap-2 rounded-xl p-1 transition', $columns,
                                              'bg-emerald-50 dark:bg-emerald-500/10' => $set->is_completed])>
                                     {{-- Tik op het nummer: opwarmset (W) aan of uit --}}
@@ -147,7 +150,7 @@
                                             @class(['relative grid h-10 place-items-center rounded-lg font-display text-lg font-bold transition hover:bg-slate-100 dark:hover:bg-white/10',
                                                     'text-amber-600 dark:text-amber-400' => $set->is_warmup,
                                                     'text-slate-500 dark:text-slate-400' => ! $set->is_warmup])>
-                                        {{ $set->is_warmup ? __('W (warm-up)') : $set->set_number }}
+                                        <span data-label data-on="{{ __('W (warm-up)') }}">{{ $set->is_warmup ? __('W (warm-up)') : $set->set_number }}</span>
                                         @if ($record?->isRecordSet($set))
                                             <x-icon name="trophy" class="absolute -top-1 right-0 size-4 text-accent-500" title="{{ __('New record') }}" />
                                         @endif
@@ -167,10 +170,12 @@
                                                placeholder="{{ $set->target_duration_seconds ?? '–' }}" @class([$input, 'ring-red-500!' => $errors->has("values.{$set->id}.seconds")])>
                                     @endif
                                     <button type="button" wire:click="toggleSet({{ $set->id }})" aria-label="{{ $set->is_completed ? __('Set :number not done', ['number' => $set->set_number]) : __('Set :number done', ['number' => $set->set_number]) }}"
-                                            @class(['grid h-10 place-items-center rounded-xl transition',
+                                            @class(['relative grid h-10 place-items-center rounded-xl transition',
                                                     'bg-emerald-500 text-white hover:bg-emerald-600' => $set->is_completed,
                                                     'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-ink dark:bg-white/10 dark:hover:bg-white/15 dark:hover:text-white' => ! $set->is_completed])>
                                         <x-icon name="check" class="size-5" />
+                                        {{-- Zonder bereik afgevinkt, nog niet verstuurd --}}
+                                        <span data-pending hidden title="{{ __('Not sent yet') }}" class="absolute -top-1 -right-1 size-3.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-panel-dark"></span>
                                     </button>
                                 </div>
                             @endforeach
@@ -298,8 +303,9 @@
                         @endif
 
                         <div class="mt-3 flex justify-end">
-                            <x-button type="button" size="sm" :variant="$done ? 'secondary' : 'primary'" icon="check" wire:click="toggleCardio({{ $item->id }})">
-                                {{ $done ? __('Done (finished)') : __('Finish') }}
+                            <x-button type="button" size="sm" :variant="$done ? 'secondary' : 'primary'" icon="check" wire:click="toggleCardio({{ $item->id }})" data-done="{{ (int) $done }}" class="relative">
+                                <span data-label data-on="{{ __('Done (finished)') }}" data-off="{{ __('Finish') }}">{{ $done ? __('Done (finished)') : __('Finish') }}</span>
+                                <span data-pending hidden title="{{ __('Not sent yet') }}" class="absolute -top-1 -right-1 size-3.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-panel-dark"></span>
                             </x-button>
                         </div>
                     </div>
@@ -429,6 +435,26 @@
          data-paused-seconds="{{ $session->paused_seconds }}"
          data-paused-at="{{ $session->paused_at?->getTimestampMs() }}"
          class="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] z-20 px-2 md:bottom-4 md:left-20 md:px-7 lg:left-64 lg:px-10">
+        {{-- Geen bereik: wat je doet blijft op de telefoon tot er weer verbinding is --}}
+        <div x-show="offline || syncing" x-cloak x-transition.opacity role="status"
+             class="mx-auto mb-1.5 flex max-w-6xl items-center gap-2.5 rounded-2xl bg-amber-400 px-3 py-2 text-amber-950 shadow-lg">
+            <x-icon name="wifi-off" class="size-5 shrink-0" />
+            <p class="min-w-0 text-sm leading-tight">
+                <template x-if="syncing"><span class="font-bold">{{ __('Sending…') }}</span></template>
+                <template x-if="! syncing && nudge"><span class="font-bold">{{ __('This needs a connection.') }}</span></template>
+                <template x-if="! syncing && ! nudge">
+                    <span>
+                        <span class="font-bold">{{ __('No connection') }}</span>
+                        <span x-show="pendingCount" x-text="'· ' + @js(__('Saved on this phone: :count')).replace(':count', pendingCount)"></span>
+                        <span class="block text-xs">{{ __('Everything is sent as soon as you have a connection again.') }}</span>
+                    </span>
+                </template>
+            </p>
+        </div>
+        <div x-show="synced && ! offline" x-cloak x-transition.opacity role="status"
+             class="mx-auto mb-1.5 flex max-w-6xl items-center gap-2.5 rounded-2xl bg-emerald-500 px-3 py-2 text-sm font-bold text-white shadow-lg">
+            <x-icon name="check" class="size-5 shrink-0" /> {{ __('Back online · everything is saved') }}
+        </div>
         <div class="mx-auto flex max-w-6xl items-center gap-3 rounded-2xl bg-brand-700 p-2 pl-4 text-white shadow-xl shadow-brand-950/30 ring-1 ring-white/10 dark:bg-brand-900">
             {{-- Totale tijd --}}
             <div class="shrink-0">

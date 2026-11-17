@@ -9,6 +9,7 @@ use App\Livewire\Concerns\PicksExercises;
 use App\Livewire\Sessions\Concerns\ArrangesExercises;
 use App\Livewire\Sessions\Concerns\LogsCardio;
 use App\Livewire\Sessions\Concerns\LogsSets;
+use App\Livewire\Sessions\Concerns\SyncsOfflineChanges;
 use App\Models\SessionExercise;
 use App\Models\SetLog;
 use App\Models\WorkoutSession;
@@ -22,11 +23,12 @@ use Livewire\Component;
  * Het trainingsscherm: timer met pauze, afronden en stoppen. Sets, cardio en het
  * ordenen van oefeningen staan in de traits in Sessions\Concerns.
  * Alles wordt meteen opgeslagen, zodat je kunt verversen of je telefoon kunt vergrendelen.
+ * Zonder bereik bewaart de telefoon het en volgt het via SyncsOfflineChanges.
  */
 #[Layout('layouts.app')]
 class Run extends Component
 {
-    use ArrangesExercises, EditsExerciseTargets, LogsCardio, LogsSets, PicksExercises;
+    use ArrangesExercises, EditsExerciseTargets, LogsCardio, LogsSets, PicksExercises, SyncsOfflineChanges;
 
     public WorkoutSession $session;
 
