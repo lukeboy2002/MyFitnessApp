@@ -70,7 +70,7 @@ class Show extends Component
     #[Computed]
     public function buddies()
     {
-        return Auth::user()->buddies();
+        return Auth::user()->buddies()->where('profile_public', true)->values();
     }
 
     /** Kant-en-klare workout overnemen en meteen naar je eigen kopie */

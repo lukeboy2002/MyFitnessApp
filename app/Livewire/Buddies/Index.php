@@ -5,14 +5,17 @@ namespace App\Livewire\Buddies;
 use App\Actions\AcceptBuddy;
 use App\Actions\InviteBuddy;
 use App\Models\Buddy;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * Maatjes: uitnodigen op gebruikersnaam of e-mailadres, accepteren of weigeren, ontkoppelen.
+ * Maatjes: openbare profielen zoeken en uitnodigen, accepteren of weigeren, ontkoppelen.
+ * Alleen met een openbaar profiel (users.profile_public) vind je anderen en ontvang je workouts.
  * Maatjes kunnen elkaar workouts sturen (Workouts › Delen); ze zien elkaars trainingen niet.
  */
 #[Layout('layouts.app')]
@@ -20,6 +23,11 @@ class Index extends Component
 {
     /** Uitnodigingen per uur, tegen het raden van gebruikersnamen */
     public const PER_HOUR = 10;
+
+    /** Zoeksuggesties vanaf zoveel tekens, en hoeveel */
+    public const SEARCH_MIN = 2;
+
+    public const SEARCH_LIMIT = 8;
 
     public string $login = '';
 
@@ -29,18 +37,42 @@ class Index extends Component
     {
         $this->validate(['login' => ['required', 'string', 'max:255']], attributes: ['login' => __('username or email')]);
 
-        $user = Auth::user();
-        if (! RateLimiter::attempt('buddy-invite:'.$user->id, self::PER_HOUR, fn () => true, 3600)) {
-            $this->addError('login', __('You sent many invitations. Try again in an hour.'));
-
+        if (! $this->mayInvite()) {
             return;
         }
 
-        $invite->handle($user, $this->login);
+        $invite->handle(Auth::user(), $this->login);
 
         // Altijd dezelfde melding: zo kan niemand uitproberen welke accounts er zijn
         $this->message = __('If this account exists, your invitation has been sent.');
         $this->reset('login');
+        $this->forget();
+    }
+
+    /** Uitnodigen vanuit de zoeksuggesties (alleen openbare profielen) */
+    public function inviteUser(int $id, InviteBuddy $invite): void
+    {
+        $to = User::publicProfile()->notBanned()->whereKeyNot(Auth::id())->findOrFail($id);
+
+        if (! $this->mayInvite()) {
+            return;
+        }
+
+        $buddy = $invite->handle(Auth::user(), $to);
+
+        $this->message = $buddy?->isAccepted()
+            ? __('You and :name are now buddies.', ['name' => $to->name])
+            : __('Invitation sent to :name.', ['name' => $to->name]);
+        $this->reset('login');
+        $this->forget();
+    }
+
+    /** Openbaar profiel aan of uit gezet (component Profiel\PublicProfile op deze pagina) */
+    #[On('profile-visibility-changed')]
+    public function visibilityChanged(): void
+    {
+        Auth::user()->refresh();
+        $this->reset('login', 'message');
         $this->forget();
     }
 
@@ -72,6 +104,32 @@ class Index extends Component
         $this->forget();
     }
 
+    /** Openbare profielen die passen bij wat je typt: naam of gebruikersnaam, of het begin van een e-mailadres */
+    #[Computed]
+    public function suggestions()
+    {
+        $user = Auth::user();
+        $term = mb_strtolower(ltrim(trim($this->login), '@'));
+
+        if (! $user->profile_public || mb_strlen($term) < self::SEARCH_MIN) {
+            return collect();
+        }
+
+        $like = str_replace(['%', '\\'], '', $term); // % en \ zijn LIKE-tekens; _ mag (te ruim, nooit te weinig)
+        $linked = Buddy::involving($user)->get(['user_id', 'buddy_id'])->flatMap(fn (Buddy $row) => [$row->user_id, $row->buddy_id]);
+
+        return User::publicProfile()->notBanned()
+            ->whereKeyNot($user->id)
+            ->whereNotIn('id', $linked)
+            ->where(fn ($q) => str_contains($term, '@')
+                ? $q->whereRaw('lower(email) like ?', [$like.'%'])
+                : $q->whereRaw('lower(username) like ?', ['%'.$like.'%'])->orWhereRaw('lower(name) like ?', ['%'.$like.'%']))
+            ->orderByRaw('lower(username) = ? desc', [$term])
+            ->orderBy('name')
+            ->limit(self::SEARCH_LIMIT)
+            ->get();
+    }
+
     /** Uitnodigingen aan jou */
     #[Computed]
     public function invitations()
@@ -98,8 +156,27 @@ class Index extends Component
         return view('livewire.buddies.index')->title(__('Buddies'));
     }
 
+    private function mayInvite(): bool
+    {
+        $user = Auth::user();
+
+        if (! $user->profile_public) {
+            $this->addError('login', __('Make your profile public first.'));
+
+            return false;
+        }
+
+        if (! RateLimiter::attempt('buddy-invite:'.$user->id, self::PER_HOUR, fn () => true, 3600)) {
+            $this->addError('login', __('You sent many invitations. Try again in an hour.'));
+
+            return false;
+        }
+
+        return true;
+    }
+
     private function forget(): void
     {
-        unset($this->invitations, $this->buddies);
+        unset($this->invitations, $this->buddies, $this->suggestions);
     }
 }

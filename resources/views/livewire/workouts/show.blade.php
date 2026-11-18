@@ -124,6 +124,7 @@
         <x-modal wire:model="showShare" :title="__('Share :name', ['name' => $workout->name])" maxWidth="md">
             @if ($this->buddies->isEmpty())
                 <p class="text-slate-600 dark:text-slate-300">{{ __('You have no buddies yet. Invite someone first; then you can send them your workouts.') }}</p>
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ __('Only buddies with a public profile can receive workouts.') }}</p>
                 <x-button class="mt-4" icon="users" :href="route('buddies')" wire:navigate>{{ __('Buddies') }}</x-button>
             @else
                 <form wire:submit="share" id="share-form" class="grid gap-4">

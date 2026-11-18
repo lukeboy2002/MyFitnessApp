@@ -8,22 +8,17 @@ use App\Support\Inbox;
 use Illuminate\Support\Str;
 
 /**
- * Maatje uitnodigen op gebruikersnaam of e-mailadres (exact, geen zoeken).
- * Geeft niets terug over of het account bestaat; de pagina toont altijd dezelfde melding.
+ * Maatje uitnodigen op gebruikersnaam of e-mailadres (exact) of op een gekozen zoekresultaat.
+ * Alleen tussen openbare profielen. Geeft niets terug over of het account bestaat.
  * Had de ander jou al uitgenodigd, dan zijn jullie meteen maatjes.
  */
 class InviteBuddy
 {
-    public function handle(User $from, string $login): ?Buddy
+    public function handle(User $from, string|User $login): ?Buddy
     {
-        $login = Str::lower(ltrim(trim($login), '@'));
-        $to = $login === '' ? null : User::query()
-            ->when(str_contains($login, '@'),
-                fn ($q) => $q->whereRaw('lower(email) = ?', [$login]),
-                fn ($q) => $q->whereRaw('lower(username) = ?', [$login]))
-            ->first();
+        $to = $login instanceof User ? $login : $this->find($login);
 
-        if (! $to || $to->is($from) || $to->isBanned()) {
+        if (! $to || $to->is($from) || $to->isBanned() || ! $to->profile_public || ! $from->profile_public) {
             return null;
         }
 
@@ -52,5 +47,16 @@ class InviteBuddy
         );
 
         return $buddy;
+    }
+
+    private function find(string $login): ?User
+    {
+        $login = Str::lower(ltrim(trim($login), '@'));
+
+        return $login === '' ? null : User::query()
+            ->when(str_contains($login, '@'),
+                fn ($q) => $q->whereRaw('lower(email) = ?', [$login]),
+                fn ($q) => $q->whereRaw('lower(username) = ?', [$login]))
+            ->first();
     }
 }

@@ -3,6 +3,7 @@
 use App\Actions\DeleteUserAccount;
 use App\Actions\ShareWorkout;
 use App\Livewire\Buddies\Index;
+use App\Livewire\Profile\PublicProfile;
 use App\Livewire\Profile\PushPreferences;
 use App\Livewire\Workouts\Index as WorkoutsIndex;
 use App\Livewire\Workouts\Show;
@@ -23,8 +24,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->seed(BodyPartSeeder::class);
-    $this->antoine = User::factory()->create(['name' => 'Antoine', 'username' => 'antoine', 'email' => 'antoine@example.com']);
-    $this->peter = User::factory()->create(['name' => 'Peter', 'username' => 'peter', 'email' => 'Peter@Example.com', 'locale' => 'nl']);
+    $this->antoine = User::factory()->create(['name' => 'Antoine', 'username' => 'antoine', 'email' => 'antoine@example.com', 'profile_public' => true]);
+    $this->peter = User::factory()->create(['name' => 'Peter', 'username' => 'peter', 'email' => 'Peter@Example.com', 'locale' => 'nl', 'profile_public' => true]);
 });
 
 function makeBuddies(User $a, User $b): Buddy
@@ -43,7 +44,7 @@ test('you invite someone by username or email and they accept', function () {
 
     $invite = Buddy::sole();
     expect($invite->buddy_id)->toBe($this->peter->id)->and($invite->isAccepted())->toBeFalse();
-    expect($this->peter->messages()->sole()->title)->toBe('Uitnodiging als maatje');
+    expect($this->peter->messages()->sole()->title)->toBe('Uitnodiging als vriend');
 
     // Nog een keer uitnodigen (op e-mail, andere hoofdletters) geeft geen tweede uitnodiging of bericht
     Livewire::actingAs($this->antoine)->test(Index::class)->set('login', 'peter@example.com')->call('invite');
@@ -57,7 +58,7 @@ test('you invite someone by username or email and they accept', function () {
     expect($invite->fresh()->isAccepted())->toBeTrue()
         ->and(Buddy::areBuddies($this->peter, $this->antoine))->toBeTrue()
         ->and($this->antoine->buddies()->pluck('id')->all())->toBe([$this->peter->id])
-        ->and($this->antoine->messages()->sole()->title)->toBe('Nieuw maatje');
+        ->and($this->antoine->messages()->sole()->title)->toBe('Nieuwe vriend');
 });
 
 test('an unknown account gives the same message and nothing happens', function () {
@@ -200,4 +201,63 @@ test('deleting an account removes buddies and shares', function () {
     app(DeleteUserAccount::class)->handle($this->antoine);
 
     expect(Buddy::count())->toBe(0)->and(SharedWorkout::count())->toBe(0);
+});
+
+test('only public profiles can be found and invited', function () {
+    $hidden = User::factory()->create(['name' => 'Petra', 'username' => 'petra']);
+    User::factory()->create(['name' => 'Pieter Banned', 'username' => 'pieterb', 'profile_public' => true, 'banned_at' => now()]);
+
+    $page = Livewire::actingAs($this->antoine)->test(Index::class)->set('login', 'pe');
+    expect($page->get('suggestions')->pluck('username')->all())->toBe(['peter']);
+
+    // Op het begin van het e-mailadres, en jezelf zie je nooit
+    $page->set('login', 'peter@ex');
+    expect($page->get('suggestions')->pluck('username')->all())->toBe(['peter']);
+    $page->set('login', 'antoine');
+    expect($page->get('suggestions'))->toBeEmpty();
+
+    // Een privéprofiel uitnodigen (exacte naam of id) doet niets
+    $page->set('login', 'petra')->call('invite');
+    expect(Buddy::count())->toBe(0);
+    Livewire::actingAs($this->antoine)->test(Index::class)->call('inviteUser', $hidden->id)->assertNotFound();
+
+    // Via een suggestie uitnodigen; daarna verschijnt Peter niet meer
+    $page = Livewire::actingAs($this->antoine)->test(Index::class)
+        ->call('inviteUser', $this->peter->id)
+        ->assertSet('message', __('Invitation sent to :name.', ['name' => 'Peter']))
+        ->set('login', 'pe');
+    expect($page->get('suggestions'))->toBeEmpty();
+    expect(Buddy::sole()->buddy_id)->toBe($this->peter->id);
+});
+
+test('without a public profile you cannot search or invite', function () {
+    $this->antoine->forceFill(['profile_public' => false])->save();
+
+    $page = Livewire::actingAs($this->antoine)->test(Index::class)
+        ->assertSee(__('Make your profile public first. Then you can find and invite others, and receive workouts.'))
+        ->set('login', 'pe');
+    expect($page->get('suggestions'))->toBeEmpty();
+
+    $page->set('login', 'peter')->call('invite')->assertHasErrors('login');
+    expect(Buddy::count())->toBe(0);
+});
+
+test('the public profile toggle saves and a private buddy receives no workouts', function () {
+    Livewire::actingAs($this->peter)->test(PublicProfile::class)
+        ->assertSet('public', true)
+        ->set('public', false)
+        ->assertDispatched('profile-visibility-changed');
+    expect($this->peter->fresh()->profile_public)->toBeFalse();
+
+    makeBuddies($this->antoine, $this->peter);
+    $workout = Workout::factory()->for($this->antoine)->create();
+
+    expect(app(ShareWorkout::class)->handle($this->antoine, $workout, collect([$this->peter->fresh()])))->toBe(0)
+        ->and(SharedWorkout::count())->toBe(0);
+
+    Livewire::actingAs($this->antoine)->test(Show::class, ['workout' => $workout])
+        ->assertSet('shareTo', [])
+        ->tap(fn ($c) => expect($c->get('buddies'))->toBeEmpty());
+
+    $this->actingAs($this->peter)->get(route('profile.edit'))->assertOk()->assertSee(__('Public profile'));
 });

@@ -38,6 +38,7 @@
                             <p class="text-sm text-slate-500 dark:text-slate-400">
                                 {{ '@'.$other->username }} ·
                                 {{ $row->isAccepted() ? __('buddy since :date', ['date' => $row->accepted_at->translatedFormat('j M Y')]) : __('waiting for an answer') }}
+                                @unless ($other->profile_public) · {{ __('profile not public') }} @endunless
                             </p>
                         </div>
                         @if ($row->isAccepted())
@@ -59,12 +60,39 @@
         </div>
 
         <div class="flex flex-col gap-5">
+            <livewire:profile.public-profile />
+
             <x-card :title="__('Invite a buddy')">
-                <form wire:submit="invite" class="flex flex-col gap-3">
-                    <x-form.input wire:model="login" icon="user" :placeholder="__('Username or email address')" :aria-label="__('Username or email address')" autocomplete="off" autocapitalize="none" />
-                    <x-button type="submit" icon="plus" loading="invite" block>{{ __('Invite') }}</x-button>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Exact username or email address; there is no list of all users.') }}</p>
-                </form>
+                @if (auth()->user()->profile_public)
+                    <form wire:submit="invite" class="flex flex-col gap-3">
+                        <x-form.input wire:model.live.debounce.300ms="login" icon="search" :placeholder="__('Username or email address')" :aria-label="__('Username or email address')" autocomplete="off" autocapitalize="none" />
+
+                        @if (mb_strlen(ltrim(trim($login), '@')) >= \App\Livewire\Buddies\Index::SEARCH_MIN)
+                            @if ($this->suggestions->isNotEmpty())
+                                <ul class="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200 dark:divide-line-dark dark:ring-line-dark">
+                                    @foreach ($this->suggestions as $person)
+                                        <li wire:key="s-{{ $person->id }}" class="flex items-center gap-3 px-3 py-2">
+                                            <x-avatar :user="$person" class="ring-0" />
+                                            <div class="min-w-0 flex-1">
+                                                <p class="truncate font-semibold">{{ $person->name }}</p>
+                                                <p class="truncate text-sm text-slate-500 dark:text-slate-400">{{ '@'.$person->username }}</p>
+                                            </div>
+                                            <x-button size="sm" variant="secondary" type="button" icon="plus" class="shrink-0"
+                                                      wire:click="inviteUser({{ $person->id }})" loading="inviteUser({{ $person->id }})">{{ __('Invite') }}</x-button>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="text-sm text-slate-500 dark:text-slate-400" wire:loading.remove wire:target="login">{{ __('No public profile found.') }}</p>
+                            @endif
+                        @endif
+
+                        <x-button type="submit" variant="secondary" icon="plus" loading="invite" block>{{ __('Invite exact name') }}</x-button>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Type at least 2 letters of a name, username or email address. Only public profiles appear.') }}</p>
+                    </form>
+                @else
+                    <p class="text-sm text-slate-600 dark:text-slate-300">{{ __('Make your profile public first. Then you can find and invite others, and receive workouts.') }}</p>
+                @endif
             </x-card>
 
             <x-card :title="__('Your username')">

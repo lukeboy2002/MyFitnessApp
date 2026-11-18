@@ -67,6 +67,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'push_weekly' => 'boolean',
             'push_inactive' => 'boolean',
             'push_buddies' => 'boolean',
+            'profile_public' => 'boolean',
             'inactive_reminded_at' => 'datetime',
             'seen_by_admin_at' => 'datetime',
             'banned_at' => 'datetime',
@@ -92,6 +93,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'push_weekly' => true,
         'push_inactive' => true,
         'push_buddies' => true,
+        'profile_public' => false,
         'inactive_reminded_at' => null,
         'ban_reason' => null,
         'birth_date' => null,
@@ -127,6 +129,13 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     protected function notBanned(Builder $query): void
     {
         $query->where(fn ($q) => $q->whereNull('banned_at')->orWhere('banned_until', '<=', now()));
+    }
+
+    /** Openbaar profiel: te vinden bij Maatjes en kan workouts ontvangen */
+    #[Scope]
+    protected function publicProfile(Builder $query): void
+    {
+        $query->where('profile_public', true);
     }
 
     /** Door een admin geblokkeerd (een tijdelijke blokkade vervalt vanzelf) */

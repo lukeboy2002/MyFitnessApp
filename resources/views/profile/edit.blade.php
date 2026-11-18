@@ -84,6 +84,8 @@
             <div class="grid gap-5">
                 <livewire:profile.update-profile-photo/>
 
+                <livewire:profile.public-profile/>
+
                 <x-card :title="__('Theme')" :description="__('Choose light, dark or follow your device.')">
                     <x-theme-toggle variant="segmented"/>
                 </x-card>

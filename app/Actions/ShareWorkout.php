@@ -10,7 +10,7 @@ use App\Support\Inbox;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
-/** Workout naar maatjes sturen; zij nemen hem over (kopie) of weigeren. Geeft het aantal ontvangers terug */
+/** Workout naar maatjes met een openbaar profiel sturen; zij nemen hem over (kopie) of weigeren. Geeft het aantal ontvangers terug */
 class ShareWorkout
 {
     /** @param  Collection<int, User>  $recipients */
@@ -20,7 +20,7 @@ class ShareWorkout
         $sent = 0;
 
         foreach ($recipients as $recipient) {
-            if (! Buddy::areBuddies($sender, $recipient)) {
+            if (! $recipient->profile_public || ! Buddy::areBuddies($sender, $recipient)) {
                 continue;
             }
 
