@@ -353,7 +353,7 @@
             </div>
             <x-exercise-targets :type="$chosen->type" :item="$adding" model="adding" />
         @else
-            <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType" :own="$pickerOwn" :own-count="$this->pickerOwnCount"
+            <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :equipment="$this->pickerEquipmentOptions" :type="$pickerType" :own="$pickerOwn" :own-count="$this->pickerOwnCount"
                                :added="$session->exercises->countBy('exercise_id')" action="pick" />
         @endif
         <x-slot:footer>

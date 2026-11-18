@@ -1,15 +1,16 @@
 {{--
     Oefening kiezen (hoort bij de trait PicksExercises), in een <x-modal>:
-    <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType"
+    <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :equipment="$this->pickerEquipmentOptions" :type="$pickerType"
                        :own="$pickerOwn" :own-count="$this->pickerOwnCount"
                        :added="collect($items)->countBy('exercise_id')" action="addExercise" />
 --}}
-@props(['exercises', 'groups', 'type' => '', 'own' => false, 'ownCount' => 0, 'added' => [], 'action'])
+@props(['exercises', 'groups', 'equipment' => [], 'type' => '', 'own' => false, 'ownCount' => 0, 'added' => [], 'action'])
 
 <div class="flex flex-col gap-3">
-    <div class="grid gap-3 sm:grid-cols-[1fr_13rem]">
-        <x-form.input wire:model.live.debounce.250ms="pickerSearch" icon="search" :placeholder="__('Search an exercise…')" :aria-label="__('Search')" />
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-[1fr_11rem_11rem]">
+        <x-form.input wire:model.live.debounce.250ms="pickerSearch" icon="search" :placeholder="__('Search an exercise…')" :aria-label="__('Search')" class="col-span-2 sm:col-span-1" />
         <x-form.select wire:model.live="pickerGroup" :options="$groups->pluck('name', 'id')" :placeholder="__('All muscle groups')" :aria-label="__('Muscle group')" />
+        <x-form.select wire:model.live="pickerEquipment" :options="$equipment" :placeholder="__('All equipment')" :aria-label="__('Equipment')" />
     </div>
     <div class="flex flex-wrap gap-2">
         @foreach (['' => __('All')] + collect(\App\Enums\ExerciseType::cases())->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all() as $value => $label)
@@ -43,7 +44,7 @@
                     </span>
                     <span class="min-w-0 flex-1">
                         <span class="block truncate font-semibold">{{ $option->name }}</span>
-                        <span class="block text-xs text-slate-500 dark:text-slate-400">{{ $option->type->label() }}@if ($primary) · {{ $primary->name }}@endif @unless ($option->isStandard()) · {{ __('Own') }} @endunless</span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400">{{ $option->type->label() }}@if ($primary) · {{ $primary->name }}@endif @if ($option->equipment) · {{ $option->equipment->label() }}@endif @unless ($option->isStandard()) · {{ __('Own') }} @endunless</span>
                     </span>
                     @if ($count = $added[$option->id] ?? 0)
                         <x-badge color="success" icon="check">{{ $count > 1 ? $count.'×' : __('Added') }}</x-badge>

@@ -5,6 +5,7 @@ use App\Livewire\Exercises\Index as ExercisesIndex;
 use App\Livewire\Workouts\Form;
 use App\Livewire\Workouts\Index;
 use App\Livewire\Workouts\Show;
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
 use App\Models\User;
@@ -210,4 +211,21 @@ test('the exercise picker can show only own exercises', function () {
         ->set('pickerOwn', true)
         ->assertSee('Mijn Curl')->assertDontSee('Standaard Press')
         ->call('openPicker')->assertSet('pickerOwn', false);
+});
+
+test('the exercise picker filters on equipment', function () {
+    workoutExercise('strength', ['name' => 'Dumbbell Curl', 'equipment_id' => Equipment::standardId('dumbbell')]);
+    workoutExercise('strength', ['name' => 'Barbell Row', 'equipment_id' => Equipment::standardId('barbell')]);
+    $kettlebell = Equipment::standardId('kettlebell');
+
+    $form = Livewire::actingAs($this->user)->test(Form::class)->call('openPicker');
+
+    // Alleen materiaal waar oefeningen bij horen staat in de lijst
+    expect($form->get('pickerEquipmentOptions'))->toHaveKeys([Equipment::standardId('dumbbell'), Equipment::standardId('barbell')])
+        ->not->toHaveKey($kettlebell);
+
+    $form->set('pickerEquipment', Equipment::standardId('dumbbell'))
+        ->assertSee('Dumbbell Curl')->assertDontSee('Barbell Row')
+        ->call('openPicker')->assertSet('pickerEquipment', null)
+        ->assertSee(['Dumbbell Curl', 'Barbell Row']);
 });

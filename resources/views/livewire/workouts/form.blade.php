@@ -121,7 +121,7 @@
 
     {{-- Oefening kiezen --}}
     <x-modal wire:model="showPicker" :title="__('Add exercise')" maxWidth="2xl">
-        <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :type="$pickerType" :own="$pickerOwn" :own-count="$this->pickerOwnCount"
+        <x-exercise-picker :exercises="$this->pickerExercises" :groups="$this->muscleGroups" :equipment="$this->pickerEquipmentOptions" :type="$pickerType" :own="$pickerOwn" :own-count="$this->pickerOwnCount"
                            :added="collect($items)->countBy('exercise_id')" action="addExercise" />
 
         <x-slot:footer>
