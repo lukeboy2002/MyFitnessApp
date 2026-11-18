@@ -18,6 +18,8 @@ class PushPreferences extends Component
 
     public bool $push_inactive = true;
 
+    public bool $push_buddies = true;
+
     public function mount(): void
     {
         $this->push_rest = Auth::user()->push_rest;
@@ -25,11 +27,12 @@ class PushPreferences extends Component
         $this->push_reminder = Auth::user()->push_reminder;
         $this->push_weekly = Auth::user()->push_weekly;
         $this->push_inactive = Auth::user()->push_inactive;
+        $this->push_buddies = Auth::user()->push_buddies;
     }
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['push_rest', 'push_admin', 'push_reminder', 'push_weekly', 'push_inactive'], true)) {
+        if (in_array($property, ['push_rest', 'push_admin', 'push_reminder', 'push_weekly', 'push_inactive', 'push_buddies'], true)) {
             Auth::user()->forceFill([$property => $this->{$property}])->save();
             $this->dispatch('saved');
         }

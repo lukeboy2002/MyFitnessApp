@@ -4,6 +4,7 @@
     <x-form.toggle wire:model.live="push_reminder" :label="__('Training reminder')" :description="__('At 7:00 on a day with a training planned in your calendar.')" />
     <x-form.toggle wire:model.live="push_weekly" :label="__('Weekly summary')" :description="__('On Monday morning: your trainings, time and weekly goal of last week.')" />
     <x-form.toggle wire:model.live="push_inactive" :label="__('We miss you')" :description="__('A nudge when you have not trained for 10 days.')" />
+    <x-form.toggle wire:model.live="push_buddies" :label="__('Buddies')" :description="__('An invitation or a workout shared by a buddy.')" />
     <x-form.toggle wire:model.live="push_admin" :label="__('Messages from the admin')" :description="__('News and announcements about the app.')" />
     <x-action-message on="saved">{{ __('Saved.') }}</x-action-message>
 </div>

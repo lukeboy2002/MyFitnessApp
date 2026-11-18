@@ -1,0 +1,82 @@
+<div>
+    <x-page-header :title="__('Buddies')" :description="__('With buddies you can share workouts. You do not see each other\'s trainings.')" />
+
+    @if ($message)
+        <x-alert type="success" class="mb-5" wire:key="msg-{{ md5($message) }}">{{ $message }}</x-alert>
+    @endif
+
+    <div class="grid gap-5 lg:grid-cols-[1fr_22rem]">
+        <div class="flex flex-col gap-5">
+            @if ($this->invitations->isNotEmpty())
+                <x-card :title="__('Invitations for you')">
+                    <ul class="flex flex-col gap-3">
+                        @foreach ($this->invitations as $invitation)
+                            <li wire:key="inv-{{ $invitation->id }}" class="flex flex-wrap items-center gap-3 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-200 dark:bg-amber-400/10 dark:ring-amber-400/30">
+                                <x-avatar :user="$invitation->user" class="shrink-0 ring-0" />
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate font-semibold">{{ $invitation->user->name }}</p>
+                                    <p class="truncate text-sm text-slate-500 dark:text-slate-400">{{ '@'.$invitation->user->username }}</p>
+                                </div>
+                                <div class="flex w-full justify-end gap-2 sm:w-auto">
+                                    <x-button size="sm" type="button" icon="check" wire:click="accept({{ $invitation->id }})" loading="accept({{ $invitation->id }})">{{ __('Accept') }}</x-button>
+                                    <x-button size="sm" variant="ghost" type="button" wire:click="decline({{ $invitation->id }})">{{ __('Decline') }}</x-button>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-card>
+            @endif
+
+            <x-card :title="__('My buddies')" :padding="$this->buddies->isEmpty()">
+                @forelse ($this->buddies as $row)
+                    @php($other = $row->other(auth()->user()))
+                    @if ($loop->first) <ul class="divide-y divide-slate-200 dark:divide-line-dark"> @endif
+                    <li wire:key="b-{{ $row->id }}" class="flex items-center gap-3 px-5 py-3 sm:px-6">
+                        <x-avatar :user="$other" class="shrink-0 ring-0" />
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate font-semibold">{{ $other->name }}</p>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">
+                                {{ '@'.$other->username }} ·
+                                {{ $row->isAccepted() ? __('buddy since :date', ['date' => $row->accepted_at->translatedFormat('j M Y')]) : __('waiting for an answer') }}
+                            </p>
+                        </div>
+                        @if ($row->isAccepted())
+                            <x-button size="sm" variant="ghost" type="button" class="shrink-0 text-red-600 dark:text-red-400" wire:click="remove({{ $row->id }})"
+                                      wire:confirm="{{ __('Remove :name as buddy?', ['name' => $other->name]) }}">{{ __('Remove buddy') }}</x-button>
+                        @else
+                            <x-button size="sm" variant="ghost" type="button" class="shrink-0" wire:click="decline({{ $row->id }})">{{ __('Withdraw') }}</x-button>
+                        @endif
+                    </li>
+                    @if ($loop->last) </ul> @endif
+                @empty
+                    <div class="flex flex-col items-center gap-2 py-4 text-center">
+                        <span class="grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"><x-icon name="users" /></span>
+                        <p class="font-semibold">{{ __('No buddies yet') }}</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('Invite someone with their username or email address.') }}</p>
+                    </div>
+                @endforelse
+            </x-card>
+        </div>
+
+        <div class="flex flex-col gap-5">
+            <x-card :title="__('Invite a buddy')">
+                <form wire:submit="invite" class="flex flex-col gap-3">
+                    <x-form.input wire:model="login" icon="user" :placeholder="__('Username or email address')" :aria-label="__('Username or email address')" autocomplete="off" autocapitalize="none" />
+                    <x-button type="submit" icon="plus" loading="invite" block>{{ __('Invite') }}</x-button>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Exact username or email address; there is no list of all users.') }}</p>
+                </form>
+            </x-card>
+
+            <x-card :title="__('Your username')">
+                <div x-data="{ copied: false }" class="flex items-center gap-2">
+                    <code class="flex-1 truncate rounded-lg bg-slate-100 px-3 py-2 font-semibold dark:bg-white/10">{{ '@'.auth()->user()->username }}</code>
+                    <x-button size="sm" variant="secondary" type="button" icon="copy"
+                              x-on:click="navigator.clipboard?.writeText(@js(auth()->user()->username)); copied = true; setTimeout(() => copied = false, 2000)">
+                        <span x-text="copied ? @js(__('Copied')) : @js(__('Copy'))">{{ __('Copy') }}</span>
+                    </x-button>
+                </div>
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">{{ __('Give this to a friend so they can invite you.') }}</p>
+            </x-card>
+        </div>
+    </div>
+</div>

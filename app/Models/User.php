@@ -66,6 +66,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'push_reminder' => 'boolean',
             'push_weekly' => 'boolean',
             'push_inactive' => 'boolean',
+            'push_buddies' => 'boolean',
             'inactive_reminded_at' => 'datetime',
             'seen_by_admin_at' => 'datetime',
             'banned_at' => 'datetime',
@@ -90,6 +91,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'push_reminder' => true,
         'push_weekly' => true,
         'push_inactive' => true,
+        'push_buddies' => true,
         'inactive_reminded_at' => null,
         'ban_reason' => null,
         'birth_date' => null,
@@ -165,6 +167,32 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function workouts(): HasMany
     {
         return $this->hasMany(Workout::class);
+    }
+
+    /** Maatjes: geaccepteerd, beide richtingen (gesorteerd op naam) */
+    public function buddies()
+    {
+        $rows = Buddy::accepted()->involving($this)->get(['user_id', 'buddy_id']);
+        $ids = $rows->map(fn (Buddy $row) => $row->user_id === $this->id ? $row->buddy_id : $row->user_id);
+
+        return User::whereKey($ids)->orderBy('name')->get();
+    }
+
+    /** Gedeelde workouts die op jouw antwoord wachten (tab Ontvangen) */
+    public function receivedWorkouts(): HasMany
+    {
+        return $this->hasMany(SharedWorkout::class, 'recipient_id');
+    }
+
+    public function openSharedCount(): int
+    {
+        return once(fn () => $this->receivedWorkouts()->open()->count());
+    }
+
+    /** Uitnodigingen van anderen die nog op jouw antwoord wachten */
+    public function openBuddyInvitesCount(): int
+    {
+        return once(fn () => Buddy::pending()->where('buddy_id', $this->id)->count());
     }
 
     /** Berichten van de admin (pagina Berichten) */

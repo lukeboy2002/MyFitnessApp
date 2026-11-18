@@ -24,6 +24,7 @@
         ['route' => 'calendar',            'active' => 'calendar',         'icon' => 'calendar', 'label' => __('Calendar')],
         ['route' => 'progress.index',      'active' => 'progress.*',       'icon' => 'chart',    'label' => __('Progress')],
         ['route' => 'badges',              'active' => 'badges',           'icon' => 'medal',    'label' => __('Badges')],
+        ['route' => 'buddies',             'active' => 'buddies',          'icon' => 'users',    'label' => __('Buddies'), 'badge' => auth()->user()?->openBuddyInvitesCount() ?? 0],
     ];
 
     // Alleen voor admins

@@ -4,8 +4,10 @@ namespace App\Livewire\Workouts;
 
 use App\Actions\AdoptWorkout;
 use App\Livewire\Concerns\ConfirmsDeletion;
+use App\Livewire\Workouts\Concerns\HandlesSharedWorkouts;
 use App\Models\BodyPart;
 use App\Models\Equipment;
+use App\Models\SharedWorkout;
 use App\Models\Workout;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -16,7 +18,7 @@ use Livewire\Component;
 #[Layout('layouts.app')]
 class Index extends Component
 {
-    use ConfirmsDeletion;
+    use ConfirmsDeletion, HandlesSharedWorkouts;
 
     #[Url(as: 'zoek', except: '')]
     public string $search = '';
@@ -27,6 +29,10 @@ class Index extends Component
     /** Tab Kant-en-klaar: de standaardworkouts */
     #[Url(as: 'kant-en-klaar', except: false)]
     public bool $showReady = false;
+
+    /** Tab Ontvangen: workouts die maatjes je stuurden */
+    #[Url(as: 'ontvangen', except: false)]
+    public bool $showReceived = false;
 
     #[Url(as: 'deel')]
     public ?int $bodyPart = null;
@@ -45,6 +51,7 @@ class Index extends Component
     {
         $this->showArchived = $tab === 'archived';
         $this->showReady = $tab === 'ready';
+        $this->showReceived = $tab === 'received';
         $this->reset('search', 'bodyPart', 'equipmentFilter');
         unset($this->workouts);
     }
@@ -141,8 +148,19 @@ class Index extends Component
         return [
             'active' => (clone $workouts)->active()->count(),
             'ready' => $this->readyQuery()->count(),
+            'received' => Auth::user()->openSharedCount(),
             'archived' => $workouts->archived()->count(),
         ];
+    }
+
+    /** Openstaande gedeelde workouts, nieuwste eerst */
+    #[Computed]
+    public function received()
+    {
+        return SharedWorkout::open()->where('recipient_id', Auth::id())
+            ->with(['sender', 'workout.exercises.exercise', 'workout.muscleGroups'])
+            ->latest('id')
+            ->get();
     }
 
     /** Ids van standaardworkouts die je al hebt overgenomen (en niet hebt weggegooid) */

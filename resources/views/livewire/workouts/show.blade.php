@@ -1,7 +1,7 @@
 <div style="--c: {{ $workout->color ?? '#1d63c5' }}">
     @php($ready = $workout->isStandard())
-    <a href="{{ route('workouts.index', $ready ? ['kant-en-klaar' => 1] : ($workout->isArchived() ? ['archief' => 1] : [])) }}" wire:navigate class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
-        <x-icon name="chevron-right" class="size-4 rotate-180" /> {{ $ready ? __('Ready-made workouts') : __('All workouts') }}
+    <a href="{{ route('workouts.index', $incoming ? ['ontvangen' => 1] : ($ready ? ['kant-en-klaar' => 1] : ($workout->isArchived() ? ['archief' => 1] : []))) }}" wire:navigate class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
+        <x-icon name="chevron-right" class="size-4 rotate-180" /> {{ $incoming ? __('Received workouts') : ($ready ? __('Ready-made workouts') : __('All workouts')) }}
     </a>
 
     <x-page-header :title="$workout->name" :description="$workout->description">
@@ -11,7 +11,13 @@
             </x-button>
             <x-button variant="secondary" :href="route('workouts.edit', $workout)" wire:navigate>{{ __('Edit') }}</x-button>
         @endif
-        @if ($ready)
+        @can('share', $workout)
+            <x-button variant="secondary" type="button" icon="share" wire:click="openShare">{{ __('Share') }}</x-button>
+        @endcan
+        @if ($incoming)
+            <x-button variant="secondary" type="button" wire:click="declineShare({{ $incoming->id }})" loading="declineShare">{{ __('Decline') }}</x-button>
+            <x-button icon="plus" type="button" wire:click="acceptShare({{ $incoming->id }})" loading="acceptShare">{{ __('Add to my workouts') }}</x-button>
+        @elseif ($ready)
             <x-button icon="plus" type="button" wire:click="adopt" loading="adopt" :disabled="$workout->isArchived()">{{ __('Add to my workouts') }}</x-button>
         @elseif ($running)
             <x-button variant="fire" icon="play" :href="route('sessions.run', $running)" wire:navigate>{{ __('Continue training') }}</x-button>
@@ -20,7 +26,16 @@
         @endif
     </x-page-header>
 
-    @if ($ready)
+    @if ($incoming)
+        <x-alert type="info" :timeout="0" :dismissible="false" class="mb-5">
+            {{ __(':name sent you this workout.', ['name' => $incoming->sender->name]) }}
+            @if ($incoming->message) <span class="italic">“{{ $incoming->message }}”</span> @endif
+            {{ __('Add it to your workouts to start it or to change it to your liking.') }}
+            @if ($ownExercises->isNotEmpty())
+                <span class="mt-1 block text-sm">{{ trans_choice('Your own copy is made of :count exercise of :name: :list.|Your own copies are made of :count exercises of :name: :list.', $ownExercises->count(), ['name' => $incoming->sender->name, 'list' => $ownExercises->implode(', ')]) }}</span>
+            @endif
+        </x-alert>
+    @elseif ($ready)
         <x-alert type="info" :timeout="0" class="mb-5">
             {{ __('This is a ready-made workout. Add it to your workouts to start it or to change it to your liking.') }}
             @if ($copy)
@@ -52,7 +67,11 @@
                             @endif
                         </div>
                         <div class="min-w-0 flex-1">
-                            <a href="{{ route('exercises.show', $exercise) }}" wire:navigate class="font-semibold hover:underline">{{ $exercise->name }}</a>
+                            @if ($exercise->isStandard() || $exercise->isOwnedBy(auth()->user()))
+                                <a href="{{ route('exercises.show', $exercise) }}" wire:navigate class="font-semibold hover:underline">{{ $exercise->name }}</a>
+                            @else
+                                <span class="font-semibold">{{ $exercise->name }}</span>
+                            @endif
                             <p class="text-sm text-slate-600 dark:text-slate-300">
                                 <span class="font-semibold text-ink dark:text-white">{{ $item->targetSummary() ?? __('No target') }}</span>
                                 @if ($item->superset_next) <span class="text-violet-700 dark:text-violet-300">· {{ __('superset with the next one') }}</span>
@@ -100,4 +119,38 @@
             </dl>
         </x-card>
     </div>
+
+    @can('share', $workout)
+        <x-modal wire:model="showShare" :title="__('Share :name', ['name' => $workout->name])" maxWidth="md">
+            @if ($this->buddies->isEmpty())
+                <p class="text-slate-600 dark:text-slate-300">{{ __('You have no buddies yet. Invite someone first; then you can send them your workouts.') }}</p>
+                <x-button class="mt-4" icon="users" :href="route('buddies')" wire:navigate>{{ __('Buddies') }}</x-button>
+            @else
+                <form wire:submit="share" id="share-form" class="grid gap-4">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('Choose who. They get a copy; your workout stays yours.') }}</p>
+                    <div class="grid gap-2">
+                        @foreach ($this->buddies as $buddy)
+                            <label wire:key="sb-{{ $buddy->id }}" class="flex cursor-pointer items-center gap-3 rounded-xl p-3 ring-1 ring-slate-200 has-checked:bg-brand-50 has-checked:ring-2 has-checked:ring-brand-500 dark:ring-line-dark dark:has-checked:bg-brand-500/15">
+                                <input type="checkbox" wire:model="shareTo" value="{{ $buddy->id }}" class="size-5 rounded border-slate-300 text-brand-700 focus:ring-brand-500">
+                                <x-avatar :user="$buddy" class="size-8 ring-0" />
+                                <span class="font-semibold">{{ $buddy->name }}</span>
+                                <span class="ml-auto text-sm text-slate-400">{{ '@'.$buddy->username }}</span>
+                            </label>
+                        @endforeach
+                        <x-form.error name="shareTo" />
+                    </div>
+                    <x-form.textarea :label="__('Message (optional)')" wire:model="shareMessage" rows="2" maxlength="300" />
+                    @if ($ownExercises->isNotEmpty())
+                        <p class="rounded-xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                            {{ trans_choice(':count own exercise (:list) is copied along, so your buddy has it too.|:count own exercises (:list) are copied along, so your buddy has them too.', $ownExercises->count(), ['list' => $ownExercises->implode(', ')]) }}
+                        </p>
+                    @endif
+                </form>
+                <x-slot:footer>
+                    <x-button variant="ghost" type="button" x-on:click="show = false">{{ __('Cancel') }}</x-button>
+                    <x-button form="share-form" icon="share" loading="share">{{ __('Send') }}</x-button>
+                </x-slot:footer>
+            @endif
+        </x-modal>
+    @endcan
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\SharedWorkout;
 use App\Models\User;
 use App\Models\Workout;
 
@@ -11,9 +12,12 @@ use App\Models\Workout;
  */
 class WorkoutPolicy
 {
+    /** Eigen, kant-en-klaar, of door een maatje naar je gestuurd (zolang je nog niet hebt gekozen) */
     public function view(User $user, Workout $workout): bool
     {
-        return $workout->isOwnedBy($user) || $workout->isStandard();
+        return $workout->isOwnedBy($user)
+            || $workout->isStandard()
+            || SharedWorkout::open()->where('workout_id', $workout->id)->where('recipient_id', $user->id)->exists();
     }
 
     public function create(User $user): bool
@@ -38,6 +42,12 @@ class WorkoutPolicy
 
     /** Een training starten kan alleen met een eigen workout; een standaardworkout neem je eerst over */
     public function start(User $user, Workout $workout): bool
+    {
+        return $workout->isOwnedBy($user);
+    }
+
+    /** Delen met maatjes: alleen je eigen workouts */
+    public function share(User $user, Workout $workout): bool
     {
         return $workout->isOwnedBy($user);
     }

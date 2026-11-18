@@ -12,6 +12,7 @@ use App\Livewire\Admin\Settings as AdminSettings;
 use App\Livewire\Admin\Users as AdminUsers;
 use App\Livewire\Badges;
 use App\Livewire\BodyParts\Index as BodyPartsIndex;
+use App\Livewire\Buddies\Index as BuddiesIndex;
 use App\Livewire\Calendar;
 use App\Livewire\Contact\Index as ContactIndex;
 use App\Livewire\Contact\Show as ContactShow;
@@ -92,6 +93,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Berichten van de admin
     Route::get('messages', Messages::class)->name('messages');
+
+    // Maatjes (workouts delen)
+    Route::get('buddies', BuddiesIndex::class)->name('buddies');
 
     // Contact met de admin
     Route::get('contact', ContactIndex::class)->name('contact');

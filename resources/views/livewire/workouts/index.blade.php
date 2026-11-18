@@ -18,9 +18,9 @@
 
     {{-- Tabs + zoeken --}}
     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        @php($tab = $showReady ? 'ready' : ($showArchived ? 'archived' : 'active'))
+        @php($tab = $showReceived ? 'received' : ($showReady ? 'ready' : ($showArchived ? 'archived' : 'active')))
         <div class="inline-flex max-w-full self-start overflow-x-auto rounded-full bg-white p-1 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-line-dark">
-            @foreach (['active' => __('Active'), 'ready' => __('Ready-made'), 'archived' => __('Archived')] as $key => $label)
+            @foreach (['active' => __('Active'), 'ready' => __('Ready-made'), 'archived' => __('Archived')] + ($this->counts['received'] || $showReceived ? ['received' => __('Received')] : []) as $key => $label)
                 <button type="button" wire:click="showTab('{{ $key }}')" wire:key="tab-{{ $key }}"
                         @class(['shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition',
                                 'bg-brand-700 text-white dark:bg-brand-500' => $tab === $key,
@@ -29,7 +29,7 @@
                 </button>
             @endforeach
         </div>
-        @if ($showReady ? $this->counts['ready'] > 5 : $this->counts['active'] + $this->counts['archived'] > 5)
+        @if (! $showReceived && ($showReady ? $this->counts['ready'] > 5 : $this->counts['active'] + $this->counts['archived'] > 5))
             <x-form.input wire:model.live.debounce.300ms="search" icon="search" :placeholder="__('Search a workout…')" :aria-label="__('Search')" class="sm:ml-auto sm:w-72" />
         @endif
     </div>
@@ -55,6 +55,41 @@
         <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">{{ __('Pick a workout and add it to your workouts. Your copy is yours to change; the ready-made workout stays the same.') }}</p>
     @endif
 
+    @if ($showReceived)
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            @forelse ($this->received as $share)
+                @php($workout = $share->workout)
+                <article wire:key="s-{{ $share->id }}" style="--c: {{ $workout->color ?? '#1d63c5' }}"
+                         class="relative flex flex-col rounded-2xl bg-white bg-[linear-gradient(var(--c),var(--c))] bg-size-[100%_0.375rem] bg-no-repeat pt-1.5 shadow-sm ring-1 ring-slate-200 dark:bg-panel-dark dark:ring-line-dark">
+                    <div class="flex flex-1 flex-col gap-3 p-4">
+                        <div class="flex items-start gap-3">
+                            <x-avatar :user="$share->sender" class="size-11 ring-0" />
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-display text-xl leading-tight font-bold uppercase">
+                                    <a href="{{ route('workouts.show', $workout) }}" wire:navigate class="hover:underline">{{ $workout->name }}</a>
+                                </h3>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">
+                                    {{ __('From :name', ['name' => $share->sender->name]) }} · {{ trans_choice(':count exercise|:count exercises', $workout->exercises->count()) }}@if ($minutes = $workout->minutes()) · ± {{ $minutes }} min @endif
+                                </p>
+                            </div>
+                        </div>
+                        @if ($share->message)
+                            <p class="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600 italic dark:bg-white/5 dark:text-slate-300">“{{ $share->message }}”</p>
+                        @endif
+                        <p class="line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{{ $workout->exercises->pluck('exercise.name')->implode(' · ') }}</p>
+                        <div class="mt-auto grid grid-cols-2 gap-2 pt-1">
+                            <x-button size="sm" variant="secondary" type="button" wire:click="declineShare({{ $share->id }})" loading="declineShare({{ $share->id }})">{{ __('Decline') }}</x-button>
+                            <x-button size="sm" icon="plus" type="button" wire:click="acceptShare({{ $share->id }})" loading="acceptShare({{ $share->id }})">{{ __('Add to my workouts') }}</x-button>
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="rounded-2xl bg-white p-8 text-center ring-1 ring-slate-200 sm:col-span-2 xl:col-span-3 dark:bg-panel-dark dark:ring-line-dark">
+                    <p class="text-slate-500 dark:text-slate-400">{{ __('No workouts are waiting for you.') }}</p>
+                </div>
+            @endforelse
+        </div>
+    @else
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         @forelse ($this->workouts as $workout)
             <article wire:key="w-{{ $workout->id }}" style="--c: {{ $workout->color ?? '#1d63c5' }}"
@@ -153,6 +188,7 @@
             </div>
         @endforelse
     </div>
+    @endif
 
     <x-confirm-delete :name="$deletingName">
         {{ __('The exercises themselves stay. Rather keep it? Then archive the workout.') }}
