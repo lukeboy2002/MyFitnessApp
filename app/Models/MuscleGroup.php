@@ -45,6 +45,8 @@ class MuscleGroup extends Model
         return $this->belongsToMany(Exercise::class)->withPivot('is_primary');
     }
 
-    // Later (stap 5):
-    // public function workouts(): BelongsToMany { return $this->belongsToMany(Workout::class); }
+    public function workouts(): BelongsToMany
+    {
+        return $this->belongsToMany(Workout::class);
+    }
 }

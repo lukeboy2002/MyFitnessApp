@@ -6,6 +6,7 @@ use App\Enums\ExerciseType;
 use App\Livewire\Concerns\EditsExerciseTargets;
 use App\Livewire\Concerns\PicksExercises;
 use App\Models\Exercise;
+use App\Models\User;
 use App\Models\Workout;
 use App\Models\WorkoutExercise;
 use App\Support\Supersets;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
@@ -23,6 +25,10 @@ class Form extends Component
     use EditsExerciseTargets, PicksExercises;
 
     public ?Workout $workout = null;
+
+    /** Kant-en-klare workout (user_id null): alleen de admin, alleen standaardoefeningen en -spiergroepen */
+    #[Locked]
+    public bool $standard = false;
 
     public string $name = '';
 
@@ -44,12 +50,14 @@ class Form extends Component
     {
         if (! $workout?->exists) {
             $this->authorize('create', Workout::class);
+            $this->standard = request()->boolean('standaard') && Auth::user()->can('createStandard', Workout::class);
 
             return;
         }
 
         $this->authorize('update', $workout);
         $this->workout = $workout;
+        $this->standard = $workout->isStandard();
 
         $this->name = $workout->name;
         $this->color = $workout->color ?? Workout::COLORS[0];
@@ -62,7 +70,7 @@ class Form extends Component
     /** Oefening onderaan toevoegen met het standaarddoel van de oefening; de kiezer blijft open */
     public function addExercise(int $id): void
     {
-        $exercise = Exercise::visibleTo(Auth::user())->active()->findOrFail($id);
+        $exercise = Exercise::visibleTo($this->pickerUser())->active()->findOrFail($id);
 
         $this->items[] = $this->toItem($exercise, WorkoutExercise::defaultsFor($exercise, Auth::user()));
         $this->resetErrorBag('items');
@@ -119,7 +127,7 @@ class Form extends Component
 
         $this->items = array_map(fn (array $item) => $this->normalizeDecimals($item), $this->items);
 
-        $visible = fn (string $table) => Rule::exists($table, 'id')->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', $user->id));
+        $visible = fn (string $table) => Rule::exists($table, 'id')->where(fn ($q) => $this->standard ? $q->whereNull('user_id') : $q->whereNull('user_id')->orWhere('user_id', $user->id));
 
         $data = $this->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -139,12 +147,12 @@ class Form extends Component
         ]);
 
         $exercises = Exercise::whereIn('id', Arr::pluck($data['items'], 'exercise_id'))->get()->keyBy('id');
-        $workout = $this->workout ?? new Workout(['user_id' => $user->id]);
+        $workout = $this->workout ?? new Workout(['user_id' => $this->standard ? null : $user->id]);
 
-        DB::transaction(function () use ($workout, $data, $exercises, $user) {
+        DB::transaction(function () use ($workout, $data, $exercises) {
             $workout->fill([
                 'name' => $data['name'],
-                'slug' => Workout::uniqueSlug($data['name'], $user->id, $workout->id),
+                'slug' => $workout->exists ? $workout->slugFor($data['name']) : Workout::uniqueSlug($data['name'], $workout->user_id),
                 'color' => $data['color'],
                 'description' => $data['description'] ?: null,
                 'estimated_minutes' => $data['estimated_minutes'],
@@ -195,7 +203,16 @@ class Form extends Component
 
     public function render()
     {
-        return view('livewire.workouts.form')->title($this->workout ? __('Edit workout') : __('New workout'));
+        return view('livewire.workouts.form')->title(match (true) {
+            $this->workout !== null => __('Edit workout'),
+            $this->standard => __('New ready-made workout'),
+            default => __('New workout'),
+        });
+    }
+
+    protected function pickerUser(): ?User
+    {
+        return $this->standard ? null : Auth::user();
     }
 
     /** @return array{0: list<string>, 1: array<string, bool>, 2: array<string, bool>} volgorde, gekoppeld, cardio */

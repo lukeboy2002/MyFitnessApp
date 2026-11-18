@@ -1,6 +1,12 @@
 <div>
-    <x-page-header :title="$workout ? __('Edit workout') : __('New workout')"
+    <x-page-header :title="$workout ? __('Edit workout') : ($standard ? __('New ready-made workout') : __('New workout'))"
                    :description="__('Choose your exercises, put them in order and fill in your target per exercise.')" />
+
+    @if ($standard)
+        <x-alert type="info" :timeout="0" :dismissible="false" class="mb-5">
+            {{ __('Ready-made workout: visible to everyone under Workouts › Ready-made. Only standard exercises can be added, so every user has them.') }}
+        </x-alert>
+    @endif
 
 
     <form wire:submit="save" class="flex flex-col gap-5">

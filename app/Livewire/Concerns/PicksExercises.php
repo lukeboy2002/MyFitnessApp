@@ -4,6 +4,7 @@ namespace App\Livewire\Concerns;
 
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 
@@ -29,23 +30,29 @@ trait PicksExercises
         $this->showPicker = true;
     }
 
+    /** Voor wie de kiezer oefeningen toont; null = alleen de standaardlijst (kant-en-klare workout van de admin) */
+    protected function pickerUser(): ?User
+    {
+        return Auth::user();
+    }
+
     #[Computed]
     public function muscleGroups()
     {
-        return MuscleGroup::visibleTo(Auth::user())->orderBy('sort_order')->orderBy('name')->get();
+        return MuscleGroup::visibleTo($this->pickerUser())->orderBy('sort_order')->orderBy('name')->get();
     }
 
     /** Aantal actieve eigen oefeningen; 0 = filter niet tonen */
     #[Computed]
     public function pickerOwnCount(): int
     {
-        return Exercise::where('user_id', Auth::id())->active()->count();
+        return $this->pickerUser() ? Exercise::where('user_id', Auth::id())->active()->count() : 0;
     }
 
     #[Computed]
     public function pickerExercises()
     {
-        return Exercise::visibleTo(Auth::user())->active()
+        return Exercise::visibleTo($this->pickerUser())->active()
             ->when($this->pickerSearch !== '', fn ($q) => $q->where('name', 'like', '%'.$this->pickerSearch.'%'))
             ->when($this->pickerType !== '', fn ($q) => $q->where('type', $this->pickerType))
             ->when($this->pickerOwn, fn ($q) => $q->where('user_id', Auth::id()))
