@@ -1,25 +1,37 @@
 <div style="--c: {{ $workout->color ?? '#1d63c5' }}">
-    <a href="{{ route('workouts.index', $workout->isArchived() ? ['archief' => 1] : []) }}" wire:navigate class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
-        <x-icon name="chevron-right" class="size-4 rotate-180" /> {{ __('All workouts') }}
+    @php($ready = $workout->isStandard())
+    <a href="{{ route('workouts.index', $ready ? ['kant-en-klaar' => 1] : ($workout->isArchived() ? ['archief' => 1] : [])) }}" wire:navigate class="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">
+        <x-icon name="chevron-right" class="size-4 rotate-180" /> {{ $ready ? __('Ready-made workouts') : __('All workouts') }}
     </a>
 
     <x-page-header :title="$workout->name" :description="$workout->description">
-        <x-button variant="secondary" type="button" icon="archive" wire:click="archive" loading="archive">
-            {{ $workout->isArchived() ? __('Restore') : __('Archive') }}
-        </x-button>
-        <x-button variant="secondary" :href="route('workouts.edit', $workout)" wire:navigate>{{ __('Edit') }}</x-button>
-        @if ($running)
+        @if ($canManage)
+            <x-button variant="secondary" type="button" icon="archive" wire:click="archive" loading="archive">
+                {{ $workout->isArchived() ? __('Restore') : __('Archive') }}
+            </x-button>
+            <x-button variant="secondary" :href="route('workouts.edit', $workout)" wire:navigate>{{ __('Edit') }}</x-button>
+        @endif
+        @if ($ready)
+            <x-button icon="plus" type="button" wire:click="adopt" loading="adopt" :disabled="$workout->isArchived()">{{ __('Add to my workouts') }}</x-button>
+        @elseif ($running)
             <x-button variant="fire" icon="play" :href="route('sessions.run', $running)" wire:navigate>{{ __('Continue training') }}</x-button>
         @else
             <x-button variant="fire" icon="play" type="button" wire:click="start" loading="start" :disabled="$workout->isArchived() || $workout->exercises->isEmpty()">{{ __('Start workout') }}</x-button>
         @endif
     </x-page-header>
 
-    @if ($running && $running->workout_id !== $workout->id)
+    @if ($ready)
+        <x-alert type="info" :timeout="0" class="mb-5">
+            {{ __('This is a ready-made workout. Add it to your workouts to start it or to change it to your liking.') }}
+            @if ($copy)
+                {{ __('You already have it:') }} <a href="{{ route('workouts.show', $copy) }}" wire:navigate class="font-semibold underline">{{ $copy->name }}</a>.
+            @endif
+        </x-alert>
+    @elseif ($running && $running->workout_id !== $workout->id)
         <x-alert type="info" :timeout="0" class="mb-5">{{ __('You still have a training running:') }} <a href="{{ route('sessions.run', $running) }}" wire:navigate class="font-semibold underline">{{ $running->name }}</a>. {{ __('Finish that one first.') }}</x-alert>
     @endif
     @if ($workout->isArchived())
-        <x-alert type="warning" class="mb-5">{{ __('This workout is archived. Restore it to be able to start it again.') }}</x-alert>
+        <x-alert type="warning" class="mb-5">{{ $ready ? __('This ready-made workout is archived and hidden for users.') : __('This workout is archived. Restore it to be able to start it again.') }}</x-alert>
     @endif
 
     <div class="grid gap-5 lg:grid-cols-[1fr_18rem]">

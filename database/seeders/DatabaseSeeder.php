@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(BodyPartSeeder::class); // lichaamsdelen, spiergroepen, spieren
         $this->call(ExerciseSeeder::class); // standaardoefeningen (na de spiergroepen)
+        $this->call(StandardWorkoutSeeder::class); // kant-en-klare workouts (na de oefeningen)
 
         // Testaccounts en voorbeeldworkouts alleen lokaal: online staat Faker er niet op (composer --no-dev)
         if (app()->isProduction()) {

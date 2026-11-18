@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\MuscleGroup;
 use App\Models\User;
@@ -11,6 +12,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Lokaal testen met de echte gegevens van de online app.
@@ -24,6 +26,9 @@ class OnlineDataSeeder extends Seeder
 
     /** Oude id => nieuwe id per tabel */
     private array $ids = [];
+
+    /** Kolommen per tabel; kolommen die lokaal niet (meer) bestaan worden overgeslagen */
+    private array $columns = [];
 
     public function run(): void
     {
@@ -45,14 +50,31 @@ class OnlineDataSeeder extends Seeder
                 WorkoutSession::where('user_id', $user->id)->delete();
                 Workout::where('user_id', $user->id)->delete();
                 Exercise::where('user_id', $user->id)->delete();
+                Equipment::where('user_id', $user->id)->delete();
                 $this->ids['users'][$row['id']] = $user->id;
+            }
+
+            // Materiaal (sinds 2026-11-17): standaard op slug, eigen materiaal opnieuw aanmaken
+            $standardEquipment = Equipment::whereNull('user_id')->pluck('id', 'slug');
+            foreach ($data['equipment'] ?? [] as $row) {
+                $this->ids['equipment'][$row['id']] = $row['user_id']
+                    ? $this->insert('equipment', $row, ['user_id' => 'users'])
+                    : $standardEquipment[$row['slug']] ?? null;
             }
 
             // Standaardoefeningen op slug, eigen oefeningen opnieuw aanmaken
             $global = Exercise::whereNull('user_id')->pluck('id', 'slug');
             foreach ($data['exercises'] as $row) {
+                // Oude dump: materiaal als tekst in exercises.equipment
+                if (! array_key_exists('equipment_id', $row)) {
+                    $row['equipment_id'] = $standardEquipment[$row['equipment'] ?? 'other'] ?? null;
+                    $keys = ['user_id' => 'users'];
+                } else {
+                    $keys = ['user_id' => 'users', 'equipment_id' => 'equipment'];
+                }
+
                 $this->ids['exercises'][$row['id']] = $row['user_id']
-                    ? $this->insert('exercises', $row, ['user_id' => 'users'])
+                    ? $this->insert('exercises', $row, $keys)
                     : $global[$row['slug']] ?? null;
             }
             foreach ($data['exercise_muscle_group'] as $row) {
@@ -76,7 +98,8 @@ class OnlineDataSeeder extends Seeder
                 $this->ids['session_exercises'][$row['id']] = $this->insert('session_exercises', $row, ['workout_session_id' => 'workout_sessions', 'exercise_id' => 'exercises', 'workout_exercise_id' => 'workout_exercises']);
             }
             foreach (array_chunk($data['set_logs'], 200) as $chunk) {
-                DB::table('set_logs')->insert(array_map(fn ($row) => $this->map($row, ['session_exercise_id' => 'session_exercises']), $chunk));
+                $columns = $this->columns['set_logs'] ??= Schema::getColumnListing('set_logs');
+                DB::table('set_logs')->insert(array_map(fn ($row) => Arr::only($this->map($row, ['session_exercise_id' => 'session_exercises']), $columns), $chunk));
             }
             foreach ($data['cardio_logs'] as $row) {
                 $this->ids['cardio_logs'][$row['id']] = $this->insert('cardio_logs', $row, ['session_exercise_id' => 'session_exercises']);
@@ -96,7 +119,7 @@ class OnlineDataSeeder extends Seeder
     /** Rij invoegen met omgezette sleutels; geeft het nieuwe id terug */
     private function insert(string $table, array $row, array $keys, bool $keepId = false): ?int
     {
-        $row = $this->map($row, $keys, $keepId);
+        $row = Arr::only($this->map($row, $keys, $keepId), $this->columns[$table] ??= Schema::getColumnListing($table));
 
         if ($keepId) {
             DB::table($table)->insert($row);

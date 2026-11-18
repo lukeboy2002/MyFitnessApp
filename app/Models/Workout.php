@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 
-#[Fillable(['user_id', 'name', 'slug', 'description', 'color', 'estimated_minutes', 'archived_at'])]
+#[Fillable(['user_id', 'source_workout_id', 'name', 'slug', 'description', 'color', 'estimated_minutes', 'archived_at'])]
 class Workout extends Model
 {
     /** @use HasFactory<WorkoutFactory> */
@@ -37,6 +38,18 @@ class Workout extends Model
     public function muscleGroups(): BelongsToMany
     {
         return $this->belongsToMany(MuscleGroup::class)->orderBy('muscle_groups.sort_order')->orderBy('muscle_groups.name');
+    }
+
+    /** De standaardworkout waar deze kopie van komt (Overnemen) */
+    public function source(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'source_workout_id');
+    }
+
+    /** Eigen kopieën van deze standaardworkout */
+    public function copies(): HasMany
+    {
+        return $this->hasMany(self::class, 'source_workout_id');
     }
 
     public function isArchived(): bool
@@ -68,17 +81,31 @@ class Workout extends Model
         return $seconds ? max(5, (int) round($seconds / 60 / 5) * 5) : null;
     }
 
-    /** Kopie met dezelfde oefeningen, doelen en spiergroepen */
-    public function duplicate(string $name): self
+    /**
+     * Kopie met dezelfde oefeningen, doelen en spiergroepen. Standaard voor dezelfde eigenaar;
+     * met $owner een kopie voor iemand anders (Overnemen) of, als $standard, een nieuwe standaardworkout.
+     */
+    public function duplicate(string $name, ?User $owner = null, bool $standard = false): self
     {
-        $copy = $this->replicate(['slug', 'archived_at']);
+        $userId = $standard ? null : ($owner?->id ?? $this->user_id);
+
+        $copy = $this->replicate(['slug', 'archived_at', 'source_workout_id']);
+        $copy->user_id = $userId;
+        $copy->source_workout_id = $userId === null ? null : ($this->isStandard() ? $this->id : $this->source_workout_id);
         $copy->name = $name;
-        $copy->slug = static::uniqueSlug($name, $this->user_id);
+        $copy->slug = static::uniqueSlug($name, $userId);
         $copy->save();
 
-        $copy->muscleGroups()->sync($this->muscleGroups()->pluck('muscle_groups.id'));
+        $groups = $this->muscleGroups()->when($standard, fn ($q) => $q->whereNull('muscle_groups.user_id'))->pluck('muscle_groups.id');
+        $copy->muscleGroups()->sync($groups);
         $this->exercises->each(fn (WorkoutExercise $item) => $copy->exercises()->create(Arr::except($item->only($item->getFillable()), 'workout_id')));
 
         return $copy;
+    }
+
+    /** Kan deze workout een standaardworkout worden? Alleen als alle oefeningen standaardoefeningen zijn */
+    public function onlyStandardExercises(): bool
+    {
+        return $this->exercises()->whereHas('exercise', fn ($q) => $q->whereNotNull('user_id'))->doesntExist();
     }
 }
