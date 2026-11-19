@@ -48,6 +48,36 @@
         </div>
     @endif
 
+    {{-- Delen met vrienden (App\Actions\ShareTraining): standaard privé --}}
+    @if ($this->canShare)
+        <div class="mb-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5 dark:bg-panel-dark dark:ring-line-dark">
+            <div class="flex items-center gap-3">
+                <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"><x-icon name="users" /></span>
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold">{{ __('Share with friends') }}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ trans_choice('Show this training to your :count friend.|Show this training to your :count friends.', $this->friends->count()) }}</p>
+                </div>
+                <button type="button" role="switch" aria-checked="{{ $session->isShared() ? 'true' : 'false' }}" aria-label="{{ __('Share with friends') }}"
+                        wire:click="toggleShare" wire:loading.attr="disabled"
+                        @class(['relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition',
+                                'bg-brand-700 dark:bg-brand-500' => $session->isShared(),
+                                'bg-slate-300 dark:bg-white/20' => ! $session->isShared()])>
+                    <span @class(['inline-block size-5 rounded-full bg-white shadow transition', 'translate-x-6' => $session->isShared(), 'translate-x-1' => ! $session->isShared()])></span>
+                </button>
+            </div>
+            <p class="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                {{ __('They see: name, date, time, sets, volume and your new records.') }}
+                <span class="block text-slate-400">{{ __('Not: your note and your individual sets.') }}</span>
+            </p>
+            @if ($session->isShared())
+                <p class="mt-3 flex items-center gap-1.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                    <x-icon name="check" class="size-4" /> {{ __('Shared') }}@if ($shareNotice) · {{ $shareNotice }}@endif
+                </p>
+                <a href="{{ route('buddies', ['tab' => 'activiteit']) }}" wire:navigate class="mt-1 inline-block text-sm font-semibold text-brand-700 hover:underline dark:text-brand-300">{{ __('View friend activity') }}</a>
+            @endif
+        </div>
+    @endif
+
     {{-- Notitie: eenmaal opgeslagen ligt hij vast --}}
     <div class="mb-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5 dark:bg-panel-dark dark:ring-line-dark">
         @if (filled($session->notes))

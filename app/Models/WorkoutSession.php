@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 #[Fillable([
     'user_id', 'workout_id', 'name', 'color', 'status', 'started_at', 'paused_at', 'paused_seconds',
-    'ended_at', 'duration_seconds', 'source', 'external_id', 'notes',
+    'ended_at', 'duration_seconds', 'source', 'external_id', 'notes', 'shared_at', 'shared_summary',
 ])]
 class WorkoutSession extends Model
 {
@@ -26,6 +26,12 @@ class WorkoutSession extends Model
 
     public const QUICKSTART_DESCRIPTION = 'This is a free training. It can be different every time.';
 
+    /** Nieuwe trainingen zijn privé (ook vóór ze opnieuw uit de database zijn geladen) */
+    protected $attributes = [
+        'shared_at' => null,
+        'shared_summary' => null,
+    ];
+
     protected function casts(): array
     {
         return [
@@ -33,6 +39,8 @@ class WorkoutSession extends Model
             'started_at' => 'datetime',
             'paused_at' => 'datetime',
             'ended_at' => 'datetime',
+            'shared_at' => 'datetime',
+            'shared_summary' => 'array',
         ];
     }
 
@@ -49,6 +57,18 @@ class WorkoutSession extends Model
     public function exercises(): HasMany
     {
         return $this->hasMany(SessionExercise::class)->orderBy('position');
+    }
+
+    /** Duimen van vrienden (alleen bij een gedeelde training) */
+    public function likes(): HasMany
+    {
+        return $this->hasMany(SessionLike::class);
+    }
+
+    /** Zichtbaar voor vrienden (App\Actions\ShareTraining) */
+    public function isShared(): bool
+    {
+        return $this->shared_at !== null;
     }
 
     public function sets(): HasManyThrough

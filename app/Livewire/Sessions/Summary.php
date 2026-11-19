@@ -2,9 +2,14 @@
 
 namespace App\Livewire\Sessions;
 
+use App\Actions\ShareTraining;
+use App\Models\User;
 use App\Models\WorkoutSession;
 use App\Support\Achievements;
 use App\Support\ExerciseRecords;
+use App\Support\FriendActivity;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -15,6 +20,9 @@ class Summary extends Component
 
     /** Notitie bij de training, bv. "knie voelde stijf". Eenmaal opgeslagen ligt hij vast. */
     public string $notes = '';
+
+    /** Melding na het delen, bv. "Peter en Sanne kregen een melding" */
+    public ?string $shareNotice = null;
 
     public function mount(WorkoutSession $session)
     {
@@ -38,6 +46,42 @@ class Summary extends Component
 
         // Zonder updated_at: een notitie verandert niets aan badges en records, die hoeven niet opnieuw berekend
         WorkoutSession::withoutTimestamps(fn () => $this->session->update(['notes' => $this->notes]));
+    }
+
+    /** Delen met vrienden aan/uit (schakelaar op de samenvatting) */
+    public function toggleShare(ShareTraining $share): void
+    {
+        $this->authorize('update', $this->session);
+        abort_unless($this->canShare, 403);
+
+        if ($this->session->isShared()) {
+            $share->unshare($this->session);
+            $this->shareNotice = null;
+
+            return;
+        }
+
+        $notified = $share->share($this->session);
+        $this->shareNotice = $notified
+            ? __(':names got a notification.', ['names' => $this->friends->pluck('name')->join(', ', ' '.__('and').' ')])
+            : null;
+    }
+
+    /** Je vrienden met een openbaar profiel (zij zien een gedeelde training) */
+    #[Computed]
+    public function friends()
+    {
+        return User::whereKey(FriendActivity::friendIds(Auth::user()))->orderBy('name')->get(['id', 'name']);
+    }
+
+    /** Delen kan met een openbaar profiel, minstens één vriend en een afgeronde training */
+    #[Computed]
+    public function canShare(): bool
+    {
+        return $this->session->user_id === Auth::id()
+            && Auth::user()->profile_public
+            && ! $this->session->isRunning()
+            && ($this->session->isShared() || $this->friends->isNotEmpty());
     }
 
     public function render()

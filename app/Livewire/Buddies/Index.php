@@ -4,13 +4,17 @@ namespace App\Livewire\Buddies;
 
 use App\Actions\AcceptBuddy;
 use App\Actions\InviteBuddy;
+use App\Actions\LikeTraining;
 use App\Models\Buddy;
 use App\Models\User;
+use App\Models\WorkoutSession;
+use App\Support\FriendActivity;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -29,9 +33,34 @@ class Index extends Component
 
     public const SEARCH_LIMIT = 8;
 
+    /** activiteit = gedeelde trainingen, vrienden = koppelen en uitnodigen */
+    #[Url(as: 'tab')]
+    public string $tab = '';
+
     public string $login = '';
 
     public ?string $message = null;
+
+    public function mount(): void
+    {
+        if (! in_array($this->tab, ['activiteit', 'vrienden'], true)) {
+            // Open uitnodigingen of nog geen vrienden: eerst het koppelen
+            $this->tab = $this->invitations->isNotEmpty() || FriendActivity::friendIds(Auth::user())->isEmpty() ? 'vrienden' : 'activiteit';
+        }
+    }
+
+    public function showTab(string $tab): void
+    {
+        $this->tab = $tab === 'activiteit' ? 'activiteit' : 'vrienden';
+        $this->message = null;
+    }
+
+    /** Duim geven of terugnemen op een gedeelde training van een vriend */
+    public function like(int $sessionId, LikeTraining $like): void
+    {
+        $like->toggle(Auth::user(), WorkoutSession::findOrFail($sessionId));
+        unset($this->activity);
+    }
 
     public function invite(InviteBuddy $invite): void
     {
@@ -130,6 +159,13 @@ class Index extends Component
             ->get();
     }
 
+    /** Gedeelde trainingen van jou en je vrienden, nieuwste eerst */
+    #[Computed]
+    public function activity()
+    {
+        return FriendActivity::feed(Auth::user());
+    }
+
     /** Uitnodigingen aan jou */
     #[Computed]
     public function invitations()
@@ -177,6 +213,6 @@ class Index extends Component
 
     private function forget(): void
     {
-        unset($this->invitations, $this->buddies, $this->suggestions);
+        unset($this->invitations, $this->buddies, $this->suggestions, $this->activity);
     }
 }
