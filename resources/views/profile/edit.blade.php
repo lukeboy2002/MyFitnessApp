@@ -79,6 +79,8 @@
                         @endforeach
                     </ul>
                 </x-card>
+
+                <livewire:profile.import-history/>
             </div>
 
             <div class="grid gap-5">
