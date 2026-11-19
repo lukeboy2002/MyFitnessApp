@@ -233,6 +233,34 @@
                 ])->all()" />
         </x-card>
 
+        {{-- Sets per lichaamsdeel deze week (TrainingStats::bodyParts): zie je wat je overslaat --}}
+        @php($maxSets = max(1, $bodyParts->max('sets')))
+        <x-card :title="__('Muscle groups this week')" :description="__('Completed sets per body part, without warm-up sets.')" class="col-span-2">
+            <ul class="grid gap-3">
+                @foreach ($bodyParts as $part)
+                    <li wire:key="bp-{{ $part['slug'] }}">
+                        <div class="flex items-baseline justify-between gap-3 text-sm">
+                            <span @class(['font-semibold', 'text-slate-400 dark:text-slate-500' => ! $part['sets']])>{{ $part['name'] }}</span>
+                            <span class="shrink-0 tabular-nums">
+                                @if ($part['sets'])
+                                    <span class="font-bold">{{ trans_choice(':count set|:count sets', $part['sets']) }}</span>
+                                @else
+                                    <span class="font-semibold text-amber-600 dark:text-amber-400">{{ __('not yet') }}</span>
+                                @endif
+                                <span class="ml-1 text-xs text-slate-400">{{ __('last week :count', ['count' => $bodyPartsLastWeek[$part['slug']] ?? 0]) }}</span>
+                            </span>
+                        </div>
+                        <div class="mt-1 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+                            <div class="h-full rounded-full bg-brand-600 dark:bg-brand-400" style="width: {{ $part['sets'] / $maxSets * 100 }}%"></div>
+                        </div>
+                        @if ($part['groups']->count() > 1)
+                            <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{{ $part['groups']->map(fn ($g) => $g['name'].' '.$g['sets'])->implode(' · ') }}</p>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </x-card>
+
         {{-- Laatste trainingen --}}
         <x-card :title="__('Recent trainings')" :padding="false" class="col-span-2">
             <x-slot:actions>

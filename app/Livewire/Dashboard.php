@@ -72,6 +72,8 @@ class Dashboard extends Component
             'thisWeek' => $stats->totals($week),
             'lastWeek' => $stats->totals($week->subWeek(), $week),
             'weeks' => $stats->weeks(12),
+            'bodyParts' => $stats->bodyParts($week),
+            'bodyPartsLastWeek' => $stats->bodyParts($week->subWeek(), $week)->pluck('sets', 'slug'),
             'recent' => $stats->recent(5),
             'next' => ScheduledWorkout::where('user_id', $user->id)->open()
                 ->whereDate('scheduled_on', '>=', today())
