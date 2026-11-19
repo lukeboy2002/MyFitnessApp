@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 #[Fillable([
     'user_id', 'workout_id', 'name', 'color', 'status', 'started_at', 'paused_at', 'paused_seconds',
-    'ended_at', 'duration_seconds', 'source', 'external_id', 'notes', 'shared_at', 'shared_summary',
+    'ended_at', 'duration_seconds', 'source', 'external_id', 'data_import_id', 'notes', 'shared_at', 'shared_summary',
 ])]
 class WorkoutSession extends Model
 {
@@ -24,12 +24,16 @@ class WorkoutSession extends Model
 
     public const QUICKSTART_COLOR = '#c026d3';
 
+    /** Kleur van trainingen die uit een andere app zijn geïmporteerd */
+    public const IMPORT_COLOR = '#64748b';
+
     public const QUICKSTART_DESCRIPTION = 'This is a free training. It can be different every time.';
 
     /** Nieuwe trainingen zijn privé (ook vóór ze opnieuw uit de database zijn geladen) */
     protected $attributes = [
         'shared_at' => null,
         'shared_summary' => null,
+        'data_import_id' => null,
     ];
 
     protected function casts(): array
@@ -57,6 +61,12 @@ class WorkoutSession extends Model
     public function exercises(): HasMany
     {
         return $this->hasMany(SessionExercise::class)->orderBy('position');
+    }
+
+    /** De import uit een andere app waar deze training vandaan komt (Hevy, Strong, FitNotes) */
+    public function dataImport(): BelongsTo
+    {
+        return $this->belongsTo(DataImport::class);
     }
 
     /** Duimen van vrienden (alleen bij een gedeelde training) */
