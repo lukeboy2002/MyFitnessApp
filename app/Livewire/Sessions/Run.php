@@ -15,6 +15,7 @@ use App\Models\SetLog;
 use App\Models\WorkoutSession;
 use App\Support\ExerciseRecords;
 use App\Support\RestReminder;
+use App\Support\Routine;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -93,6 +94,7 @@ class Run extends Component
         $this->ensureRunning();
         RestReminder::cancel(Auth::user());
         $this->session->finish();
+        Routine::completed($this->session);
         $highlights->handle($this->session);
 
         return $this->redirectRoute('sessions.summary', $this->session, navigate: true);

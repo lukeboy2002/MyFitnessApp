@@ -94,6 +94,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'push_inactive' => true,
         'push_buddies' => true,
         'profile_public' => false,
+        'next_routine_item_id' => null,
         'inactive_reminded_at' => null,
         'ban_reason' => null,
         'birth_date' => null,
@@ -176,6 +177,12 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function workouts(): HasMany
     {
         return $this->hasMany(Workout::class);
+    }
+
+    /** Schema: workouts in een vaste volgorde (App\Support\Routine) */
+    public function routineItems(): HasMany
+    {
+        return $this->hasMany(RoutineItem::class)->orderBy('position')->orderBy('id');
     }
 
     /** Maatjes: geaccepteerd, beide richtingen (gesorteerd op naam) */

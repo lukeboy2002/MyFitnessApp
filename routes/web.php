@@ -32,6 +32,7 @@ use App\Livewire\Sessions\Summary;
 use App\Livewire\Welcome;
 use App\Livewire\Workouts\Form as WorkoutForm;
 use App\Livewire\Workouts\Index as WorkoutsIndex;
+use App\Livewire\Workouts\Routine as WorkoutRoutine;
 use App\Livewire\Workouts\Show as WorkoutShow;
 use Illuminate\Support\Facades\Route;
 
@@ -73,6 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Workouts
     Route::get('workouts', WorkoutsIndex::class)->name('workouts.index');
     Route::get('workouts/create', WorkoutForm::class)->name('workouts.create');
+    Route::get('workouts/schema', WorkoutRoutine::class)->name('workouts.routine');
     Route::get('workouts/{workout}', WorkoutShow::class)->name('workouts.show');
     Route::get('workouts/{workout}/edit', WorkoutForm::class)->name('workouts.edit');
 

@@ -97,6 +97,58 @@
             </p>
         </x-card>
 
+        {{-- Schema (App\Support\Routine); wat vandaag in de kalender staat gaat voor --}}
+        @if ($routine && ! $next?->scheduled_on->isToday())
+            <x-card class="col-span-2 lg:col-span-4" :padding="false">
+                <div class="flex items-center gap-3 px-5 py-4 sm:px-6" style="--c: {{ $routine->workout->color ?? '#1d63c5' }}">
+                    <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-[color-mix(in_oklab,var(--c)_15%,transparent)] text-(--c)">
+                        <x-icon name="repeat" />
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{{ $trainedToday ? __('Next time') : __('Today') }} · {{ __('Schedule') }}</p>
+                        <p class="truncate font-semibold">{{ $routine->workout->name }}</p>
+                        @if ($routineAfter && ! $routineAfter->is($routine))
+                            <p class="truncate text-sm text-slate-500 dark:text-slate-400">{{ __('Then: :name', ['name' => $routineAfter->workout->name]) }}</p>
+                        @endif
+                        @if ($routineItems->count() > 1)
+                            <div class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold">
+                                <button type="button" wire:click="skipRoutine" class="inline-flex items-center gap-1 text-brand-700 hover:underline dark:text-brand-300">
+                                    <x-icon name="skip" class="size-4" /> {{ __('Skip') }}
+                                </button>
+                                <button type="button" wire:click="$set('choosingRoutine', true)" class="inline-flex items-center gap-1 text-brand-700 hover:underline dark:text-brand-300">
+                                    <x-icon name="repeat" class="size-4" /> {{ __('Choose another') }}
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                    @unless ($running)
+                        <x-button icon="play" type="button" class="shrink-0" wire:click="startRoutine" loading="startRoutine">{{ __('Start') }}</x-button>
+                    @endunless
+                </div>
+            </x-card>
+
+            <x-modal wire:model="choosingRoutine" :title="__('Which workout is next?')" maxWidth="md">
+                <ul class="grid gap-2">
+                    @foreach ($routineItems as $item)
+                        <li wire:key="rc-{{ $item->id }}">
+                            <button type="button" wire:click="chooseRoutine({{ $item->id }})" style="--c: {{ $item->workout->color ?? '#1d63c5' }}"
+                                    @class(['flex w-full items-center gap-3 rounded-xl p-3 text-left ring-1 transition hover:bg-slate-50 dark:hover:bg-white/5',
+                                            'bg-brand-50 ring-2 ring-brand-500 dark:bg-brand-500/15' => $item->is($routine),
+                                            'ring-slate-200 dark:ring-line-dark' => ! $item->is($routine)])>
+                                <span class="grid size-8 shrink-0 place-items-center rounded-full bg-(--c) text-sm font-bold text-white">{{ $loop->iteration }}</span>
+                                <span class="min-w-0 flex-1 truncate font-semibold">{{ $item->workout->name }}</span>
+                                @if ($item->is($routine))
+                                    <span class="text-sm font-semibold text-brand-700 dark:text-brand-300">{{ __('Up next') }}</span>
+                                @endif
+                            </button>
+                        </li>
+                    @endforeach
+                </ul>
+                <x-slot:footer>
+                    <x-button variant="secondary" icon="repeat" :href="route('workouts.routine')" wire:navigate>{{ __('Edit schedule') }}</x-button>
+                </x-slot:footer>
+            </x-modal>
+        @else
         {{-- Eerstvolgende geplande workout --}}
         <x-card class="col-span-2 lg:col-span-4" :padding="false">
             <div class="flex flex-wrap items-center gap-3 px-5 py-4 sm:px-6" @if ($next) style="--c: {{ $next->workout->color ?? '#1d63c5' }}" @endif>
@@ -122,6 +174,8 @@
                 <x-button variant="secondary" icon="calendar" :href="route('calendar', $next ? ['day' => $next->scheduled_on->toDateString()] : [])" wire:navigate>{{ __('Calendar (page)') }}</x-button>
             </div>
         </x-card>
+
+        @endif
 
         {{-- Doel uit het profiel: de laatste 30 dagen en een tip --}}
         <x-card class="col-span-2">
