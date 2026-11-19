@@ -1,10 +1,31 @@
 <div>
-    <x-page-header :title="__('Buddies')" :description="__('With buddies you can share workouts. You do not see each other\'s trainings.')" />
+    <x-page-header :title="__('Buddies')" :description="__('With friends you share workouts, and the trainings you choose to share.')" />
+
+    {{-- Tabs: Activiteit (gedeelde trainingen) en Vrienden (koppelen) --}}
+    <div class="mb-5 inline-flex max-w-full overflow-x-auto rounded-full bg-white p-1 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-line-dark">
+        @foreach (['activiteit' => __('Activity'), 'vrienden' => __('Buddies')] as $key => $label)
+            <button type="button" wire:click="showTab('{{ $key }}')" wire:key="tab-{{ $key }}"
+                    @class(['shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition',
+                            'bg-brand-700 text-white dark:bg-brand-500' => $tab === $key,
+                            'text-slate-600 hover:text-ink dark:text-slate-300 dark:hover:text-white' => $tab !== $key])>
+                {{ $label }}
+                @if ($key === 'vrienden')
+                    <span class="ml-0.5 opacity-70">{{ $this->buddies->filter->isAccepted()->count() }}</span>
+                    @if ($this->invitations->isNotEmpty())
+                        <span class="ml-1 inline-grid size-5 place-items-center rounded-full bg-fire-500 text-xs text-white">{{ $this->invitations->count() }}</span>
+                    @endif
+                @endif
+            </button>
+        @endforeach
+    </div>
 
     @if ($message)
         <x-alert type="success" class="mb-5" wire:key="msg-{{ md5($message) }}">{{ $message }}</x-alert>
     @endif
 
+    @if ($tab === 'activiteit')
+        @include('livewire.buddies.partials.activity')
+    @else
     <div class="grid gap-5 lg:grid-cols-[1fr_22rem]">
         <div class="flex flex-col gap-5">
             @if ($this->invitations->isNotEmpty())
@@ -107,4 +128,5 @@
             </x-card>
         </div>
     </div>
+    @endif
 </div>

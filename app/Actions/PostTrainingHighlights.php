@@ -61,7 +61,7 @@ class PostTrainingHighlights
      *
      * @return array<string, list<string>> oefeningnaam => omschrijvingen
      */
-    private function records(WorkoutSession $session): array
+    public function records(WorkoutSession $session): array
     {
         $history = ExerciseRecords::forSession($session);
         $records = [];
