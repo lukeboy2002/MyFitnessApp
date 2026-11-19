@@ -5,6 +5,7 @@
                 <x-button icon="plus" :href="route('workouts.create', ['standaard' => 1])" wire:navigate>{{ __('New ready-made workout') }}</x-button>
             @endcan
         @else
+            <x-button variant="secondary" icon="repeat" :href="route('workouts.routine')" wire:navigate>{{ __('Make schedule') }}</x-button>
             <x-button icon="plus" :href="route('workouts.create')" wire:navigate>{{ __('Create workout') }}</x-button>
         @endif
     </x-page-header>

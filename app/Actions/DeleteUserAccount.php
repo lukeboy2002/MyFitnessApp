@@ -9,6 +9,7 @@ use App\Models\Equipment;
 use App\Models\Exercise;
 use App\Models\Muscle;
 use App\Models\MuscleGroup;
+use App\Models\RoutineItem;
 use App\Models\ScheduledWorkout;
 use App\Models\User;
 use App\Models\Workout;
@@ -31,6 +32,8 @@ class DeleteUserAccount
         DB::transaction(function () use ($user) {
             WorkoutSession::where('user_id', $user->id)->delete();   // met oefeningen, sets, cardio en tussentijden
             ScheduledWorkout::where('user_id', $user->id)->delete();
+            $user->forceFill(['next_routine_item_id' => null])->save();
+            RoutineItem::where('user_id', $user->id)->delete();
             Workout::where('user_id', $user->id)->delete();          // met oefeningen en spiergroepen van de workout
             Exercise::where('user_id', $user->id)->delete();
             Equipment::where('user_id', $user->id)->delete();
