@@ -26,3 +26,6 @@ Schedule::command('auth:clear-resets')->daily()->at('03:35');
 
 // Gelezen berichten ouder dan een half jaar opruimen (UserMessage::prunable)
 Schedule::command('model:prune', ['--model' => [UserMessage::class]])->daily()->at('03:40');
+
+// Importbestanden (Hevy, Strong, FitNotes) die na een dag nog niet zijn geïmporteerd of geannuleerd opruimen
+Schedule::command('fitness:prune-imports')->daily()->at('03:45');

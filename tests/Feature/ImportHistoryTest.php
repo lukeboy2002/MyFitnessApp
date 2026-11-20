@@ -162,3 +162,15 @@ test('an unknown file is refused and you cannot undo someone else\'s import', fu
         ->call('confirmUndo', $other->id)
         ->assertNotFound();
 });
+
+test('import files that were never finished are removed after a day', function () {
+    $disk = Storage::disk('local');
+    $disk->put('imports/oud.csv', HEVY_CSV);
+    $disk->put('imports/nieuw.csv', HEVY_CSV);
+    touch($disk->path('imports/oud.csv'), now()->subHours(25)->getTimestamp());
+
+    $this->artisan('fitness:prune-imports')->assertSuccessful();
+
+    expect($disk->exists('imports/oud.csv'))->toBeFalse()
+        ->and($disk->exists('imports/nieuw.csv'))->toBeTrue();
+});

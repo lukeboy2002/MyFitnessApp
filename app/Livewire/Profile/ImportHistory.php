@@ -29,6 +29,9 @@ class ImportHistory extends Component
 {
     use PicksExercises, WithFileUploads;
 
+    /** Map op de local-disk waar het bestand tot het importeren staat (fitness:prune-imports ruimt oude op) */
+    public const UPLOAD_DIR = 'imports';
+
     public $file = null;
 
     #[Locked]
@@ -63,7 +66,7 @@ class ImportHistory extends Component
         $this->validate(['file' => ['required', 'file', 'extensions:csv,txt', 'max:20480']]);
 
         $this->discard();
-        $path = $this->file->storeAs('imports', Str::uuid().'.csv', 'local');
+        $path = $this->file->storeAs(self::UPLOAD_DIR, Str::uuid().'.csv', 'local');
         $filename = $this->file->getClientOriginalName();
         $this->reset('file', 'result');
 
